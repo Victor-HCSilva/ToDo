@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import date
-from app.main.utils import get_time_diff_days
+from app.main.utils import get_time_diff_days, get_time_remainder
 
 class Todo(models.Model):
     TAGS = [
@@ -65,8 +65,8 @@ class Todo(models.Model):
 
     @property
     def prazo_dias(self):
-        if self.prazo_inicial and self.prazo_final:
-            return get_time_diff_days(self.prazo_inicial, self.prazo_final)
+        if self.prazo_final:
+            return get_time_remainder(self.prazo_final)
         return None
 
     def message(self):

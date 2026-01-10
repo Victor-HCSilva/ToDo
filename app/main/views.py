@@ -31,26 +31,37 @@ def anotacoes(request, id_user):
 
     # Montagem dos filtros dinâmicos
     filters = {
-        "tag": request.GET.get('tag') or None,
-        "prioridade": get_label(request.GET.get('prioridade', '')),
-        "favorito": request.GET.get('favorito', ''),
-        "completo": request.GET.get('completo', ''),
-        "titulo__icontains": request.GET.get('titulo', ''),
+        "tag": request.GET.get('tag', None),
+        "prioridade": get_label(request.GET.get('prioridade', None)),
+        "favorito": request.GET.get('favorito', None),
+        "completo": request.GET.get('completo', None),
+        "titulo__icontains": request.GET.get('titulo', None),
         "user": get_object_or_404(User, id=id_user),
         "is_active": True,
     }
 
+    if filters.get("user", None) is None:
+        return redirect('main:login')
+
     # Apenas adiciona o range se as datas forem válidas
-    if prazo_inicial and prazo_final:
-        filters["prazo_inicial__range"] = [prazo_inicial, prazo_final]
+    # if prazo_inicial and prazo_final:
+    #     filters["prazo_inicial__range"] = [prazo_inicial, prazo_final]
 
     # Limpa campos vazios e ajusta booleanos
-    todos = Todo.objects.filter(
-        **adjust_boolean_fields(
-            clean_dict(filters)
-        )
-    ).order_by("-id")
 
+    filters =  clean_dict(filters)
+    filters = adjust_boolean_fields(filters)
+
+    print("Filters:\n", filters)
+    
+    todos = Todo.objects.filter(
+        **filters
+    ).order_by("-id")
+    # todos = Todo.objects.filter(user=get_object_or_404(User, id=id_user))
+
+    print(
+        f"Todos: {todos}"
+    )
     # Cor de destaque personalizada do usuário
     cor_obj = Colors.objects.filter(user=filters["user"]).first()
     cor_de_destaque = cor_obj.cor_de_destaque if cor_obj else "#3273dc"

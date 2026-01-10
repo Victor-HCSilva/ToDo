@@ -5,24 +5,35 @@ def get_time_diff_days(data_inicial: date, data_final: date) -> int:
     diferenca = data_final - data_inicial
     return diferenca.days
 
-def get_label(level: str):
+
+def get_time_remainder(data_final: date) -> int:
+    """Calcula os dias restantes data final - data incial inicial"""
+    data_inicial = date.today()
+    diferenca = data_final - data_inicial
+    return diferenca.days
+
+
+def get_label(level: str) -> str | None: 
     """Niveis de importância na tarefa"""
     levels = {
         "1": "Mínima",
         "2": "Mediana",
         "3": "Máxima",
     }
-    return levels.get(level, "")
+    return levels.get(level, None)
 
 def clean_dict(filters: dict) -> dict:
     """Retira campo vazios dos filtros"""
     for k, v in filters.copy().items():
-        if not v:
+        if v is None or v == '' or not v:
             filters.pop(k)
     return filters
 
-def adjust_boolean_fields(filters: dict):
-    """Ajuste para campos boleanos"""
+def adjust_boolean_fields(filters: dict) -> dict:
+    """Ajuste para campos boleanos: 
+    'true' -> True
+    'false' -> False
+    """
     bolean_fields = ["favorito", "completo"]
     for k, v in filters.copy().items():
         if k in bolean_fields:
@@ -34,6 +45,7 @@ def adjust_boolean_fields(filters: dict):
 
 
 if __name__ == "__main__":
+    # Testes
     import os
     import django
     import sys
@@ -51,4 +63,8 @@ if __name__ == "__main__":
 
     s = Todo.objects.all()
     for i in s:
-        print(i.message(), i.prazo_dias, i.prazo_inicial, i.prazo_final)
+        # print(i.message(), i.prazo_dias, i.prazo_inicial, i.prazo_final)
+        print(
+            f"{i.message()}\nDias restantes: {i.prazo_dias}\n\
+Prazo inicial: {i.prazo_inicial} \nPrazo final: {i.prazo_final}"
+        )
