@@ -5,30 +5,62 @@
 {% block title %}Página de Anotações - {{ user.username|default:"Meu App" }}{% endblock title %}
 
 {% block extra_css %}
-    <!-- <link rel="stylesheet" href="{% static 'css/home_specific.css' %}"> -->
-    <style>
-        /* Pequenos ajustes se necessário, mas Bulma Dark deve cobrir bem */
-        .label {
-            color: #dbdbdb; /* Garante que os labels do formulário sejam claros */
-        }
-        .input, .textarea {
-            background-color: #2a2a2a; /* Fundo mais escuro para campos de input */
-            border-color: #4a4a4a;
-            color: #e0e0e0;
-        }
-        .input::placeholder, .textarea::placeholder {
-            color: #7a7a7a;
-        }
-        .input:focus, .textarea:focus, .input:active, .textarea:active {
-            border-color: #3273dc; /* Cor primária do Bulma para foco */
-            box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
-        }
-    @media screen and (max-width: 769px) {
-            #id_anotacao{
-                width: 35vh;
-            }
+<!-- <link rel="stylesheet" href="{% static 'css/home_specific.css' %}"> -->
+<style>
+    /* Pequenos ajustes se necessário, mas Bulma Dark deve cobrir bem */
+    .label {
+        color: #dbdbdb;
+        /* Garante que os labels do formulário sejam claros */
     }
-    </style>
+
+    .input,
+    .textarea {
+        background-color: #2a2a2a;
+        /* Fundo mais escuro para campos de input */
+        border-color: #4a4a4a;
+        color: #e0e0e0;
+    }
+
+    .input::placeholder,
+    .textarea::placeholder {
+        color: #7a7a7a;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .input:active,
+    .textarea:active {
+        border-color: #3273dc;
+        /* Cor primária do Bulma para foco */
+        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+    }
+
+    /* Garante que o textarea ocupe a largura total e não estoure */
+    #id_anotacao {
+        width: 100%;
+        max-width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        /* Permite redimensionar apenas na vertical */
+    }
+
+    /* Ajustes para Mobile: Botões empilhados e largura total */
+    @media screen and (max-width: 768px) {
+        .mobile-column-buttons.is-grouped {
+            flex-direction: column;
+        }
+
+        .mobile-column-buttons.is-grouped>.control {
+            margin-right: 0 !important;
+            margin-bottom: 0.75rem;
+            width: 100%;
+        }
+
+        .mobile-column-buttons.is-grouped .button {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock extra_css %}
 
 {% block content %}
@@ -41,7 +73,7 @@
             </h1>
             {% if user.is_authenticated %}
             <p class="subtitle is-5 has-text-grey">Gerencie suas anotações abaixo.</p>
-        {% endif %}
+            {% endif %}
         </div>
 
         {% if user.is_authenticated %}
@@ -53,41 +85,41 @@
 
                 {# Renderizando campos do formulário manualmente para aplicar classes Bulma #}
                 {% for field in form %}
-                    <div class="field">
-                        <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        <div class="control {% if field.field.widget_type == 'checkbox' %}is-flex is-align-items-center{% endif %}">
-                            {# Adicione classes Bulma aos widgets no seu forms.py para melhor resultado #}
-                            {# Ex: forms.CharField(widget=forms.TextInput(attrs={'class': 'input'})) #}
-                            {# Ex: forms.CharField(widget=forms.Textarea(attrs={'class': 'textarea'})) #}
-                            {{ field }}
-                            {% if field.field.widget_type == 'checkbox' %}
-                                <span class="ml-2">{{ field.label_tag }}</span> {# Para Bulma, o label do checkbox é melhor ao lado #}
-                            {% endif %}
-                        </div>
-                        {% if field.help_text %}
-                            <p class="help has-text-grey-light">{{ field.help_text }}</p>
+                <div class="field">
+                    <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    <div
+                        class="control {% if field.field.widget_type == 'checkbox' %}is-flex is-align-items-center{% endif %}">
+                        {# Adicione classes Bulma aos widgets no seu forms.py para melhor resultado #}
+                        {# Ex: forms.CharField(widget=forms.TextInput(attrs={'class': 'input'})) #}
+                        {# Ex: forms.CharField(widget=forms.Textarea(attrs={'class': 'textarea'})) #}
+                        {{ field }}
+                        {% if field.field.widget_type == 'checkbox' %}
+                        <span class="ml-2">{{ field.label_tag }}</span> {# Para Bulma, o label do checkbox é melhor ao
+                        lado #}
                         {% endif %}
-                        {% for error in field.errors %}
-                            <p class="help is-danger">{{ error }}</p>
-                        {% endfor %}
                     </div>
+                    {% if field.help_text %}
+                    <p class="help has-text-grey-light">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <p class="help is-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
                 {% endfor %}
 
-                <div class="field is-grouped mt-4">
+                <div class="field is-grouped mt-4 mobile-column-buttons">
                     <div class="control">
                         <button type="submit" class="button is-success">
                             <span class="icon"><i class="fas fa-plus"></i></span>
                             <span>Adicionar Anotação</span>
                         </button>
                     </div>
-                    {% comment %}
                     <div class="control">
-                        <a class="button is-link is-light" href="{% url 'anotacoes' id_user=user.id %}">
-                           <span class="icon"><i class="fas fa-list-ul"></i></span>
-                           <span>Ver Todas</span>
-                       </a>
-                   </div>
-                    {% endcomment %}
+                        <a class="button is-link is-light" href="{% url 'main:anotacoes' id_user=user.id %}">
+                            <span class="icon"><i class="fas fa-list-ul"></i></span>
+                            <span>Ver Todas</span>
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
@@ -97,45 +129,48 @@
         <div class="box has-background-black-bis mt-5">
             <h3 class="title is-4 has-text-info">Suas Anotações</h3>
             {% for todo in todos %}
-                <article class="message is-dark mb-3"> {# Usando o componente 'message' do Bulma #}
-                    <div class="message-header">
+            <article class="message is-dark mb-3"> {# Usando o componente 'message' do Bulma #}
+                <div class="message-header">
                     <p>{{ todo.titulo|truncatewords:10}}</p>
-                        <div class="buttons are-small">
-                            <a class="button is-info is-outlined" href="{% url 'main:show' id_user=user.id id_anotacao=todo.id %}">
-                                <span class="icon"><i class="fas fa-eye"></i></span>
-                                <!-- <span>Detalhes</span> -->
-                            </a>
-                            <a class="button is-warning is-outlined" href="{% url 'main:editar' id_user=user.id id_anotacao=todo.id %}">
-                                <span class="icon"><i class="fas fa-edit"></i></span>
-                                <!-- <span>Editar</span> -->
-                            </a>
-                            <a class="button is-danger is-outlined" href="{% url 'main:remover' id_user=user.id id_anotacao=todo.id %}">
-                                <span class="icon"><i class="fas fa-trash"></i></span>
-                                <!-- <span>Apagar</span> -->
-                            </a>
-                        </div>
+                    <div class="buttons are-small">
+                        <a class="button is-info is-outlined"
+                            href="{% url 'main:show' id_user=user.id id_anotacao=todo.id %}">
+                            <span class="icon"><i class="fas fa-eye"></i></span>
+                            <!-- <span>Detalhes</span> -->
+                        </a>
+                        <a class="button is-warning is-outlined"
+                            href="{% url 'main:editar' id_user=user.id id_anotacao=todo.id %}">
+                            <span class="icon"><i class="fas fa-edit"></i></span>
+                            <!-- <span>Editar</span> -->
+                        </a>
+                        <a class="button is-danger is-outlined"
+                            href="{% url 'main:remover' id_user=user.id id_anotacao=todo.id %}">
+                            <span class="icon"><i class="fas fa-trash"></i></span>
+                            <!-- <span>Apagar</span> -->
+                        </a>
                     </div>
-                    {% if todo.descricao %} {# Assumindo que suas anotações podem ter uma descrição #}
-                    <div class="message-body has-text-grey-light">
-                        {{ todo.descricao|truncatewords:25|linebreaksbr }}
-                    </div>
-                    {% endif %}
-                </article>
+                </div>
+                {% if todo.descricao %} {# Assumindo que suas anotações podem ter uma descrição #}
+                <div class="message-body has-text-grey-light">
+                    {{ todo.descricao|truncatewords:25|linebreaksbr }}
+                </div>
+                {% endif %}
+            </article>
             {% endfor %}
             <div class="has-text-centered mt-4">
-                 <a class="button is-link" href="{% url 'main:anotacoes' id_user=user.id %}">
+                <a class="button is-link" href="{% url 'main:anotacoes' id_user=user.id %}">
                     <span class="icon"><i class="fas fa-th-list"></i></span>
                     <span>Ver Todas as Anotações</span>
                 </a>
             </div>
         </div>
         {% else %}
-            {% if user.is_authenticated %}
-            <div class="notification is-warning is-light mt-5">
-                <button class="delete"></button> {# Para fechar a notificação #}
-                Você ainda não tem nenhuma anotação. Que tal adicionar uma usando o formulário acima?
-            </div>
-            {% endif %}
+        {% if user.is_authenticated %}
+        <div class="notification is-warning is-light mt-5">
+            <button class="delete"></button> {# Para fechar a notificação #}
+            Você ainda não tem nenhuma anotação. Que tal adicionar uma usando o formulário acima?
+        </div>
+        {% endif %}
         {% endif %}
 
         {% else %} {# Se o usuário não estiver autenticado #}
@@ -161,7 +196,7 @@
 {% endblock content %}
 
 {% block extra_js %}
-    <script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         // Adicionar classes Bulma aos campos de formulário Django dinamicamente
         // se você não as adicionou via widget no forms.py
@@ -191,7 +226,7 @@
                 // Mas a estrutura do loop de campos já ajuda.
                 // A classe 'checkbox' no elemento input não faz muito sozinha.
             });
-             form.querySelectorAll('input[type="file"]').forEach(el => {
+            form.querySelectorAll('input[type="file"]').forEach(el => {
                 if (!el.parentElement.classList.contains('file')) {
                     // Envolver input file com a estrutura do Bulma
                     const fileWrapper = document.createElement('div');
@@ -236,5 +271,5 @@
             });
         }
     });
-    </script>
+</script>
 {% endblock extra_js %}

@@ -86,6 +86,7 @@ class Eventos():
         user = get_object_or_404(User, id=id_user)
         eventos = AgendaModel.objects.filter(
             user=user,
+            is_active=True
         )
         for i in eventos:
             print("eventos:  ", i.importancia , "  ---- ", "tipo: -- ", type(i.importancia))

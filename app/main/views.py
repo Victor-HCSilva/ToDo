@@ -52,16 +52,11 @@ def anotacoes(request, id_user):
     filters =  clean_dict(filters)
     filters = adjust_boolean_fields(filters)
 
-    print("Filters:\n", filters)
-    
     todos = Todo.objects.filter(
         **filters
     ).order_by("-id")
     # todos = Todo.objects.filter(user=get_object_or_404(User, id=id_user))
 
-    print(
-        f"Todos: {todos}"
-    )
     # Cor de destaque personalizada do usuário
     cor_obj = Colors.objects.filter(user=filters["user"]).first()
     cor_de_destaque = cor_obj.cor_de_destaque if cor_obj else "#3273dc"
