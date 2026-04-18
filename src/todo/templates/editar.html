@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar: {{ tarefa.titulo|default:"Anotação" }} - {{ user.username|default:"Meu App" }}{% endblock title %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos para a página de edição, se necessário */
+    .edit-container {
+        max-width: 768px; /* Um pouco mais largo para formulários de edição */
+        margin-top: 5vh;
+        margin-bottom: 5vh;
+    }
+    .label { /* Garante que os labels do formulário sejam claros */
+        color: #dbdbdb;
+    }
+    .input, .textarea, .select select { /* Estilos para inputs no tema escuro */
+        background-color: #2a2a2a;
+        border-color: #4a4a4a;
+        color: #e0e0e0;
+    }
+    .input::placeholder, .textarea::placeholder {
+        color: #7a7a7a;
+    }
+    .input:focus, .textarea:focus, .select select:focus,
+    .input:active, .textarea:active, .select select:active {
+        border-color: #3273dc; /* Cor primária do Bulma para foco */
+        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+    }
+    .select:not(.is-multiple):not(.is-loading)::after { /* Seta do select no tema escuro */
+        border-color: #3273dc;
+    }
+    #id_anotacao {
+    max-width: 60vw;
+    max-height: 20vh; /* Correção na propriedade e na unidade */
+}    /* =================================================================== */
+    @media (max-width: 600px) {
+            span {
+
+                font-size: 0.7rem !important;
+            }
+        }
+
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="columns is-centered">
+    <div class="column edit-container">
+        <div class="box has-background-black-bis">
+            <h1 class="title is-3 has-text-light">
+                <span class="icon mr-2"><i class="fas fa-edit"></i></span>
+                Editar Anotação: <strong class="has-text-primary">{{ tarefa.titulo|truncatewords:5 }}</strong>
+            </h1>
+            <hr class="has-background-grey-darker">
+
+            {# Exibir erros gerais do formulário (non-field errors) #}
+            {% if form.non_field_errors %}
+                <div class="notification is-danger is-light mb-4">
+                    <button class="delete"></button>
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.media }} {# Necessário se o formulário usar widgets com JS/CSS, como DatePicker #}
+
+                {# Renderizando campos do formulário manualmente para aplicar classes Bulma #}
+                {# Idealmente, você adicionaria classes como 'input', 'textarea' aos widgets no seu forms.py #}
+                {# Ex: forms.CharField(widget=forms.TextInput(attrs={'class': 'input'})) #}
+                {% for field in form.visible_fields %} {# Itera apenas sobre campos visíveis #}
+                    <div class="field">
+                        <label class="label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="has-text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        <div class="control
+                            {% if field.field.widget_type == 'ClearableFileInput' %} has-icons-left {% endif %}
+                            {% if field.field.widget_type == 'select' %} select is-fullwidth {% endif %}">
+
+                            {# Adicione classes Bulma aos widgets diretamente no seu forms.py para melhor resultado #}
+                            {# Ex: widget=forms.TextInput(attrs={'class': 'input'}) #}
+                            {# Ex: widget=forms.Textarea(attrs={'class': 'textarea'}) #}
+                            {# Ex: widget=forms.Select(attrs={'class': ''}) - a div.select já tem a classe #}
+
+                            {{ field }} {# Renderiza o widget do campo #}
+
+                            {% if field.field.widget_type == 'ClearableFileInput' %}
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-upload"></i>
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% if field.help_text %}
+                            <p class="help has-text-grey-light">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                {# Para campos ocultos, caso existam #}
+                {% for hidden_field in form.hidden_fields %}
+                    {{ hidden_field }}
+                {% endfor %}
+
+                <hr class="has-background-grey-darker mt-5">
+
+                <div class="field is-grouped is-grouped-right">
+                    <div class="control">
+                        <a class="button is-light" href="{% url 'main:anotacoes' id_user=user.id %}">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                            <span>Cancelar</span>
+                        </a>
+                    </div>
+                    <div class="control">
+                        <button type="submit" class="button is-success">
+                            <span class="icon"><i class="fas fa-check"></i></span>
+                            <span>Salvar Alterações</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Script para tentar adicionar classes Bulma aos campos de formulário dinamicamente
+        // É melhor definir as classes nos widgets do forms.py, mas isso ajuda.
+        const form = document.querySelector('form');
+        if (form) {
+            form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], textarea').forEach(el => {
+                if (el.tagName === 'TEXTAREA') {
+                    if (!el.classList.contains('textarea')) el.classList.add('textarea');
+                } else {
+                    if (!el.classList.contains('input')) el.classList.add('input');
+                }
+            });
+
+            form.querySelectorAll('select').forEach(el => {
+                const parentDiv = el.parentElement;
+                if (parentDiv && parentDiv.classList.contains('control')) {
+                    // Verifica se o wrapper 'select is-fullwidth' já não existe
+                    if (!parentDiv.classList.contains('select')) {
+                         // Envolve o select com a div necessária para Bulma
+                        const selectWrapper = document.createElement('div');
+                        selectWrapper.className = 'select is-fullwidth'; // Ou outra classe de tamanho do Bulma
+
+                        // Remove o select do pai atual e o adiciona ao novo wrapper
+                        parentDiv.replaceChild(selectWrapper, el);
+                        selectWrapper.appendChild(el);
+                    }
+                }
+            });
+
+            // Para input[type=file] (ClearableFileInput do Django)
+            // O ClearableFileInput renderiza um pouco diferente, o script do `home.html` para `input[type=file]` pode precisar de ajuste.
+            // No entanto, o estilo básico com `div.control input.input` deve funcionar razoavelmente.
+            // Se estiver usando `django-bulma`, ele lida com isso melhor.
+            // Para FileInput simples:
+            form.querySelectorAll('input[type="file"]').forEach(el => {
+                // Tenta aplicar um estilo básico se for um FileInput puro
+                // (ClearableFileInput é mais complexo)
+                if (!el.closest('.file')) { // Evita re-aplicar se já estiver estilizado
+                     // Pode ser necessário um tratamento mais robusto como no home.html
+                     // para o componente `file` do Bulma. Por ora, uma classe simples.
+                    if (!el.classList.contains('input')) el.classList.add('input');
+                }
+            });
+        }
+
+        // JavaScript para fechar as notificações (já deve estar no base.html, mas caso não)
+        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+            const $notification = $delete.parentNode;
+            $delete.addEventListener('click', () => {
+                $notification.parentNode.removeChild($notification);
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}

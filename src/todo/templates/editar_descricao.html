@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Editar: {{ tarefa.titulo|default:"Anotação" }} - {{ user.username|default:"Meu App" }}{% endblock title %}
+
+{% block extra_css %}
+<style>
+    /* Estilos específicos para a página de edição */
+    .edit-container {
+        max-width: 768px;
+        margin-top: 5vh;
+        margin-bottom: 5vh;
+    }
+    .label {
+        color: #dbdbdb;
+    }
+    .input, .textarea, .select select {
+        background-color: #2a2a2a;
+        border-color: #4a4a4a;
+        color: #e0e0e0;
+    }
+    .input::placeholder, .textarea::placeholder {
+        color: #7a7a7a;
+    }
+    .input:focus, .textarea:focus, .select select:focus,
+    .input:active, .textarea:active, .select select:active {
+        border-color: #3273dc;
+        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
+    }
+    .select:not(.is-multiple):not(.is-loading)::after {
+        border-color: #3273dc;
+    }
+    .change-size{
+        padding: 0px;
+        font-size: 0.9rem !important;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="columns is-centered">
+    <div class="column edit-container">
+        <div class="box has-background-black-bis">
+            <h1 class="title is-3 has-text-light">
+                <span class="icon mr-2"><i class="fas fa-edit"></i></span>
+                Editar Anotação: <strong class="has-text-primary">{{ tarefa.titulo|truncatewords:5 }}</strong>
+            </h1>
+            <hr class="has-background-grey-darker">
+
+            {# Exibir erros gerais do formulário (non-field errors) #}
+            {% if form.non_field_errors %}
+                <div class="notification is-danger is-light mb-4">
+                    <button class="delete"></button>
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data"> {# Adicionado enctype para upload de arquivos #}
+                {% csrf_token %}
+                {{ form.media }}
+
+                {# --- CORREÇÃO PRINCIPAL: Adicionado o laço FOR --- #}
+                {% for field in form.visible_fields %}
+                    <div class="field">
+                        <label class="label" for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="has-text-danger">*</span>
+                            {% endif %}
+                        </label>
+
+                        {# --- MELHORIA: Lógica para renderizar campos corretamente com Bulma --- #}
+                        <div class="control">
+                            {% if field.field.widget.input_type == 'select' %}
+                                <div class="select is-fullwidth">
+                                    {{ field }}
+                                </div>
+                            {% else %}
+                                {{ field }} {# Renderiza inputs, textareas, etc. #}
+                            {% endif %}
+                        </div>
+
+                        {% if field.help_text %}
+                            <p class="help has-text-grey-light">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                        {% for error in field.errors %}
+                            <p class="help is-danger">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                {# Para campos ocultos, caso existam #}
+                {% for hidden_field in form.hidden_fields %}
+                    {{ hidden_field }}
+                {% endfor %}
+
+                <hr class="has-background-grey-darker mt-5">
+
+                <div class="field is-grouped is-grouped-right">
+                    <div class="control">
+                        <a class="change-size button is-light" href="{% url 'main:show' id_user=user.id id_anotacao=tarefa.id %}">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                            <span class="change-size" >Cancelar</span>
+                        </a>
+                    </div>
+                    <div class="control">
+                        <button type="submit" class="button is-success change-size">
+                            <span class="icon"><i class="fas fa-check"></i></span>
+                            <span class="change-size">Salvar Alterações</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- SCRIPT SIMPLIFICADO ---
+        // A melhor prática é definir as classes nos widgets do forms.py.
+        // Este script serve como um "plano B" para garantir a estilização.
+        const form = document.querySelector('form');
+        if (form) {
+            form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="file"]').forEach(el => {
+                if (!el.classList.contains('input')) {
+                    el.classList.add('input');
+                }
+            });
+
+            form.querySelectorAll('textarea').forEach(el => {
+                if (!el.classList.contains('textarea')) {
+                    el.classList.add('textarea');
+                }
+            });
+            // A lógica de envolver o <select> foi removida pois agora é tratada no HTML do template.
+        }
+
+        // JavaScript para fechar notificações
+        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+            const $notification = $delete.parentNode;
+            $delete.addEventListener('click', () => {
+                $notification.parentNode.removeChild($notification);
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}

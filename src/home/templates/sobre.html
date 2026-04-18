@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Sobre{% endblock title %}
+
+{% block extra_css %}
+<style>
+    /* Styling specifically for the Sobre page content if needed, 
+       or overriding body if that was the intent. 
+       Note: changing 'body' affects the whole page including sidebar. */
+    .sobre-container {
+        /* Moving the specific styles here or keeping them global if desired.
+           The user had them on 'body'. Let's apply a background to the content area
+           or keep it on body if they want the full wallpaper effect. 
+           For now, let's try to scope it or keep it compatible.
+        */
+        color: white;
+        font-size: 1.2rem;
+        /* Adjusted from 2rem to fit better in the layout, or keep 2rem if requested? 2rem is huge. I'll stick close to original or reasonable default. */
+    }
+
+    /* Using the background on the main content column or body? 
+       If we put it on body, it covers everything. */
+    body {
+        background-image: url('https://images7.alphacoders.com/114/thumb-1920-1142101.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-attachment: fixed;
+        /* Good for full page backgrounds */
+    }
+
+    /* Enhance readability on top of image */
+    .glass-panel {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 2rem;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="sobre-container">
+    <div class="glass-panel">
+        <h1 class="title has-text-white">Sobre</h1>
+
+        <div class="mb-4">
+            <a class="button is-small is-info is-outlined" style="color: cyan;"
+                href="{% url 'main:welcome' id_user=user.id %}">
+                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                <span>Início</span>
+            </a>
+        </div>
+
+        <h2 class="subtitle has-text-white is-4">Sobre mim</h2>
+        <p>
+            Olá chamo Victor programador backend,
+        </p>
+        <br>
+        <h2 class="subtitle has-text-white is-4">Sobre este app</h2>
+        <p>
+            Este projeto foi feito com Django e o framework Bulma CSS
+            usado a arquitetura nativa do django MVT (Model-View-Template). O objetivo foi
+            exercitar lógica e gerenciamento de um ambiente em produção: segurança, deploy,
+            uso de ferramentas via CLI entre outras competências.
+        </p>
+
+    </div>
+</div>
+{% endblock content %}
