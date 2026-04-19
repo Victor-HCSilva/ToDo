@@ -18,7 +18,7 @@ help:
 	@echo ""
 	@echo "  make help             - Exibe esta mensagem de ajuda."
 	@echo "  make install          - Instala as dependências (cria venv se não existir)."
-	@echo "  make venv             - Cria o ambiente virtual."
+	@echo "  make venv             - Cria o amb'iente virtual."
 	@echo "  make activate         - Ativa o ambiente virtual (para uso manual)."
 	@echo "  make runserver        - Inicia o servidor de desenvolvimento Django."
 	@echo "  make makemigrations   - Cria novas migrações."

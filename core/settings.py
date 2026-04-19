@@ -11,14 +11,14 @@ LOGIN_URL = "main/login"
 
 LOGOUT_REDIRECT_URL = "create/account"
 
-SECRET_KEY = "django-insecure-dy90dm-xu35#=r+-3aeiw5stm3@5+21x*53#z*g4$*23-h%6xz"
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = os.getenv('TRUSTED_HOSTS').split(',')
 
 INSTALLED_APPS = [
-     "corsheaders",
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -34,7 +34,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-      "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
