@@ -64,8 +64,15 @@ class Todo(models.Model):
             case _:
                 return "#b82b14"
 
-    def __str__(self):
-        return f"Titulo: {self.titulo}"
+    def save(self, *args, **kwargs):
+        limite = 1450
+        aviso = "\n# LIMITE EXCEDIDO - TEXTO TRUNCADO"
+        
+        # Verifica se a nota já contém o aviso para não duplicá-lo
+        if len(self.anotacao) > limite and aviso not in self.anotacao:
+            self.anotacao = self.anotacao[:limite] + aviso
+            
+        super().save(*args, **kwargs)
 
 
 class Image(models.Model):
