@@ -6,7 +6,6 @@
     <title>Login - Meu App</title>
 
     <style>
-        /* Seus estilos CSS estão ótimos! Apenas adicionei um para os erros do formulário. */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #121212;
@@ -32,19 +31,19 @@
         .login-container h2 {
             text-align: center;
             color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        /* Instrução informativa */
+        .info-text {
+            text-align: center;
+            font-size: 0.85em;
+            color: #7a7a7a;
             margin-bottom: 30px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #bbbbbb;
-            font-weight: 500;
-        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #bbbbbb; font-weight: 500; }
 
         .form-group input[type="text"],
         .form-group input[type="password"] {
@@ -55,15 +54,10 @@
             border-radius: 4px;
             color: #e0e0e0;
             box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.3s;
         }
 
-        .form-group input[type="text"]:focus,
-        .form-group input[type="password"]:focus {
-            outline: none;
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
-        }
+        .form-group input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25); }
 
         .submit-btn {
             width: 100%;
@@ -77,54 +71,38 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+        .submit-btn:hover { background-color: #0b5ed7; }
 
-        .submit-btn:hover {
-            background-color: #0b5ed7;
-        }
-
-        .messages, .form-errors { /* Aplicando estilo também aos erros de formulário */
-            list-style: none;
-            padding: 0;
-            margin: 0 0 20px 0;
-        }
-
+        .messages, .form-errors { list-style: none; padding: 0; margin: 0 0 20px 0; }
         .messages li, .form-errors li {
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 4px;
             text-align: center;
+            font-size: 0.9em;
         }
-
-        .messages li.success {
-            background-color: #0f5132;
-            color: #d1e7dd;
-            border: 1px solid #146c43;
-        }
-
-        /* Estilo unificado para erros (seja de 'messages' ou 'form') */
         .messages li.error, .form-errors li {
-            background-color: #842029;
+            background-color: #58151c; /* Vermelho mais escuro para destaque */
             color: #f8d7da;
-            border: 1px solid #a92d39;
+            border: 1px solid #dc3545;
         }
+        .messages li.success { background-color: #0f5132; color: #d1e7dd; border: 1px solid #146c43; }
     </style>
 </head>
 <body>
 
     <div class="login-container">
 
-        <!-- Bloco de mensagens GERAIS (ex: logout bem-sucedido) -->
-        {% if messages %}
+        <!-- Mensagens do Django/Axes (inclui erros de bloqueio) -->
+            {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
+                    <!-- Exibe apenas erros, e podemos filtrar para não mostrar duplicados se necessário -->
                     <li class="{{ message.tags }}">{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
 
-        {# --- MELHORIA APLICADA AQUI --- #}
-        {# Bloco para exibir erros que NÃO são de um campo específico #}
-        {# É aqui que "Usuário ou senha inválidos" vai aparecer. #}
         {% if form.non_field_errors %}
             <ul class="form-errors">
                 {% for error in form.non_field_errors %}
@@ -134,6 +112,7 @@
         {% endif %}
 
         <h2>Login</h2>
+        <p class="info-text">Após 5 tentativas incorretas, sua conta será bloqueada temporariamente.</p>
 
         <form method="post">
             {% csrf_token %}
@@ -141,25 +120,25 @@
             <div class="form-group">
                 <label for="id_username">Usuário</label>
                 <input type="text" name="username" id="id_username" required placeholder="Digite seu usuário">
-                {# Bloco para exibir erros ESPECÍFICOS do campo 'username' #}
                 {% for error in form.username.errors %}
-                    <p style="color: #f8d7da; font-size: 0.9em; margin-top: 5px;">{{ error }}</p>
+                    <p style="color: #f8d7da; font-size: 0.8em; margin-top: 5px;">{{ error }}</p>
                 {% endfor %}
             </div>
 
             <div class="form-group">
                 <label for="id_password">Senha</label>
                 <input type="password" name="password" id="id_password" required placeholder="Digite sua senha">
-                {# Bloco para exibir erros ESPECÍFICOS do campo 'password' #}
                 {% for error in form.password.errors %}
-                    <p style="color: #f8d7da; font-size: 0.9em; margin-top: 5px;">{{ error }}</p>
+                    <p style="color: #f8d7da; font-size: 0.8em; margin-top: 5px;">{{ error }}</p>
                 {% endfor %}
             </div>
 
             <button type="submit" class="submit-btn">Entrar</button>
         </form>
 
-        <a style="color:gray;" href="{% url 'create_account' %}">Criar conta</a>
+        <p style="text-align: center; margin-top: 20px;">
+            <a style="color:gray; font-size: 0.9em;" href="{% url 'create_account' %}">Criar conta</a>
+        </p>
     </div>
 
 </body>

@@ -17,6 +17,25 @@ DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = os.getenv('TRUSTED_HOSTS').split(',')
 
+# Bloqueia após 5 tentativas falhas
+AXES_FAILURE_LIMIT = 5 
+
+# Bloqueia por 1 hora (em segundos) após o limite
+# Exemplo: 3600 segundos = 1 hora de inatividade
+HOUR = 3600
+AXES_COOLOFF_TIME = 20 if DEBUG else int(HOUR / 2)
+
+# O tempo é definido em segundos. 
+
+
+SESSION_COOKIE_AGE =  20 if DEBUG else int(HOUR / 10)
+
+# Isso garante que a sessão expire quando o navegador for fechado
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True 
+
+# Isso garante que o Django renove o tempo da sessão a cada requisição
+SESSION_SAVE_EVERY_REQUEST = True
+
 INSTALLED_APPS = [
     "corsheaders",
     "django.contrib.admin",
@@ -29,6 +48,7 @@ INSTALLED_APPS = [
     "main",
     "agenda",
     "checklist",
+    'axes',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +74,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'init.context_processors.session_timeout_processor',
             ],
         },
     },
@@ -102,3 +123,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 STATIC_URL = "/static/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

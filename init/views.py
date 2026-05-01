@@ -1,11 +1,13 @@
+from django.contrib import messages
+from django.contrib.auth.views import LoginView
+from django.urls import reverse_lazy
+from axes.models import AccessAttempt  # Importe o modelo do Axes
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from .forms import TodoForm, UserForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .models import Todo
-from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
 
 
 def home(request):
@@ -74,18 +76,26 @@ def create_account(request):
             return render(request, "new_account.html", {"form": form})
 
 
-class CustomLoginView(LoginView):
-    """
-    Uma view de login customizada para redirecionar o usuário para a sua
-    página de boas-vindas, que requer o ID do usuário como argumento.
-    """
 
+class CustomLoginView(LoginView):
     template_name = "login.html"
 
     def get_success_url(self):
-        """
-        Este método é chamado após um login bem-sucedido.
-        Ele constrói a URL de redirecionamento dinamicamente.
-        """
-        user = self.request.user
-        return reverse_lazy("main:welcome", kwargs={"id_user": user.id})
+        return reverse_lazy("main:welcome", kwargs={"id_user": self.request.user.id})
+
+    def form_invalid(self, form):
+        username = self.request.POST.get('username')
+        
+        # Consultamos quantas tentativas falhas existem para este usuário
+        # O Axes filtra isso pelo 'username' ou 'user_agent' ou 'ip_address'
+        attempts = AccessAttempt.objects.filter(username=username).count()
+        
+        limit = 5 # O mesmo limite que você definiu no settings
+        remaining = limit - attempts
+        
+        if remaining > 0:
+            messages.error(self.request, f"Usuário ou senha inválidos. Você possui {remaining} tentativa(s) restante(s).")
+        else:
+            messages.error(self.request, "Conta bloqueada por excesso de tentativas. Tente novamente em 5 minutos.")
+            
+        return super().form_invalid(form)
