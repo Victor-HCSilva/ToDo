@@ -25,6 +25,7 @@
 {% endblock extra_css %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <div class="container">
     <div class="columns is-centered">
         <div class="column is-three-quarters-tablet is-two-thirds-desktop">
@@ -70,9 +71,19 @@
 
                 <div class="content">
                     <h2 class="subtitle is-5 has-text-info mt-4">Anotação:</h2>
-                    <div class="box has-background-dark has-text-light-grey p-4" style="white-space: pre-wrap; word-wrap: break-word; color: white;">
-                        {{ tarefa.anotacao|linebreaksbr }}
+                    <!--TODO: adiconar marcaçção markdown-->
+                     <div class="is-flex is-justify-content-space-between is-align-items-center mt-4">
+                        
+                        <!-- Botão de copiar -->
+                        <button style="border-radius: 10px !important;" type="button" id="copy-btn" class="button is-small is-outlined is-info">
+                            <span class="icon"><i class="fas fa-copy"></i></span>
+                            <span style="padding: 5px;">Copiar</span>
+                        </button>
                     </div>
+                    <div id="markdown-view" class="box has-background-dark has-text-light-grey p-4" style="white-space: pre-wrap; word-wrap: break-word; color: white;">
+                          
+                    </div>
+                    {{ tarefa.anotacao|json_script:"anotacao-data" }}
                     {% if tarefa.data_de_criacao %}<p class="mt-4"><strong class="has-text-grey">Criado em:</strong> <span class="has-text-grey-light">{{ tarefa.data_de_criacao }}</span></p>{% endif %}
                 </div>
             </div>
@@ -159,8 +170,9 @@
 {% endblock content %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', () => {
+<script >
+    document.addEventListener('DOMContentLoaded', () => {
+
     // Para fechar notificações
     (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
         const $notification = $delete.parentNode;
@@ -177,6 +189,41 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
     }
+
+    const markdownElement = document.getElementById('markdown-view');
+    const rawMarkdown = JSON.parse(document.getElementById('anotacao-data').textContent);
+    if (markdownElement && rawMarkdown) {
+        // marked.parse converte a string em HTML seguro
+        markdownElement.innerHTML = marked.parse(rawMarkdown);
+    }
+
+    const copyBtn = document.getElementById('copy-btn');
+    const scriptData = document.getElementById('anotacao-data');
+
+    if (copyBtn && scriptData) {
+        copyBtn.addEventListener('click', async () => {
+            try {
+            // Pega o texto original em Markdown
+            const textToCopy = JSON.parse(scriptData.textContent);
+            
+            // API de Clipboard (moderna)
+            await navigator.clipboard.writeText(textToCopy);
+            
+            // Feedback visual básico
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<span class="icon"><i class="fas fa-check"></i></span><span>Copiado!</span>';
+            
+            // Volta ao original após 2 segundos
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+            
+        } catch (err) {
+            console.error('Falha ao copiar: ', err);
+            alert('Não foi possível copiar o texto.');
+        }
+    });
+}
 });
 </script>
 {% endblock extra_js %}
