@@ -7,6 +7,7 @@ from main.utils import get_time_remainder
 class Todo(models.Model):
     TAGS = [
         ("Atividade", "Atividade"),
+        ("Anotação", "Anotação"),
         ("Prova", "prova"),
         ("Arquivo", "Arquivo"),
         ("Urgente", "Urgente"),
