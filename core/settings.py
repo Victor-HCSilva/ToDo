@@ -11,11 +11,11 @@ LOGIN_URL = "main/login"
 
 LOGOUT_REDIRECT_URL = "create/account"
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = "csdvkndsnvdsd90b8dbdsbkbdbsdbś[db~dsbsdb"
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('TRUSTED_HOSTS').split(',')
+ALLOWED_HOSTS = ["*"]
 
 # Bloqueia após 5 tentativas falhas
 AXES_FAILURE_LIMIT = 5 
@@ -54,7 +54,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -89,7 +89,7 @@ DATABASES = {
     }
 }
 
-CORS_ALLOWED_ORIGINS = ["https://"+host for host in os.getenv('TRUSTED_HOSTS').split(',')]
+# CORS_ALLOWED_ORIGINS = ["https://"+host for host in os.getenv('TRUSTED_HOSTS').split(',')]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
