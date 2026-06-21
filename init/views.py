@@ -1,15 +1,14 @@
-from django.contrib import messages
-from django.contrib.auth.views import LoginView
-from django.urls import reverse_lazy
 from axes.models import AccessAttempt  # Importe o modelo do Axes
-from django.shortcuts import render, redirect
-from django.shortcuts import get_object_or_404
-from .forms import TodoForm, UserForm
-from django.contrib.auth.models import User
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Todo
-
+from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView
 from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+
+from .forms import TodoForm, UserForm
+from .models import Todo
 
 
 def home(request):
@@ -20,9 +19,11 @@ def home(request):
 
 @login_required()
 def create_todo(request, id_user: int):
-    todos = Todo.objects.filter(
-        user=get_object_or_404(User, id=id_user, is_active=True)
-    )
+    filters = {
+        "user": get_object_or_404(User, id=id_user, is_active=True),
+        "is_active": True,
+    }
+    todos = Todo.objects.filter(**filters)
     form = TodoForm()
     user = get_object_or_404(User, id=id_user)
 
