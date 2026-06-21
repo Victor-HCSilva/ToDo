@@ -11,27 +11,27 @@ LOGIN_URL = "main/login"
 
 LOGOUT_REDIRECT_URL = "create/account"
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = os.getenv('TRUSTED_HOSTS').split(',')
+ALLOWED_HOSTS = os.getenv("TRUSTED_HOSTS").split(",")
 
 # Bloqueia após 5 tentativas falhas
-AXES_FAILURE_LIMIT = 5 
+AXES_FAILURE_LIMIT = 5
 
 # Bloqueia por 1 hora (em segundos) após o limite
 # Exemplo: 3600 segundos = 1 hora de inatividade
 HOUR = 3600
 AXES_COOLOFF_TIME = 20 if DEBUG else int(HOUR / 2)
 
-# O tempo é definido em segundos. 
+# O tempo é definido em segundos.
 
 
-SESSION_COOKIE_AGE =  20 if DEBUG else int(HOUR / 10)
+SESSION_COOKIE_AGE = 120 if DEBUG else int(HOUR / 10)
 
 # Isso garante que a sessão expire quando o navegador for fechado
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Isso garante que o Django renove o tempo da sessão a cada requisição
 SESSION_SAVE_EVERY_REQUEST = True
@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "main",
     "agenda",
     "checklist",
-    'axes',
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -74,7 +74,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                'init.context_processors.session_timeout_processor',
+                "init.context_processors.session_timeout_processor",
             ],
         },
     },
@@ -89,7 +89,9 @@ DATABASES = {
     }
 }
 
-CORS_ALLOWED_ORIGINS = ["https://"+host for host in os.getenv('TRUSTED_HOSTS').split(',')]
+CORS_ALLOWED_ORIGINS = [
+    "https://" + host for host in os.getenv("TRUSTED_HOSTS").split(",")
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -126,6 +128,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 
 AUTHENTICATION_BACKENDS = [
-    'axes.backends.AxesStandaloneBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]

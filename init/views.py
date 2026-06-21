@@ -9,14 +9,20 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from .models import Todo
 
+from django.http import Http404
+
 
 def home(request):
+    if not request.user.is_authenticated:
+        return redirect("main:login")
     return render(request, "home.html")
 
 
 @login_required()
 def create_todo(request, id_user: int):
-    todos = Todo.objects.filter(user=get_object_or_404(User, id=id_user))
+    todos = Todo.objects.filter(
+        user=get_object_or_404(User, id=id_user, is_active=True)
+    )
     form = TodoForm()
     user = get_object_or_404(User, id=id_user)
 
@@ -43,8 +49,8 @@ def welcome(request, id_user):
     if request.user.id != id_user:
         return redirect("main:login")
 
-    user = get_object_or_404(User, id=id_user)
-    todos = Todo.objects.filter(user=get_object_or_404(User, id=id_user))
+    user = get_object_or_404(User, id=id_user, is_active=True)
+    todos = Todo.objects.filter(user=user, is_active=True)
     context = {
         "nick": "nick",
         "todos": todos,
@@ -54,6 +60,8 @@ def welcome(request, id_user):
 
 
 def sobre(request):
+    if not request.user.is_authenticated:
+        raise Http404("Página não encontrada")
     user = get_object_or_404(User, id=request.user.id)
     return render(request, "sobre.html", {"user": user})
 
@@ -76,7 +84,6 @@ def create_account(request):
             return render(request, "new_account.html", {"form": form})
 
 
-
 class CustomLoginView(LoginView):
     template_name = "login.html"
 
@@ -84,18 +91,24 @@ class CustomLoginView(LoginView):
         return reverse_lazy("main:welcome", kwargs={"id_user": self.request.user.id})
 
     def form_invalid(self, form):
-        username = self.request.POST.get('username')
-        
+        username = self.request.POST.get("username")
+
         # Consultamos quantas tentativas falhas existem para este usuário
         # O Axes filtra isso pelo 'username' ou 'user_agent' ou 'ip_address'
         attempts = AccessAttempt.objects.filter(username=username).count()
-        
-        limit = 5 # O mesmo limite que você definiu no settings
+
+        limit = 5  # O mesmo limite que você definiu no settings
         remaining = limit - attempts
-        
+
         if remaining > 0:
-            messages.error(self.request, f"Usuário ou senha inválidos. Você possui {remaining} tentativa(s) restante(s).")
+            messages.error(
+                self.request,
+                f"Usuário ou senha inválidos. Você possui {remaining} tentativa(s) restante(s).",
+            )
         else:
-            messages.error(self.request, "Conta bloqueada por excesso de tentativas. Tente novamente em 5 minutos.")
-            
+            messages.error(
+                self.request,
+                "Conta bloqueada por excesso de tentativas. Tente novamente em 5 minutos.",
+            )
+
         return super().form_invalid(form)

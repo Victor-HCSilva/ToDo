@@ -1,6 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils import timezone
+
 from main.utils import get_time_remainder
 
 
@@ -66,13 +67,7 @@ class Todo(models.Model):
                 return "#b82b14"
 
     def save(self, *args, **kwargs):
-        limite = 1450
-        aviso = "\n# LIMITE EXCEDIDO - TEXTO TRUNCADO"
-        
-        # Verifica se a nota já contém o aviso para não duplicá-lo
-        if len(self.anotacao) > limite and aviso not in self.anotacao:
-            self.anotacao = self.anotacao[:limite] + aviso
-            
+        # NOTE: Isso implica em um texto de tamanho indefinido
         super().save(*args, **kwargs)
 
 
