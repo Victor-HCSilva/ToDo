@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
 from .forms import TodoForm, UserForm
-from .models import Todo
+from .models import Folder, Todo
 
 
 def home(request):
@@ -23,6 +23,7 @@ def create_todo(request, id_user: int):
         "user": get_object_or_404(User, id=id_user, is_active=True),
         "is_active": True,
     }
+    folders = Folder.objects.filter(**filters)
     todos = Todo.objects.filter(**filters)
     form = TodoForm()
     user = get_object_or_404(User, id=id_user)
@@ -41,6 +42,7 @@ def create_todo(request, id_user: int):
         "username": user.username.title(),
         "todos": todos,
         "form": form,
+        "folders": folders,
     }
     return render(request, "main.html", context)
 
@@ -113,3 +115,89 @@ class CustomLoginView(LoginView):
             )
 
         return super().form_invalid(form)
+
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import FolderForm
+from .models import Folder
+
+
+@login_required
+def folder_list_create(request):
+    # Lista apenas as pastas ativas do usuário logado
+    folders = Folder.objects.filter(user=request.user, is_active=True)
+
+    if request.method == "POST":
+        form = FolderForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+
+            # 1. Verifica se já existe uma pasta ativa com este nome
+            if Folder.objects.filter(
+                user=request.user, name=name, is_active=True
+            ).exists():
+                messages.error(request, "Você já possui uma pasta ativa com este nome.")
+            else:
+                # 2. Verifica se existe uma pasta deletada (inativa) com este nome para reativar
+                inactive_folder = Folder.objects.filter(
+                    user=request.user, name=name, is_active=False
+                ).first()
+                if inactive_folder:
+                    inactive_folder.is_active = True
+                    inactive_folder.save()
+                    messages.success(request, f"Pasta '{name}' reativada com sucesso!")
+                else:
+                    # 3. Cria uma nova pasta normalmente
+                    folder = form.save(commit=False)
+                    folder.user = request.user
+                    folder.save()
+                    messages.success(request, f"Pasta '{name}' criada com sucesso!")
+                return redirect("main:folders")
+    else:
+        form = FolderForm()
+
+    return render(request, "folders.html", {"folders": folders, "form": form})
+
+
+@login_required
+def folder_update(request, folder_id):
+    # Recupera apenas se estiver ativa e pertencer ao usuário logado
+    folder = get_object_or_404(Folder, id=folder_id, user=request.user, is_active=True)
+
+    if request.method == "POST":
+        form = FolderForm(request.POST, instance=folder)
+        if form.is_valid():
+            name = form.cleaned_data["name"]
+            # Evita duplicidade com outra pasta ativa
+            if (
+                Folder.objects.filter(user=request.user, name=name, is_active=True)
+                .exclude(id=folder_id)
+                .exists()
+            ):
+                messages.error(
+                    request, "Você já possui outra pasta ativa com este nome."
+                )
+            else:
+                form.save()
+                messages.success(request, "Pasta atualizada com sucesso!")
+                return redirect("main:folders")
+    else:
+        form = FolderForm(instance=folder)
+
+    return render(request, "folder_edit.html", {"form": form, "folder": folder})
+
+
+@login_required
+def folder_delete(request, folder_id):
+    # Executa o Soft Delete
+    folder = get_object_or_404(Folder, id=folder_id, user=request.user, is_active=True)
+    if request.method == "POST":
+        folder.is_active = False  # Soft Delete (desativação lógica)
+        folder.save()
+        messages.success(
+            request, f"Pasta '{folder.name}' movida para a lixeira (removida)."
+        )
+    return redirect("main:folders")

@@ -1,5 +1,7 @@
+import uuid
+
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import IntegrityError, models
 from django.utils import timezone
 
 from main.utils import get_time_remainder
@@ -40,6 +42,9 @@ class Todo(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(("Data de Criação"), auto_now_add=True)
     updated_at = models.DateTimeField(("Data de Atualização"), auto_now=True)
+    folder = models.ForeignKey(
+        "folder", on_delete=models.CASCADE, blank=True, null=True
+    )
 
     @property
     def prazo_dias(self):
@@ -81,3 +86,23 @@ class Image(models.Model):
 
     def __str__(self):
         return f"Titulo: {self.titulo} - {self.user.username}"
+
+
+class Folder(models.Model):
+    name = models.CharField(max_length=100, default="folder")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"User {self.user.username} | Pasta {self.name}"
+
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError:
+            suffix = str(uuid.uuid4())[:8]
+            self.name = f"{self.name[:90]}+{suffix}"
+            super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ["name", "user"]

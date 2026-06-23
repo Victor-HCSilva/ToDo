@@ -1,7 +1,7 @@
-from pathlib import Path
 import os
-from dotenv import load_dotenv
+from pathlib import Path
 
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -23,7 +23,7 @@ AXES_FAILURE_LIMIT = 5
 # Bloqueia por 1 hora (em segundos) após o limite
 # Exemplo: 3600 segundos = 1 hora de inatividade
 HOUR = 3600
-AXES_COOLOFF_TIME = 20 if DEBUG else int(HOUR / 2)
+AXES_COOLOFF_TIME = 200 if DEBUG else int(HOUR / 2)
 
 # O tempo é definido em segundos.
 

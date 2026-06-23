@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm, Textarea
 
-from .models import Image, Todo, User
+from .models import Folder, Image, Todo, User
 
 
 class TodoForm(ModelForm):
@@ -16,6 +16,7 @@ class TodoForm(ModelForm):
             "prazo_final",
             "completo",
             "favorito",
+            "folder",
         ]
 
         widgets = {
@@ -38,6 +39,13 @@ class TodoForm(ModelForm):
         labels = {
             "anotacao": "Anotação",
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)  # Remove o 'user' dos argumentos padrão
+        super().__init__(*args, **kwargs)
+        if user:
+            # Filtra apenas as pastas que pertencem ao usuário logado
+            self.fields["folder"].queryset = Folder.objects.filter(user=user)
 
 
 class UserForm(forms.ModelForm):
@@ -79,3 +87,9 @@ class ImageForm(forms.ModelForm):
             ),
             "img": forms.ClearableFileInput(attrs={"class": "file-input"}),
         }
+
+
+class FolderForm(forms.ModelForm):
+    class Meta:
+        model = Folder
+        fields = ["name"]
