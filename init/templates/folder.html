@@ -1,0 +1,120 @@
+{% extends "base.html" %} {% block title %}Gerenciar Pastas - {{ user.username
+}}{% endblock %} {% block content %}
+<div class="columns is-centered">
+    <div class="column is-eight-tenths-tablet is-two-thirds-desktop">
+        <!-- Mensagens de Feedback -->
+        {% if messages %} {% for message in messages %}
+        <div
+            class="notification {% if message.tags == 'error' %}is-danger{% else %}is-success{% endif %}"
+        >
+            {{ message }}
+        </div>
+        {% endfor %} {% endif %}
+
+        <!-- Box de Criação de Pasta -->
+        <div class="box has-background-black-bis">
+            <h1 class="title is-3 has-text-primary">Minhas Pastas</h1>
+            <p class="subtitle is-6 has-text-grey">
+                Crie e organize suas pastas de anotações.
+            </p>
+
+            <form method="POST" class="mt-4">
+                {% csrf_token %}
+                <div class="field has-addons">
+                    <div class="control is-expanded">{{ form.name }}</div>
+                    <div class="control">
+                        <button type="submit" class="button is-primary">
+                            <span class="icon"
+                                ><i class="fas fa-folder-plus"></i
+                            ></span>
+                            <span>Criar Pasta</span>
+                        </button>
+                    </div>
+                </div>
+                {% for error in form.name.errors %}
+                <p class="help is-danger">{{ error }}</p>
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- Tabela/Lista de Pastas Existentes -->
+        <div class="box has-background-black-bis mt-5">
+            <h2 class="title is-5 has-text-info">Pastas Ativas</h2>
+
+            {% if folders %}
+            <div class="table-container">
+                <table
+                    class="table is-fullwidth has-background-black-bis has-text-light"
+                >
+                    <thead>
+                        <tr style="border-bottom: 2px solid #4a4a4a">
+                            <th class="has-text-grey-light">Nome da Pasta</th>
+                            <th
+                                class="has-text-grey-light has-text-right"
+                                style="width: 150px"
+                            >
+                                Ações
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for folder in folders %}
+                        <tr style="border-bottom: 1px solid #2a2a2a">
+                            <td class="is-vcentered">
+                                <span class="icon has-text-warning mr-2">
+                                    <i class="fas fa-folder"></i>
+                                </span>
+                                <strong>{{ folder.name }}</strong>
+                            </td>
+                            <td class="has-text-right">
+                                <div class="buttons is-right">
+                                    <!-- Editar -->
+                                    <a
+                                        href="{% url 'main:folder_edit' folder_id=folder.id %}"
+                                        class="button is-small is-warning is-outlined"
+                                        title="Editar"
+                                    >
+                                        <span class="icon"
+                                            ><i class="fas fa-edit"></i
+                                        ></span>
+                                    </a>
+                                    <!-- Deletar (Triggering Soft Delete via Form) -->
+                                    <form
+                                        action="{% url 'main:folder_delete' folder_id=folder.id %}"
+                                        method="POST"
+                                        style="display: inline"
+                                        onsubmit="
+                                            return confirm(
+                                                'Deseja realmente remover esta pasta?',
+                                            );
+                                        "
+                                    >
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="button is-small is-danger is-outlined"
+                                            title="Excluir"
+                                        >
+                                            <span class="icon"
+                                                ><i class="fas fa-trash"></i
+                                            ></span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="notification is-dark has-text-centered mt-4">
+                <p class="has-text-grey-light">
+                    Você ainda não possui nenhuma pasta cadastrada.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,9 @@
-from django.urls import path
-from . import views
-from init import views as views_init
 from django.contrib.auth import views as auth_views
+from django.urls import path
+
+from init import views as views_init
+
+from . import views
 
 app_name = "main"
 
@@ -33,4 +35,11 @@ urlpatterns = [
         name="editar_descricao",
     ),
     path("not_found", views.not_found, name="404"),
+    path("folders", views_init.folder_list_create, name="folders"),
+    path(
+        "folders/<int:folder_id>/delete", views_init.folder_delete, name="folder_delete"
+    ),
+    path(
+        "folders/<int:folder_id>/update", views_init.folder_update, name="folder_edit"
+    ),
 ]

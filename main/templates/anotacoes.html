@@ -5,18 +5,15 @@
 
 {% block extra_css %}
 <style>
-
     .titulo{
         color: white !important;
-        /*text-decoration: underline;*/
         text-shadow: 1px 1px 2px {{ cor_de_destaque }};
     }
     .time-message{
         background-color: #111111 !important;
-        /*border: 1px solid white;*/
         border-radius: 6px !important;
         padding: 2px;
-        text-transform: uppercase; /* tudo em maiúsculas */
+        text-transform: uppercase;
     }
     .card-anotacao {
         background-color: #2f2f2f;
@@ -58,8 +55,10 @@
 <div class="level mb-5">
     <div class="level-left">
         <div class="level-item">
-            <h1 style="color: rgb(200,200,200)" class="title is-2">
-                <span style="color: rgb(200,200,200)" class="icon mr-3"><i class="fas fa-clipboard-list fa-lg"></i></span>
+            <h1 style="color: rgb(200, 200, 200)" class="title is-2">
+                <span style="color: rgb(200, 200, 200)" class="icon mr-3">
+                    <i class="fas fa-clipboard-list fa-lg"></i>
+                </span>
                 Minhas Anotações
             </h1>
         </div>
@@ -92,7 +91,28 @@
                         <span class="button is-static is-dark">Título</span>
                     </div>
                     <div class="control is-expanded">
-                        <input class="input is-dark" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo|default:'' }}">
+                        <input class="input is-dark" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo|default:'' }}" />
+                    </div>
+                </div>
+            </div>
+
+            {# Filtro por Pasta #}
+            <div class="control">
+                <div class="field has-addons">
+                    <div class="control">
+                        <span class="button is-static is-dark">Pasta</span>
+                    </div>
+                    <div class="control is-expanded">
+                        <div class="select is-fullwidth is-dark">
+                            <select name="folder">
+                                <option value="">Todas</option>
+                                {% for folder in folders %}
+                                <option value="{{ folder.id }}" {% if selected_folder == folder.id %}selected{% endif %}>
+                                    {{ folder.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,13 +124,13 @@
                         <span class="button is-static is-dark">Tag</span>
                     </div>
                     <div class="control is-expanded">
-                        <div class="select is-fullwidth is-dark"> {# Adicionado is-dark aqui para o estilo #}
+                        <div class="select is-fullwidth is-dark">
                             <select name="tag">
                                 <option value="">Todas</option>
                                 {% for tag_value, tag_display in all_tags %}
-                                    <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>
-                                        {{ tag_display }}
-                                    </option>
+                                <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>
+                                    {{ tag_display }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -125,13 +145,13 @@
                         <span class="button is-static is-dark">Prioridade</span>
                     </div>
                     <div class="control is-expanded">
-                        <div class="select is-fullwidth is-dark"> {# Adicionado is-dark aqui para o estilo #}
+                        <div class="select is-fullwidth is-dark">
                             <select name="prioridade">
                                 <option value="">Todas</option>
                                 {% for prioridade_value, prioridade_display in all_prioridades %}
-                                    <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>
-                                        {{ prioridade_value }}
-                                    </option>
+                                <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>
+                                    {{ prioridade_value }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -144,18 +164,20 @@
         <div class="field is-grouped is-grouped-multiline mt-4">
             <div class="control">
                 <label class="checkbox has-text-white">
-                    <input type="checkbox" name="favorito" value="true" {% if selected_favorito == 'true' %}checked{% endif %}>
+                    <input type="checkbox" name="favorito" value="true" {% if selected_favorito == 'true' %}checked{% endif %} />
                     Apenas Favoritos
                 </label>
             </div>
             <div class="control">
                 <label class="checkbox has-text-white">
-                    <input type="checkbox" name="completo" value="true" {% if selected_completo == 'true' %}checked{% endif %}>
+                    <input type="checkbox" name="completo" value="true" {% if selected_completo == 'true' %}checked{% endif %} />
                     Apenas Concluídos
                 </label>
             </div>
             <div class="control">
-                <button type="submit" class="button is-info">Aplicar Filtros</button>
+                <button type="submit" class="button is-info">
+                    Aplicar Filtros
+                </button>
             </div>
             <div class="control">
                 <a href="{% url 'main:anotacoes' id_user=user.id %}" class="button is-light">Limpar Filtros</a>
@@ -166,86 +188,96 @@
 {# Fim da Seção de Filtros #}
 
 {% if anotacoes %}
-    <div class="columns is-multiline">
-        {% for anotacao_item in anotacoes %}
-            <div class="column is-one-third-desktop is-half-tablet">
-                <div class="card card-anotacao">
-                    <header class="card-header">
-                        <p class="card-header-title is-clipped">
-                            <span class="icon-text">
-                                <span class="icon" title="{% if anotacao_item.favorito %}Favorito{% endif %}">
-                                    {% if anotacao_item.favorito %}
-                                        <i class="fas fa-star has-text-warning"></i>
-                                    {% else %}
-                                        <i class="fas fa-pen-alt has-text-grey-light"></i>
-                                    {% endif %}
-                                </span>
-                                <span class="titulo">{{ anotacao_item.titulo }}</span>
-                            </span>
-                        </p>
-                        <div class="card-header-icon">
-                            {% with prioridade_value=anotacao_item.prioridade %}
-                                <span class="tag
-                                    {% if prioridade_value == 'Máxima' %}is-danger
-                                    {% elif prioridade_value == 'Mediana' %}is-warning
-                                    {% elif prioridade_value == 'Mínima' %}is-success
-                                    {% else %}is-dark{% endif %}">
-                                    {{ anotacao_item.get_prioridade_display }}
-                                </span>
-                            {% endwith %}
-                        </div>
-                    </header>
-                    <div class="card-content">
-                        <div class="content">
-                            <p style="color: white;">{{ anotacao_item.anotacao|truncatewords:20|linebreaksbr }}</p>
-                            <br>
-                            {% if not anotacao_item.completo %}
-                                <p class="is-size-7">
-                                    <span class="icon-text">
-                                        <span class="icon"><i class="fas fa-hourglass-half"></i></span>
-                                        <strong class="time-message" style="color: {{ anotacao_item.color }};">
-                                            {% if anotacao_item.prazo_dias is not None %}
-                                                {{ anotacao_item.message }}
-                                                {% if anotacao_item.prazo_dias == 1 %}
-                                                    {{ anotacao_item.prazo_dias }} dia
-                                                {% else %}
-                                                    {{ anotacao_item.prazo_dias }} dias
-                                                {% endif %}
-                                            {% else %}
-                                                Sem prazo definido
-                                            {% endif %}
-                                        </strong>
-                                    </span>
-                                </p>
+<div class="columns is-multiline">
+    {% for anotacao_item in anotacoes %}
+    <div class="column is-one-third-desktop is-half-tablet">
+        <div class="card card-anotacao">
+            <header class="card-header">
+                <p class="card-header-title is-clipped">
+                    <span class="icon-text">
+                        <span class="icon" title="{% if anotacao_item.favorito %}Favorito{% endif %}">
+                            {% if anotacao_item.favorito %}
+                            <i class="fas fa-star has-text-warning"></i>
                             {% else %}
-                                <p class="is-size-7 has-text-success">
-                                     <span class="icon-text">
-                                        <span class="icon"><i class="fas fa-check-circle"></i></span>
-                                        <strong style="color:white;">Concluído</strong>
-                                    </span>
-                                </p>
+                            <i class="fas fa-pen-alt has-text-grey-light"></i>
                             {% endif %}
-                        </div>
-                    </div>
-                    <footer class="card-footer">
-                        <a href="{% url 'main:show' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Ver</a>
-                        <a href="{% url 'main:editar' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Editar</a>
-                        <a href="{% url 'main:remover' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item has-text-danger">Apagar</a>
-                    </footer>
+                        </span>
+                        <span class="titulo">{{ anotacao_item.titulo }}</span>
+                    </span>
+                </p>
+                <div class="card-header-icon">
+                    {% with prioridade_value=anotacao_item.prioridade %}
+                    <span class="tag {% if prioridade_value == 'Máxima' %}is-danger {% elif prioridade_value == 'Mediana' %}is-warning {% elif prioridade_value == 'Mínima' %}is-success {% else %}is-dark{% endif %}">
+                        {{ anotacao_item.get_prioridade_display }}
+                    </span>
+                    {% endwith %}
+                </div>
+            </header>
+            <div class="card-content">
+                <div class="content">
+                    <!-- Nome da Pasta se houver -->
+                    {% if anotacao_item.folder %}
+                    <p class="is-size-7 mb-3">
+                        <span class="icon-text has-text-warning">
+                            <span class="icon"><i class="fas fa-folder"></i></span>
+                            <strong>{{ anotacao_item.folder.name }}</strong>
+                        </span>
+                    </p>
+                    {% endif %}
+
+                    <p style="color: white">
+                        {{ anotacao_item.anotacao|truncatewords:20|linebreaksbr }}
+                    </p>
+                    <br />
+                    {% if not anotacao_item.completo %}
+                    <p class="is-size-7">
+                        <span class="icon-text">
+                            <span class="icon"><i class="fas fa-hourglass-half"></i></span>
+                            <strong class="time-message" style="color: {{ anotacao_item.color }};">
+                                {% if anotacao_item.prazo_dias is not None %}
+                                    {{ anotacao_item.message }}
+                                    {% if anotacao_item.prazo_dias == 1 %}
+                                        {{ anotacao_item.prazo_dias }} dia
+                                    {% else %}
+                                        {{ anotacao_item.prazo_dias }} dias
+                                    {% endif %}
+                                {% else %}
+                                    Sem prazo definido
+                                {% endif %}
+                            </strong>
+                        </span>
+                    </p>
+                    {% else %}
+                    <p class="is-size-7 has-text-success">
+                        <span class="icon-text">
+                            <span class="icon"><i class="fas fa-check-circle"></i></span>
+                            <strong style="color: white">Concluído</strong>
+                        </span>
+                    </p>
+                    {% endif %}
                 </div>
             </div>
-        {% endfor %}
+            <footer class="card-footer">
+                <a href="{% url 'main:show' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Ver</a>
+                <a href="{% url 'main:editar' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Editar</a>
+                <a href="{% url 'main:remover' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item has-text-danger">Apagar</a>
+            </footer>
+        </div>
     </div>
+    {% endfor %}
+</div>
 {% else %}
-    <div class="box has-text-centered py-6">
-        <span class="icon is-large has-text-grey-light"><i class="fas fa-folder-open fa-3x"></i></span>
-        <h2 class="title is-4 mt-4">Nenhuma anotação encontrada</h2>
-        <p class="subtitle is-6">Que tal criar a sua primeira agora mesmo?</p>
-        <a class="button is-primary is-medium mt-4" href="{% url 'main:main' id_user=user.id %}">
-            <span class="icon"><i class="fas fa-plus"></i></span>
-            <span>Criar Primeira Anotação</span>
-        </a>
-    </div>
+<div class="box has-text-centered py-6">
+    <span class="icon is-large has-text-grey-light">
+        <i class="fas fa-folder-open fa-3x"></i>
+    </span>
+    <h2 class="title is-4 mt-4">Nenhuma anotação encontrada</h2>
+    <p class="subtitle is-6">Que tal criar a sua primeira agora mesmo?</p>
+    <a class="button is-primary is-medium mt-4" href="{% url 'main:main' id_user=user.id %}">
+        <span class="icon"><i class="fas fa-plus"></i></span>
+        <span>Criar Primeira Anotação</span>
+    </a>
+</div>
 {% endif %}
 
 {% endblock content %}

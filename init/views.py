@@ -7,7 +7,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 
-from .forms import TodoForm, UserForm
+from .forms import FolderForm, TodoForm, UserForm
 from .models import Folder, Todo
 
 
@@ -117,14 +117,6 @@ class CustomLoginView(LoginView):
         return super().form_invalid(form)
 
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-
-from .forms import FolderForm
-from .models import Folder
-
-
 @login_required
 def folder_list_create(request):
     # Lista apenas as pastas ativas do usuário logado
@@ -192,10 +184,10 @@ def folder_update(request, folder_id):
 
 @login_required
 def folder_delete(request, folder_id):
-    # Executa o Soft Delete
+
     folder = get_object_or_404(Folder, id=folder_id, user=request.user, is_active=True)
     if request.method == "POST":
-        folder.is_active = False  # Soft Delete (desativação lógica)
+        folder.is_active = False
         folder.save()
         messages.success(
             request, f"Pasta '{folder.name}' movida para a lixeira (removida)."

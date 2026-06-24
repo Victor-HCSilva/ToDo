@@ -1,16 +1,15 @@
-from django.shortcuts import render
-from init.models import Todo, User, Image
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from init.forms import TodoForm, ImageForm
-from main.utils import (
-    get_label,
-    clean_dict,
-    adjust_boolean_fields,
-)
-from agenda.models import Colors
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.dateparse import parse_date
+
+from agenda.models import Colors
+from init.forms import ImageForm, TodoForm
+from init.models import Folder, Image, Todo, User
+from main.utils import (
+    adjust_boolean_fields,
+    clean_dict,
+    get_label,
+)
 
 
 @login_required
@@ -23,12 +22,20 @@ def anotacoes(request, id_user):
     prazo_inicial = parse_date(prazo_inicial)
     prazo_final = parse_date(prazo_final)
 
+    # Coleta a pasta selecionada no filtro
+    selected_folder = request.GET.get("folder", None)
+    if selected_folder and selected_folder.isdigit():
+        selected_folder = int(
+            selected_folder
+        )  # Converte para int para bater com o ID no template
+
     filters = {
         "tag": request.GET.get("tag", None),
         "prioridade": get_label(request.GET.get("prioridade", None)),
         "favorito": request.GET.get("favorito", None),
         "completo": request.GET.get("completo", None),
         "titulo__icontains": request.GET.get("titulo", None),
+        "folder_id": selected_folder,  # Filtro por ID da pasta
         "user": get_object_or_404(User, id=id_user),
         "is_active": True,
     }
@@ -38,18 +45,26 @@ def anotacoes(request, id_user):
 
     filters = clean_dict(filters)
     filters = adjust_boolean_fields(filters)
+
+    # Busca todas as anotações baseadas nos filtros
     todos = Todo.objects.filter(**filters).order_by("-id")
+
+    # Busca todas as pastas ativas do usuário logado para carregar no dropdown do filtro
+    folders = Folder.objects.filter(user=filters["user"], is_active=True)
+
     cor_obj = Colors.objects.filter(user=filters["user"]).first()
     cor_de_destaque = cor_obj.cor_de_destaque if cor_obj else "#3273dc"
 
     context = {
         "anotacoes": todos,
+        "folders": folders,  # Passa as pastas para o template
         "all_tags": Todo.TAGS,
         "all_prioridades": Todo.PRIORIDADES,
         "selected_tag": filters.get("tag"),
         "selected_prioridade": filters.get("prioridade"),
         "selected_favorito": filters.get("favorito"),
         "selected_completo": filters.get("completo"),
+        "selected_folder": selected_folder,  # Passa a pasta selecionada de volta para o filtro
         "selected_titulo": request.GET.get("titulo", ""),
         "cor_de_destaque": cor_de_destaque,
         "prazo_inicial": prazo_inicial,

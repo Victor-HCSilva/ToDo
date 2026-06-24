@@ -1,0 +1,53 @@
+{% extends "base.html" %} {% block title %}Editar Pasta - {{ folder.name }}{%
+endblock %} {% block content %}
+<div class="columns is-centered">
+    <div class="column is-six-tenths-tablet is-half-desktop">
+        <!-- Mensagens de Feedback -->
+        {% if messages %} {% for message in messages %}
+        <div class="notification is-danger">{{ message }}</div>
+        {% endfor %} {% endif %}
+
+        <div class="box has-background-black-bis">
+            <h1 class="title is-4 has-text-warning">
+                <span class="icon mr-2"><i class="fas fa-edit"></i></span>Editar
+                Pasta
+            </h1>
+            <p class="subtitle is-6 has-text-grey">
+                Altere o nome da pasta selecionada.
+            </p>
+
+            <form method="POST" class="mt-4">
+                {% csrf_token %}
+                <div class="field">
+                    <label class="label has-text-grey-light"
+                        >{{ form.name.label }}</label
+                    >
+                    <div class="control">{{ form.name }}</div>
+                    {% for error in form.name.errors %}
+                    <p class="help is-danger">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="field is-grouped mt-5">
+                    <div class="control">
+                        <button type="submit" class="button is-success">
+                            <span class="icon"
+                                ><i class="fas fa-save"></i
+                            ></span>
+                            <span>Salvar Alterações</span>
+                        </button>
+                    </div>
+                    <div class="control">
+                        <a
+                            href="{% url 'main:folders' %}"
+                            class="button is-light is-outlined"
+                        >
+                            <span>Cancelar</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
