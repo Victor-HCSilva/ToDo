@@ -54,10 +54,18 @@
         border: 1px dashed #4a4a4a;
         cursor: pointer;
         transition: transform 0.2s, background-color 0.2s;
+        position: relative;
     }
     .folder-card:hover {
         background-color: #2f2f2f;
         transform: translateY(-2px);
+    }
+    .folder-actions {
+        opacity: 0.8;
+        transition: opacity 0.2s;
+    }
+    .folder-card:hover .folder-actions {
+        opacity: 1;
     }
 </style>
 {% endblock extra_css %}
@@ -81,6 +89,11 @@
                 <a class="button is-primary" href="{% url 'main:main' id_user=user.id %}">
                     <span class="icon"><i class="fas fa-plus"></i></span>
                     <span>Nova Anotação</span>
+                </a>
+                <!-- Novo Botão de Gerenciamento/Criação de Pasta -->
+                <a class="button is-warning" href="{% url 'main:folders' %}">
+                    <span class="icon"><i class="fas fa-folder-plus"></i></span>
+                    <span>Gerenciar Pastas</span>
                 </a>
                 <a class="button is-link" href="{% url 'agenda:agenda' id_user=user.id %}">
                     <span class="icon"><i class="fas fa-calendar-alt"></i></span>
@@ -224,13 +237,30 @@
                     <span class="icon is-large has-text-warning">
                         <i class="fas fa-folder fa-2x"></i>
                     </span>
-                    <p class="subtitle is-6 has-text-light mt-2 mb-0"><strong>{{ folder.name }}</strong></p>
+                    <p class="subtitle is-6 has-text-light mt-2 mb-3"><strong>{{ folder.name }}</strong></p>
+
+                    {# Ações da Pasta: Editar e Apagar #}
+                    <div class="folder-actions field is-grouped is-grouped-centered mb-0">
+                        <p class="control">
+                            <a href="{% url 'main:folder_edit' folder_id=folder.id %}" class="button is-small is-dark btn-folder-action" title="Editar pasta">
+                                <span class="icon is-small"><i class="fas fa-edit"></i></span>
+                            </a>
+                        </p>
+                        <p class="control">
+                            <form action="{% url 'main:folder_delete' folder_id=folder.id %}" method="post" style="display: inline;" class="btn-folder-action-form" onsubmit="return confirm('Deseja mesmo remover esta pasta?');">
+                                {% csrf_token %}
+                                <button type="submit" class="button is-small is-danger" title="Apagar pasta">
+                                    <span class="icon is-small"><i class="fas fa-trash-alt"></i></span>
+                                </button>
+                            </form>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="column is-12">
-            <p class="has-text-grey">Nenhuma pasta criada.</p>
+            <p class="has-text-grey">Nenhuma pasta criada. Clique em "Gerenciar Pastas" para adicionar.</p>
         </div>
         {% endfor %}
     </div>
@@ -241,7 +271,6 @@
 {% if anotacoes %}
 <div class="columns is-multiline" id="notes-grid">
     {% for anotacao_item in anotacoes %}
-    {# Define se a anotação pertence ou não a uma pasta para controle via JS #}
     <div class="column is-one-third-desktop is-half-tablet note-item-card {% if anotacao_item.folder %}has-folder{% else %}no-folder{% endif %}"
          data-folder-ref="{% if anotacao_item.folder %}{{ anotacao_item.folder.id }}{% endif %}"
          {% if anotacao_item.folder %}style="display: none;"{% endif %}>
@@ -270,7 +299,6 @@
             </header>
             <div class="card-content">
                 <div class="content">
-                    <!-- Nome da Pasta se houver -->
                     {% if anotacao_item.folder %}
                     <p class="is-size-7 mb-3">
                         <span class="icon-text has-text-warning">
@@ -351,24 +379,20 @@
         const unlinkedNotes = document.querySelectorAll('.note-item-card.no-folder');
         const linkedNotes = document.querySelectorAll('.note-item-card.has-folder');
 
-        // Evento de clique em uma pasta
+        // Evento de clique em uma pasta para abrir o conteúdo
         folderCards.forEach(card => {
             card.addEventListener('click', function() {
                 const folderId = this.getAttribute('data-folder-id');
                 const folderName = this.getAttribute('data-folder-name');
 
-                // Esconder o bloco das pastas
                 foldersContainer.style.display = 'none';
 
-                // Configurar e exibir barra de navegação superior da pasta
                 currentFolderTitle.textContent = 'Pasta: ' + folderName;
                 folderNavBar.style.display = 'flex';
                 notesSectionTitle.textContent = 'Anotações nesta pasta';
 
-                // Esconder anotações sem pasta
                 unlinkedNotes.forEach(note => note.style.display = 'none');
 
-                // Mostrar apenas as anotações associadas a esta pasta específica
                 linkedNotes.forEach(note => {
                     if (note.getAttribute('data-folder-ref') === folderId) {
                         note.style.display = 'block';
@@ -379,18 +403,22 @@
             });
         });
 
+        // Impede que os cliques nos botões de edição/remoção da pasta abram a pasta
+        const folderActions = document.querySelectorAll('.btn-folder-action, .btn-folder-action-form');
+        folderActions.forEach(element => {
+            element.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+
         // Evento de clique para retornar à raiz
         if (btnBack) {
             btnBack.addEventListener('click', function() {
-                // Exibir novamente o container com todas as pastas
                 foldersContainer.style.display = 'block';
                 folderNavBar.style.display = 'none';
                 notesSectionTitle.textContent = 'Anotações sem pasta';
 
-                // Ocultar as notas que pertencem a pastas
                 linkedNotes.forEach(note => note.style.display = 'none');
-
-                // Voltar a exibir as notas sem vínculo (raiz)
                 unlinkedNotes.forEach(note => note.style.display = 'block');
             });
         }
