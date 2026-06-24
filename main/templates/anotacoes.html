@@ -47,6 +47,18 @@
     .filter-section .field:not(:last-child) {
         margin-bottom: 1rem;
     }
+
+    /* Estilos para as pastas interativas */
+    .folder-card {
+        background-color: #242424;
+        border: 1px dashed #4a4a4a;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+    .folder-card:hover {
+        background-color: #2f2f2f;
+        transform: translateY(-2px);
+    }
 </style>
 {% endblock extra_css %}
 
@@ -187,10 +199,53 @@
 </div>
 {# Fim da Seção de Filtros #}
 
+{# Barra de Navegação de Pastas (Mostrada dinamicamente ao clicar em uma pasta) #}
+<div id="folder-nav-bar" class="box mb-5" style="display: none; background-color: #2f2f2f; border: 1px solid #4a4a4a; align-items: center; justify-content: space-between;">
+    <div class="is-flex" style="align-items: center;">
+        <span class="icon is-medium has-text-warning mr-2">
+            <i class="fas fa-folder-open fa-lg"></i>
+        </span>
+        <h3 class="title is-4 has-text-light mb-0" id="current-folder-title">Pasta</h3>
+    </div>
+    <button class="button is-light is-small" id="btn-back-folders">
+        <span class="icon"><i class="fas fa-arrow-left"></i></span>
+        <span>Voltar para as pastas</span>
+    </button>
+</div>
+
+{# Seção de Exibição das Pastas #}
+<div id="folders-container" class="mb-6">
+    <h3 class="title is-5 has-text-grey-light mb-3">Pastas</h3>
+    <div class="columns is-multiline">
+        {% for folder in folders %}
+        <div class="column is-one-quarter-desktop is-one-third-tablet">
+            <div class="card folder-card" data-folder-id="{{ folder.id }}" data-folder-name="{{ folder.name }}">
+                <div class="card-content has-text-centered py-4">
+                    <span class="icon is-large has-text-warning">
+                        <i class="fas fa-folder fa-2x"></i>
+                    </span>
+                    <p class="subtitle is-6 has-text-light mt-2 mb-0"><strong>{{ folder.name }}</strong></p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="column is-12">
+            <p class="has-text-grey">Nenhuma pasta criada.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<h3 class="title is-5 has-text-grey-light mb-3" id="notes-section-title">Anotações sem pasta</h3>
+
 {% if anotacoes %}
-<div class="columns is-multiline">
+<div class="columns is-multiline" id="notes-grid">
     {% for anotacao_item in anotacoes %}
-    <div class="column is-one-third-desktop is-half-tablet">
+    {# Define se a anotação pertence ou não a uma pasta para controle via JS #}
+    <div class="column is-one-third-desktop is-half-tablet note-item-card {% if anotacao_item.folder %}has-folder{% else %}no-folder{% endif %}"
+         data-folder-ref="{% if anotacao_item.folder %}{{ anotacao_item.folder.id }}{% endif %}"
+         {% if anotacao_item.folder %}style="display: none;"{% endif %}>
+
         <div class="card card-anotacao">
             <header class="card-header">
                 <p class="card-header-title is-clipped">
@@ -281,3 +336,64 @@
 {% endif %}
 
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const folderCards = document.querySelectorAll('.folder-card');
+        const foldersContainer = document.getElementById('folders-container');
+        const folderNavBar = document.getElementById('folder-nav-bar');
+        const currentFolderTitle = document.getElementById('current-folder-title');
+        const btnBack = document.getElementById('btn-back-folders');
+        const notesSectionTitle = document.getElementById('notes-section-title');
+
+        const allNotes = document.querySelectorAll('.note-item-card');
+        const unlinkedNotes = document.querySelectorAll('.note-item-card.no-folder');
+        const linkedNotes = document.querySelectorAll('.note-item-card.has-folder');
+
+        // Evento de clique em uma pasta
+        folderCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const folderId = this.getAttribute('data-folder-id');
+                const folderName = this.getAttribute('data-folder-name');
+
+                // Esconder o bloco das pastas
+                foldersContainer.style.display = 'none';
+
+                // Configurar e exibir barra de navegação superior da pasta
+                currentFolderTitle.textContent = 'Pasta: ' + folderName;
+                folderNavBar.style.display = 'flex';
+                notesSectionTitle.textContent = 'Anotações nesta pasta';
+
+                // Esconder anotações sem pasta
+                unlinkedNotes.forEach(note => note.style.display = 'none');
+
+                // Mostrar apenas as anotações associadas a esta pasta específica
+                linkedNotes.forEach(note => {
+                    if (note.getAttribute('data-folder-ref') === folderId) {
+                        note.style.display = 'block';
+                    } else {
+                        note.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Evento de clique para retornar à raiz
+        if (btnBack) {
+            btnBack.addEventListener('click', function() {
+                // Exibir novamente o container com todas as pastas
+                foldersContainer.style.display = 'block';
+                folderNavBar.style.display = 'none';
+                notesSectionTitle.textContent = 'Anotações sem pasta';
+
+                // Ocultar as notas que pertencem a pastas
+                linkedNotes.forEach(note => note.style.display = 'none');
+
+                // Voltar a exibir as notas sem vínculo (raiz)
+                unlinkedNotes.forEach(note => note.style.display = 'block');
+            });
+        }
+    });
+</script>
+{% endblock extra_js %}
