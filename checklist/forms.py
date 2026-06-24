@@ -1,5 +1,6 @@
 from django import forms
-from checklist.models import Titulo, Itens
+
+from checklist.models import Itens, Tarefa
 
 
 class ItensForm(forms.ModelForm):
@@ -16,12 +17,12 @@ class ItensForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user is not None:
-            self.fields["titulo"].queryset = Titulo.objects.filter(user=user)
+            self.fields["titulo"].queryset = Tarefa.objects.filter(user=user)
 
 
 class TituloForm(forms.ModelForm):
     class Meta:
-        model = Titulo
+        model = Tarefa
         fields = [
             "titulo",
             "color",

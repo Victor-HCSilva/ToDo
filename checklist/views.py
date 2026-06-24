@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from checklist.models import Titulo, Itens
+from django.shortcuts import redirect, render
+
 from checklist.forms import ItensForm, TituloForm
+from checklist.models import Itens, Tarefa
 
 
 def checklist(request):
@@ -25,7 +26,7 @@ def checklist(request):
                 item.save()
                 return redirect("anotacoes")
 
-    titulos = Titulo.objects.filter(user=request.user)
+    titulos = Tarefa.objects.filter(user=request.user)
     itens = Itens.objects.filter(user=request.user)
 
     return render(

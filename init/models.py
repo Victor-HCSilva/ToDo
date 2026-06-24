@@ -85,7 +85,7 @@ class Image(models.Model):
     observacao = models.CharField(max_length=1000, default="Sem observação")
 
     def __str__(self):
-        return f"Titulo: {self.titulo} - {self.user.username}"
+        return f"Tarefa: {self.titulo} - {self.user.username}"
 
 
 class Folder(models.Model):
