@@ -26,10 +26,10 @@ class Tarefa(models.Model):
 class Item(models.Model):
     # Correção da sintaxe das tuplas de escolhas (choices)
     STATUS_CHOICES = [
-        ("nao_iniciado", "Não Iniciado"),
-        ("fazendo", "Fazendo"),
-        ("concluido", "Concluído"),
-        ("cancelado", "Cancelado"),
+        ("nao_iniciado", "⮟ Não Iniciado ⚪"),
+        ("fazendo", "⮟ Fazendo ⏳"),
+        ("concluido", "⮟ Concluído ✅"),
+        ("cancelado", "⮟ Cancelado 🚫"),
     ]
 
     descricao = models.CharField(max_length=255, default="Item da lista")
