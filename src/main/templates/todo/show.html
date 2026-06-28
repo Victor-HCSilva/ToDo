@@ -5,33 +5,153 @@
 
 {% block extra_css %}
 <style>
-    /* Seus estilos CSS permanecem os mesmos, eles estão ótimos! */
-    .detail-box { background-color: #2f2f2f; border: 1px solid #4a4a4a; border-radius: 6px; padding: 1.5rem; }
-    .detail-box .title, .detail-box .subtitle { color: #e0e0e0; }
-    .detail-box strong { color: #b0b0b0; }
-    .detail-box p { color: #c0c0c0; font-size: 1.1rem; line-height: 1.7; }
-    .actions-menu { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #4a4a4a; }
-    .actions-menu .button { margin-right: 0.5rem; margin-bottom: 0.5rem; }
-    .priority-tag { font-weight: bold; padding: 0.5em 1em; border-radius: 4px; display: inline-block; margin-bottom: 0.75rem; }
-    .priority-alta { background-color: #f14668; color: white; }
-    .priority-media { background-color: orange ; color: white !important; }
+    /* Estilos Gerais de Estrutura e Cores */
+    .detail-box { 
+        background-color: #1e1e1e; 
+        border: 1px solid #2d2d2d; 
+        border-radius: 8px; 
+        padding: 2rem; 
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .actions-menu { 
+        margin-bottom: 2rem; 
+        padding-bottom: 1.25rem; 
+        border-bottom: 1px solid #2d2d2d; 
+    }
+    .actions-menu .button { 
+        margin-right: 0.5rem; 
+        margin-bottom: 0.5rem; 
+        border-radius: 6px;
+    }
+
+    /* Tags de Prioridade Personalizadas */
+    .priority-tag { 
+        font-weight: 600; 
+        padding: 0.35em 0.85em; 
+        border-radius: 6px; 
+        display: inline-block; 
+        font-size: 0.9rem;
+    }
+    .priority-alta { background-color: #ff3860; color: white; }
+    .priority-media { background-color: #ffdd57; color: #363636 !important; }
     .priority-baixa { background-color: #48c774; color: white; }
-    .priority-default { background-color: #7a7a7a; color: white; }
-    .priority-baixa, .priority-media, .priority-alta, .priority-default { padding: 5px; border: 1px solid white; border-radius: 10px; cursor: pointer; }
-    .priority-baixa:hover, .priority-media:hover, .priority-alta:hover { color: black; }
-    .image-box { margin-bottom: 1.5rem; }
-    .file-label { width: 100%; }
+    .priority-default { background-color: #4a4a4a; color: white; }
+
+    /* --- ESTILIZAÇÃO DO LEITOR MARKDOWN (Foco em Legibilidade) --- */
+    .markdown-header-bar {
+        background-color: #252526;
+        border: 1px solid #2d2d2d;
+        border-bottom: none;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+    #markdown-view {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #e0e0e0;
+        background-color: #181818;
+        border: 1px solid #2d2d2d;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 1.75rem;
+    }
+    
+    /* Regras de tipografia dentro do Markdown */
+    #markdown-view h1, #markdown-view h2, #markdown-view h3, #markdown-view h4 {
+        color: #ffffff !important;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+    }
+    #markdown-view h1 { font-size: 1.8rem; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3rem; }
+    #markdown-view h2 { font-size: 1.5rem; }
+    #markdown-view h3 { font-size: 1.25rem; }
+    #markdown-view p { margin-bottom: 1.25rem; color: #cccccc; }
+    
+    /* Listas */
+    #markdown-view ul, #markdown-view ol { margin-left: 1.5rem; margin-bottom: 1.25rem; list-style-position: outside; }
+    #markdown-view li { margin-bottom: 0.4rem; color: #cccccc; }
+    
+    /* Citações */
+    #markdown-view blockquote {
+        background-color: #222;
+        border-left: 4px solid #3273dc;
+        padding: 0.5rem 1.25rem;
+        margin: 1.5rem 0;
+        color: #b0b0b0;
+        font-style: italic;
+    }
+    
+    /* Elementos de Código */
+    #markdown-view code {
+        background-color: #2d2d2d;
+        color: #f14668;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.95rem;
+    }
+    #markdown-view pre {
+        background-color: #111111;
+        padding: 1.25rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        border: 1px solid #2d2d2d;
+        margin: 1.5rem 0;
+    }
+    #markdown-view pre code {
+        background-color: transparent;
+        padding: 0;
+        color: #abb2bf;
+        font-size: 0.9rem;
+    }
+
+    /* --- ESTILIZAÇÃO DO BOX DE IMAGENS --- */
+    .image-gallery-box {
+        background-color: #1e1e1e;
+        border: 1px solid #2d2d2d;
+        border-radius: 8px;
+        padding: 2rem;
+    }
+    .image-card {
+        background-color: #181818;
+        border: 1px solid #2d2d2d;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+    }
+    .image-frame {
+        display: flex;
+        justify-content: center;
+        background-color: #111;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #252526;
+        margin-top: 0.75rem;
+    }
+    .gallery-img {
+        max-height: 550px;
+        width: auto;
+        object-fit: contain;
+        transition: transform 0.2s ease-in-out;
+    }
+    .gallery-img:hover {
+        transform: scale(1.005);
+    }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <div class="container">
     <div class="columns is-centered">
         <div class="column is-three-quarters-tablet is-two-thirds-desktop">
             <p id="topo"></p>
 
-            {# --- NOVO: Bloco para exibir mensagens de sucesso/erro --- #}
+            {# Notificações #}
             {% if messages %}
                 {% for message in messages %}
                     <div class="notification is-{{ message.tags }} is-light">
@@ -41,117 +161,135 @@
                 {% endfor %}
             {% endif %}
 
-            {# Menu de Ações Acima #}
+            {# Menu de Ações Superior #}
             <div class="buttons actions-menu is-centered-mobile">
-                <a class="button is-light" href="{% url 'main:anotacoes' id_user=user.id %}"><span class="icon"><i class="fas fa-arrow-left"></i></span><span>Voltar</span></a>
-                <a class="button is-info" href="{% url 'main:main' id_user=user.id %}"><span class="icon"><i class="fas fa-plus"></i></span><span>Nova</span></a>
-                <a class="button is-warning" href="{% url 'main:editar' id_user=user.id id_anotacao=tarefa.id %}"><span class="icon"><i class="fas fa-edit"></i></span><span>Editar</span></a>
-                <a class="button is-danger" href="{% url 'main:remover' id_user=user.id id_anotacao=tarefa.id %}" onclick="return confirm('Tem certeza?');"><span class="icon"><i class="fas fa-trash"></i></span><span>Deletar</span></a>
+                <a class="button is-dark" href="{% url 'main:anotacoes' id_user=user.id %}">
+                    <span class="icon"><i class="fas fa-arrow-left"></i></span><span>Voltar</span>
+                </a>
+                <a class="button is-link" href="{% url 'main:main' id_user=user.id %}">
+                    <span class="icon"><i class="fas fa-plus"></i></span><span>Nova Anotação</span>
+                </a>
+                <a class="button is-warning" href="{% url 'main:editar' id_user=user.id id_anotacao=tarefa.id %}">
+                    <span class="icon"><i class="fas fa-edit"></i></span><span>Editar</span>
+                </a>
+                <a class="button is-danger" href="{% url 'main:remover' id_user=user.id id_anotacao=tarefa.id %}" onclick="return confirm('Tem certeza?');">
+                    <span class="icon"><i class="fas fa-trash"></i></span><span>Deletar</span>
+                </a>
             </div>
 
-            <div class="box detail-box has-background-black-bis">
-                <h1 class="title is-2 has-text-primary is-capitalized">
-
-                    {{ tarefa.titulo }}
-                {% if tarefa.prioridade %}
-                    {% if tarefa.completo %}
-                        ✅
-                    {% else %}
-                        ⌛
-                    {% endif %}
-                </h1>
-
-                <div class="mb-4">
-                    <span class="subtitle is-6 has-text-grey mr-2">Prioridade:</span>
-                    <span class="priority-tag {% if tarefa.prioridade|lower == 'máxima' %}priority-alta{% elif tarefa.prioridade|lower == 'mediana' or tarefa.prioridade|lower == 'média' %}priority-media{% elif tarefa.prioridade|lower == 'mínima' %}priority-baixa{% else %}priority-default{% endif %}">
-                        {{ tarefa.prioridade }}
-                    </span>
+            {# DETALHE DA ANOTAÇÃO #}
+            <div class="box detail-box">
+                <div class="is-flex is-justify-content-space-between is-align-items-start mb-4">
+                    <div>
+                        <h1 class="title is-2 has-text-white is-capitalized mb-2">{{ tarefa.titulo }}</h1>
+                        {% if tarefa.prioridade %}
+                        <div class="mt-2">
+                            <span class="priority-tag {% if tarefa.prioridade|lower == 'máxima' %}priority-alta{% elif tarefa.prioridade|lower == 'mediana' or tarefa.prioridade|lower == 'média' %}priority-media{% elif tarefa.prioridade|lower == 'mínima' %}priority-baixa{% else %}priority-default{% endif %}">
+                                Prioridade: {{ tarefa.prioridade }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="is-size-3">
+                        {% if tarefa.completo %}✅{% else %}⌛{% endif %}
+                    </div>
                 </div>
-                {% endif %}
 
-                <div class="content">
-                    <h2 class="subtitle is-5 has-text-info mt-4">Anotação:</h2>
-                    <!--TODO: adiconar marcaçção markdown-->
-                     <div class="is-flex is-justify-content-space-between is-align-items-center mt-4">
-                        
+                <div class="content mt-5">
+                    <h2 class="subtitle is-5 has-text-grey-light mb-2">Anotação:</h2>
+                    
+                    <!-- Cabeçalho de Utilidades do Markdown -->
+                    <div class="markdown-header-bar is-flex is-justify-content-space-between is-align-items-center">
+                        <span class="has-text-grey is-size-7"><i class="fab fa-markdown mr-1"></i> Markdown</span>
                         <!-- Botão de copiar -->
-                        <button style="border-radius: 10px !important;" type="button" id="copy-btn" class="button is-small is-outlined is-info">
-                            <span class="icon"><i class="fas fa-copy"></i></span>
-                            <span style="padding: 5px;">Copiar</span>
+                        <button type="button" id="copy-btn" class="button is-small is-dark">
+                            <span class="icon is-small"><i class="fas fa-copy"></i></span>
+                            <span>Copiar texto</span>
                         </button>
                     </div>
-                    <div id="markdown-view" class="box has-background-dark has-text-light-grey p-4" style="white-space: pre-wrap; word-wrap: break-word; color: white;">
-                          
+
+                    <!-- Caixa de Visualização Renderizada -->
+                    <div id="markdown-view" class="content">
+                        <!-- O Javascript injetará o HTML renderizado do Markdown aqui -->
                     </div>
+                    
                     {{ tarefa.anotacao|json_script:"anotacao-data" }}
-                    {% if tarefa.data_de_criacao %}<p class="mt-4"><strong class="has-text-grey">Criado em:</strong> <span class="has-text-grey-light">{{ tarefa.data_de_criacao }}</span></p>{% endif %}
+
+                    {% if tarefa.data_de_criacao %}
+                        <p class="mt-5 is-size-7 has-text-grey">
+                            <strong>Criado em:</strong> <span class="has-text-grey-light">{{ tarefa.data_de_criacao }}</span>
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
-            {# --- SEÇÃO DE IMAGENS ASSOCIADAS (MELHORADA) --- #}
-            <div class="box has-background-black-bis mt-5">
+            {# --- GALERIA DE IMAGENS ASSOCIADAS (DESIGN MELHORADO) --- #}
+            <div class="box image-gallery-box mt-5">
                 <h2 class="title is-4 has-text-light">Imagens Associadas</h2>
                 <hr class="has-background-grey-darker">
+                
                 {% for img in imagens %}
-                    <div class="box has-background-dark image-box">
-                        <div class="level">
+                    <div class="image-card">
+                        <div class="level mb-3">
                             <div class="level-left">
-                                <h4 class="title is-5 has-text-light">{{ img.titulo|default:"Imagem sem título" }}</h4>
+                                <h4 class="title is-5 has-text-white">{{ img.titulo|default:"Imagem sem título" }}</h4>
                             </div>
                             <div class="level-right">
                                 <div class="buttons are-small">
-                                    <a class="button is-light is-outlined" href="{% url 'main:editar_descricao' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}">
+                                    <a class="button is-dark" href="{% url 'main:editar_descricao' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}">
                                         <span class="icon"><i class="fas fa-pen"></i></span>
                                     </a>
                                     <a class="button is-danger is-outlined" href="{% url 'main:apagar_imagem' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}" onclick="return confirm('Apagar esta imagem?');">
-                                        <span class="icon"><i class="fas fa-times"></i></span>
+                                        <span class="icon"><i class="fas fa-trash"></i></span>
                                     </a>
                                 </div>
                             </div>
                         </div>
-                        {% if img.observacao %}<p class="subtitle is-6 has-text-grey-light mb-4">{{ img.observacao }}</p>{% endif %}
-                        <figure class="image is-16by9">
-                            <img src="{{ img.img.url }}" alt="{{ img.observacao }}" title="{{ img.titulo }}">
-                        </figure>
+                        
+                        {% if img.observacao %}
+                            <p class="subtitle is-6 has-text-grey mb-3">{{ img.observacao }}</p>
+                        {% endif %}
+                        
+                        <!-- Frame Inteligente de Exibição sem Distorcer -->
+                        <div class="image-frame">
+                            <img class="gallery-img" src="{{ img.img.url }}" alt="{{ img.observacao }}" title="{{ img.titulo }}">
+                        </div>
                     </div>
                 {% empty %}
                     <p class="has-text-grey-light">Nenhuma imagem foi adicionada a esta anotação ainda.</p>
                 {% endfor %}
             </div>
 
-            {# --- FORMULÁRIO PARA ADICIONAR NOVAS IMAGENS (MELHORADO) --- #}
-            <div class="box has-background-black-bis mt-5" id="adicionar_imagem">
+            {# --- FORMULÁRIO PARA ADICIONAR NOVAS IMAGENS --- #}
+            <div class="box image-gallery-box mt-5" id="adicionar_imagem">
                 <h2 class="title is-4 has-text-light">Adicionar Nova Imagem</h2>
                 <hr class="has-background-grey-darker">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
-                    {# Título #}
                     <div class="field">
-                        <label class="label">{{ form.titulo.label }}</label>
+                        <label class="label has-text-grey-light">{{ form.titulo.label }}</label>
                         <div class="control">{{ form.titulo }}</div>
                         {% for error in form.titulo.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
                     </div>
 
-                    {# Observação #}
                     <div class="field">
-                        <label class="label">{{ form.observacao.label }}</label>
+                        <label class="label has-text-grey-light">{{ form.observacao.label }}</label>
                         <div class="control">{{ form.observacao }}</div>
                         {% for error in form.observacao.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
                     </div>
 
-                    {# Upload do Arquivo (com estilo Bulma) #}
                     <div class="field">
-                        <label class="label">{{ form.img.label }}</label>
+                        <label class="label has-text-grey-light">{{ form.img.label }}</label>
                         <div class="control">
-                           <div class="file has-name is-fullwidth">
+                           <div class="file has-name is-fullwidth is-dark">
                                 <label class="file-label">
                                     {{ form.img }}
                                     <span class="file-cta">
                                         <span class="file-icon"><i class="fas fa-upload"></i></span>
                                         <span class="file-label">Escolher arquivo…</span>
                                     </span>
-                                    <span class="file-name">Nenhum arquivo selecionado</span>
+                                    <span class="file-name has-text-grey">Nenhum arquivo selecionado</span>
                                 </label>
                             </div>
                         </div>
@@ -159,7 +297,7 @@
                     </div>
 
                     <div class="field is-grouped is-grouped-right mt-5">
-                        <div class="control"><a href="#topo" class="button is-light">Topo</a></div>
+                        <div class="control"><a href="#topo" class="button is-dark">Topo</a></div>
                         <div class="control"><button type="submit" class="button is-success">Salvar Imagem</button></div>
                     </div>
                 </form>
@@ -170,60 +308,58 @@
 {% endblock content %}
 
 {% block extra_js %}
-<script >
+<script>
     document.addEventListener('DOMContentLoaded', () => {
 
-    // Para fechar notificações
-    (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
-        const $notification = $delete.parentNode;
-        $delete.addEventListener('click', () => { $notification.parentNode.removeChild($notification); });
-    });
+        // Fechar notificações do Django
+        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+            const $notification = $delete.parentNode;
+            $delete.addEventListener('click', () => { $notification.parentNode.removeChild($notification); });
+        });
 
-    // Para mostrar o nome do arquivo no input de upload do Bulma
-    const fileInput = document.querySelector('.file-input');
-    if (fileInput) {
-        fileInput.onchange = () => {
-            if (fileInput.files.length > 0) {
-                const fileName = document.querySelector('.file-name');
-                fileName.textContent = fileInput.files[0].name;
-            }
-        };
-    }
+        // Nome do arquivo selecionado no input
+        const fileInput = document.querySelector('.file-input');
+        if (fileInput) {
+            fileInput.onchange = () => {
+                if (fileInput.files.length > 0) {
+                    const fileName = document.querySelector('.file-name');
+                    fileName.textContent = fileInput.files[0].name;
+                }
+            };
+        }
 
-    const markdownElement = document.getElementById('markdown-view');
-    const rawMarkdown = JSON.parse(document.getElementById('anotacao-data').textContent);
-    if (markdownElement && rawMarkdown) {
-        // marked.parse converte a string em HTML seguro
-        markdownElement.innerHTML = marked.parse(rawMarkdown);
-    }
+        // Renderizador Markdown do Marked.js
+        const markdownElement = document.getElementById('markdown-view');
+        const rawMarkdown = JSON.parse(document.getElementById('anotacao-data').textContent);
+        if (markdownElement && rawMarkdown) {
+            // marked.parse converte a string bruta em HTML estruturado
+            markdownElement.innerHTML = marked.parse(rawMarkdown);
+        }
 
-    const copyBtn = document.getElementById('copy-btn');
-    const scriptData = document.getElementById('anotacao-data');
+        // Função do Botão de Copiar (Preserva as quebras de linha originais do Markdown)
+        const copyBtn = document.getElementById('copy-btn');
+        const scriptData = document.getElementById('anotacao-data');
 
-    if (copyBtn && scriptData) {
-        copyBtn.addEventListener('click', async () => {
-            try {
-            // Pega o texto original em Markdown
-            const textToCopy = JSON.parse(scriptData.textContent);
-            
-            // API de Clipboard (moderna)
-            await navigator.clipboard.writeText(textToCopy);
-            
-            // Feedback visual básico
-            const originalText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<span class="icon"><i class="fas fa-check"></i></span><span>Copiado!</span>';
-            
-            // Volta ao original após 2 segundos
-            setTimeout(() => {
-                copyBtn.innerHTML = originalText;
-            }, 2000);
-            
-        } catch (err) {
-            console.error('Falha ao copiar: ', err);
-            alert('Não foi possível copiar o texto.');
+        if (copyBtn && scriptData) {
+            copyBtn.addEventListener('click', async () => {
+                try {
+                    const textToCopy = JSON.parse(scriptData.textContent);
+                    await navigator.clipboard.writeText(textToCopy);
+                    
+                    const originalText = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<span class="icon is-small"><i class="fas fa-check"></i></span><span>Copiado!</span>';
+                    copyBtn.classList.replace('is-dark', 'is-success');
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalText;
+                        copyBtn.classList.replace('is-success', 'is-dark');
+                    }, 2000);
+                    
+                } catch (err) {
+                    console.error('Falha ao copiar: ', err);
+                }
+            });
         }
     });
-}
-});
 </script>
 {% endblock extra_js %}
