@@ -25,9 +25,8 @@ else:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LOGIN_URL = "main/login"
-
-LOGOUT_REDIRECT_URL = "create/account"
+LOGIN_URL = "main:login"
+LOGOUT_REDIRECT_URL = "main:create_account"
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -44,8 +43,6 @@ HOUR = 3600
 AXES_COOLOFF_TIME = 200 if DEBUG else int(HOUR / 2)
 
 # O tempo é definido em segundos.
-
-
 SESSION_COOKIE_AGE = 120 if DEBUG else int(HOUR / 10)
 
 # Isso garante que a sessão expire quando o navegador for fechado
@@ -62,7 +59,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "init",
     "main",
     "agenda",
     "checklist",
@@ -78,6 +74,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "axes.middleware.AxesMiddleware",
+    "core.middleware.CurrentUserMiddleware",  # Adiciona o middleware para capturar o usuário atual
 ]
 
 ROOT_URLCONF = "core.urls"

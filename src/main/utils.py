@@ -48,7 +48,6 @@ def adjust_boolean_fields(filters: dict) -> dict:
 
 
 if __name__ == "__main__":
-    # Testes
     import os
     import sys
 

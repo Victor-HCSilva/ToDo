@@ -1,16 +1,16 @@
 from django import forms
 
-from checklist.models import Itens, Tarefa
+from checklist.models import Item, Link, Tarefa
 
 
-class ItensForm(forms.ModelForm):
+class ItemForm(forms.ModelForm):
     class Meta:
-        model = Itens
+        model = Item
         fields = [
-            "label",
+            "descricao",
             "feito",
             "color",
-            "titulo",  # permite escolher a qual título o item pertence
+            "tarefa",  # permite escolher a qual título o item pertence
         ]
 
     def __init__(self, *args, **kwargs):
@@ -23,7 +23,12 @@ class ItensForm(forms.ModelForm):
 class TituloForm(forms.ModelForm):
     class Meta:
         model = Tarefa
-        fields = [
-            "titulo",
-            "color",
-        ]
+        fields = ["titulo", "color", "todo"]
+
+
+class LinkForm(forms.ModelForm):
+    """Contexto de tarefa deve ser adicionada no momento de salvar"""
+
+    class Meta:
+        model = Link
+        fields = ["url"]

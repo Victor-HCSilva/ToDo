@@ -1,46 +1,56 @@
-"""
-A tarefa tem o nome principal
-
-o item tem a descrição - label - passível a mudar para descricao
-o item tem vinculo unico de user e link, formando um conjunto separado de itens e links por user
-o link é separado para que possa ser atribuido a tarefa ou (o caso de agora) o item; onde a url precisa ter um vinculo fiel a tarefa e a um usuário
-
-A escolha de como as entidades se juntam muda o formato de exibição, criação e edição dos dados; portanto,
-também muda a forma como os dados são armazenados no banco de dados. Logo penso que existem abordagens melhores ou inferiores
-"""
-
 from django.contrib.auth.models import User
 from django.db import models
-
 from checklist.configs.colors import COLORS
+from main.models import Todo
 
 
 class Tarefa(models.Model):
     titulo = models.CharField(max_length=100)
     color = models.CharField(max_length=20, choices=COLORS, default="black")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    todo = models.ForeignKey(
+        Todo,
+        help_text="Tarefa associada | não é obrigatório",
+        on_delete=models.CASCADE,
+        related_name="tarefas",
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"{self.titulo} - {self.user.username}"
 
 
-class Itens(models.Model):
-    label = models.CharField(max_length=255, default="Tarefa")
-    feito = models.BooleanField(default=False)
+class Item(models.Model):
+    # Correção da sintaxe das tuplas de escolhas (choices)
+    STATUS_CHOICES = [
+        ("nao_iniciado", "Não Iniciado"),
+        ("fazendo", "Fazendo"),
+        ("concluido", "Concluído"),
+        ("cancelado", "Cancelado"),
+    ]
+
+    descricao = models.CharField(max_length=255, default="Item da lista")
+    feito = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="nao_iniciado"
+    )
     color = models.CharField(max_length=20, choices=COLORS, default="black")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    titulo = models.ForeignKey(
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="itens")
+    tarefa = models.ForeignKey(
         Tarefa, on_delete=models.CASCADE, related_name="itens", blank=True, null=True
     )
 
     def __str__(self):
-        return f"{self.label} - {self.user.username}"
+        tarefa_titulo = self.tarefa.titulo if self.tarefa else "Sem tarefa"
+        return f"{self.descricao} (Tarefa: {tarefa_titulo}) - {self.user.username}"
 
 
-class Links(models.Model):
+class Link(models.Model):
     url = models.URLField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    item = models.ForeignKey(Itens, on_delete=models.CASCADE, related_name="links")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="links")
+    tarefa = models.ForeignKey(
+        Tarefa, on_delete=models.CASCADE, related_name="links", blank=True, null=True
+    )
 
     def __str__(self):
-        return f"{self.url} - {self.user.username}"
+        return f"{self.url}"

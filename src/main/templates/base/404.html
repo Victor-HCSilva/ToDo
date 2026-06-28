@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Não Encontrada</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+        :root {
+            --bg-color: #121212;
+            --primary-text-color: #EAEAEA;
+            --secondary-text-color: #A0A0A0;
+            --accent-color: #BB86FC;
+            --surface-color: #1E1E1E;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            padding: 40px;
+            background-color: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(-20px);
+            animation: floatUp 0.8s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .icon {
+            font-size: 4rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 10px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: var(--secondary-text-color);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .home-button {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: #121212; /* Cor de texto que contrasta com o botão */
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .home-button:hover {
+            background-color: #a764fa;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Ícone sutil que remete a uma tarefa ou nota perdida -->
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-file-earmark-x" viewBox="0 0 16 16">
+              <path d="M5.18 4.616a.5.5 0 0 1 .704.064L8 7.219l2.116-2.54a.5.5 0 1 1 .768.641L8.651 8l2.54 2.116a.5.5 0 0 1-.768.641L8 8.781l-2.116 2.54a.5.5 0 0 1-.704-.064.5.5 0 0 1 .063-.704L7.349 8 4.809 5.884a.5.5 0 0 1 .063-.704.5.5 0 0 1 .308-.163z"/>
+              <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 1a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h3z"/>
+            </svg>
+        </div>
+
+
+        <!-- IMPORTANTE: Mude 'home' para o nome da URL da sua página inicial -->
+        {% if user.id %}
+        <h1>Recurso não encontrado</h1>
+        <p>
+                Talvez seja hora de fazer uma pausa ☕...
+        </p>
+            <a href="{% url 'main:welcome' id_user=user.id %}" class="home-button">Início</a>
+        {% else %}
+                    <h1>Quem é você 🤔?</h1>
+                    <p>
+                Por favor faça login...
+                    </p>
+
+            <a href="{% url 'main:login' %}" class="home-button">Login</a>
+        {% endif %}
+    </div>
+
+</body>
+</html>

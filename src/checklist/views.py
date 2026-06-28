@@ -1,40 +1,44 @@
-from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
 
-from checklist.forms import ItensForm, TituloForm
-from checklist.models import Itens, Tarefa
+from .models import Item, Link, Tarefa
 
 
+@login_required
 def checklist(request):
-    titulo_form = TituloForm()
-    itens_form = ItensForm()
-
+    # Processamento de envio de formulários rápidos
     if request.method == "POST":
-        if "submit_titulo" in request.POST:
-            titulo_form = TituloForm(request.POST)
-            if titulo_form.is_valid():
-                titulo = titulo_form.save(commit=False)
-                titulo.user = request.user
-                titulo.save()
-                return redirect("anotacoes")
+        # AÇÃO 1: Criar uma nova Tarefa (apenas com o título)
+        if "criar_tarefa" in request.POST:
+            titulo = request.POST.get("titulo")
+            color = request.POST.get("color", "black")
+            if titulo:
+                Tarefa.objects.create(titulo=titulo, color=color, user=request.user)
+            return redirect("checklist")
 
-        elif "submit_itens" in request.POST:
-            itens_form = ItensForm(request.POST)
-            if itens_form.is_valid():
-                item = itens_form.save(commit=False)
-                item.user = request.user
-                item.save()
-                return redirect("anotacoes")
+        # AÇÃO 2: Adicionar um Item rápido diretamente a uma Tarefa existente
+        elif "adicionar_item" in request.POST:
+            descricao = request.POST.get("descricao")
+            tarefa_id = request.POST.get("tarefa_id")
+            if descricao and tarefa_id:
+                tarefa_obj = get_object_or_404(Tarefa, id=tarefa_id, user=request.user)
+                Item.objects.create(
+                    descricao=descricao, tarefa=tarefa_obj, user=request.user
+                )
+            return redirect("checklist")
 
-    titulos = Tarefa.objects.filter(user=request.user)
-    itens = Itens.objects.filter(user=request.user)
+        # AÇÃO 3: Adicionar um Link rápido diretamente a uma Tarefa existente
+        elif "adicionar_link" in request.POST:
+            url = request.POST.get("url")
+            tarefa_id = request.POST.get("tarefa_id")
+            if url and tarefa_id:
+                tarefa_obj = get_object_or_404(Tarefa, id=tarefa_id, user=request.user)
+                Link.objects.create(url=url, tarefa=tarefa_obj, user=request.user)
+            return redirect("checklist")
 
-    return render(
-        request,
-        "checklist.html",
-        {
-            "titulo_form": titulo_form,
-            "itens_form": itens_form,
-            "titulos": titulos,
-            "itens": itens,
-        },
+    # Carrega os dados do usuário para exibição organizada
+    tarefas = Tarefa.objects.filter(user=request.user).prefetch_related(
+        "itens", "links"
     )
+
+    return render(request, "checklist.html", {"tarefas": tarefas})

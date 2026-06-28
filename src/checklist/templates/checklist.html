@@ -1,38 +1,112 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Suas Anotações{% endblock title %}
+{% block content %}
+<div class="container">
+    <h1 class="title">Meu Painel de Checklists 🧠</h1>
 
-{%block content %}
-<h2>Novo Título</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ titulo_form.as_p }}
-  <button type="submit" name="submit_titulo">Salvar Título</button>
-</form>
+    <!-- FORMULÁRIO 1: Criar Nova Tarefa Principal -->
+    <div class="box has-background-dark-ter">
+        <form method="post" class="field has-addons">
+            {% csrf_token %}
+            <div class="control is-expanded">
+                <input class="input" type="text" name="titulo" placeholder="Nome da nova tarefa/checklist..." required>
+            </div>
+            <div class="control">
+                <button type="submit" name="criar_tarefa" class="button is-link">
+                    ➕ Nova Tarefa
+                </button>
+            </div>
+        </form>
+    </div>
 
-<h2>Novo Item</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ itens_form.as_p }}
-  <button type="submit" name="submit_itens">Salvar Item</button>
-</form>
+    <!-- EXIBIÇÃO DAS TAREFAS EM CARDS/COLUNAS -->
+    <div class="columns is-multiline">
+        {% for tarefa in tarefas %}
+        <div class="column is-4">
+            <div class="card" style="border-top: 4px solid {{ tarefa.color }};">
+                <header class="card-header">
+                    <p class="card-header-title">{{ tarefa.titulo }}</p>
+                </header>
 
-<hr>
-<h3>Títulos cadastrados:</h3>
-<ul>
-  {% for titulo in titulos %}
-    <li>{{ titulo.nome }}</li>
-  {% endfor %}
-</ul>
+                <div class="card-content">
+                    <!-- LISTA DE ITENS DA TAREFA -->
+                    <div class="content">
+                        <h6>Itens:</h6>
+                        <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
+                            {% for item in tarefa.itens.all %}
+                            <li class="is-flex is-justify-content-space-between mb-2">
+                                <span>
+                                    {% if item.feito == 'concluido' %}
+                                    <strike class="has-text-grey">{{ item.descricao }}</strike>
+                                    {% else %}
+                                    {{ item.descricao }}
+                                    {% endif %}
+                                </span>
+                                <span
+                                    class="tag is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-light{% endif %}">
+                                    {{ item.get_feito_display }}
+                                </span>
+                            </li>
+                            {% empty %}
+                            <li class="has-text-grey-light">Nenhum item adicionado ainda.</li>
+                            {% endfor %}
+                        </ul>
 
-<h3>Itens cadastrados:</h3>
-<ul>
-  {% for item in itens %}
-    <li>{{ item.nome }} ({{ item.titulo }})</li>
-  {% endfor %}
-</ul>
+                        <!-- FORMULÁRIO 2: Adicionar Item Rápido diretamente no Card -->
+                        <form method="post" class="field has-addons mt-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                            <div class="control is-expanded">
+                                <input class="input is-small" type="text" name="descricao" placeholder="Novo item..."
+                                    required>
+                            </div>
+                            <div class="control">
+                                <button type="submit" name="adicionar_item" class="button is-small is-success">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <!-- LISTA DE LINKS DE REFERÊNCIA -->
+                    <div class="content">
+                        <h6>Referências / Links:</h6>
+                        <ul>
+                            {% for link in tarefa.links.all %}
+                            <li>
+                                <a href="{{ link.url }}" target="_blank" class="has-text-info">{{ link.url }}</a>
+                            </li>
+                            {% empty %}
+                            <li class="has-text-grey-light">Nenhum link adicionado.</li>
+                            {% endfor %}
+                        </ul>
+
+                        <!-- FORMULÁRIO 3: Adicionar Link Rápido diretamente no Card -->
+                        <form method="post" class="field has-addons mt-3">
+                            {% csrf_token %}
+                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                            <div class="control is-expanded">
+                                <input class="input is-small" type="url" name="url" placeholder="https://exemplo.com"
+                                    required>
+                            </div>
+                            <div class="control">
+                                <button type="submit" name="adicionar_link" class="button is-small is-info">
+                                    Link
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="column is-12">
+            <p class="has-text-centered has-text-grey">Nenhuma tarefa criada. Comece criando uma tarefa acima!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock content %}
-
-{% block extra_js %}
-{% endblock extra_js %}

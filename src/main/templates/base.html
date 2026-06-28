@@ -1,0 +1,286 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Meu App Django{% endblock title %}</title>
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/?size=100&id=80355&format=png&color=000000" />
+
+    <!-- Frameworks e Ícones -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-dark@0.4.1/css/bulma-dark.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+
+    <!-- CSS customizado -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
+
+    <style>
+        @media screen and (min-width: 1024px) {
+
+            .sidebar-column,
+            .main-content-column {
+                height: 100vh;
+                overflow-y: auto;
+                transition: width 0.3s ease-in-out;
+            }
+
+            html,
+            body {
+                overflow: hidden;
+            }
+
+            .sidebar-column.is-hidden {
+                width: 0 !important;
+                padding: 0 !important;
+                overflow: hidden;
+            }
+        }
+
+        .menu-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #4a4a4a;
+        }
+
+        .logout-button {
+            background: gray !important;
+            color: hsl(0, 0%, 86%);
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            width: 100%;
+            border-radius: 5px;
+        }
+
+        .logout-button:hover {
+            color: white !important;
+            background-color: transparent !important;
+        }
+
+        .white-link {
+            color: rgb(200, 200, 200) !important;
+        }
+
+        .white-link:hover {
+            color: cyan !important;
+        }
+
+        .logout-button:hover {
+            color: cyan !important;
+        }
+
+        .logout-button {
+            text-align: left !important;
+        }
+    </style>
+    {% block extra_css %} {% endblock extra_css %}
+</head>
+
+<body class="has-background-dark has-text-light-grey">
+    {% block body_wrapper %} {# --- MENU MOBILE --- #}
+    <nav class="navbar is-black is-hidden-desktop" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <!-- Corrigido: Removida a linha duplicada e quebrada aqui -->
+            <a href="{% if user.is_authenticated %}{% url 'main:welcome' id_user=user.id %}{% else %}{% url 'main:login' %}{% endif %}"
+                class="navbar-item has-text-white"><strong>Brain 🧠</strong></a>
+
+            {% if tempo_restante %}
+            <div class="navbar-item">
+                <span class="tag is-info is-light" id="session-timer-mobile" data-seconds="{{ tempo_restante }}">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span class="timer-text">--:--</span>
+                </span>
+            </div>
+            {% endif %}
+
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mobileMenu">
+                <span></span><span></span><span></span>
+            </a>
+        </div>
+        <div id="mobileMenu" class="navbar-menu">
+            <div class="navbar-start">
+                <ul class="menu-list p-3">
+                    {% if user.is_authenticated %}
+                    <div class="navbar-item">
+                        <form method="post" action="{% url 'main:logout' %}">
+                            {% csrf_token %}<button type="submit" class="logout-button">
+                                🚪 Sair
+                            </button>
+                        </form>
+                    </div>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:configs' id_user=user.id %}">⚙️ Configurações</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:sobre' %}">𐦂𖨆𐀪𖠋 Sobre</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">⾕ Início</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗒 Agenda</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">✧ Eventos</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">⟟ Anotações</a>
+                    </li>
+
+                    <li>
+                        <a class="white-link" href="{% url 'main:folders' %}">📁 Gerenciar Pastas</a>
+                    </li>
+
+                    {% else %}
+                    <li>
+                        <a class="white-link" href="{% url 'main:login' %}">Entrar</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:create_account' %}">Criar Conta</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="columns is-gapless">
+        {# --- MENU LATERAL (DESKTOP) --- #}
+        <div id="desktopSidebar" class="column is-2-desktop has-background-black-ter sidebar-column is-hidden-touch">
+            <div class="menu-logo">
+                <!-- Corrigido: Ajustada a estrutura do link com o ícone do foguete -->
+                <a href="{% if user.is_authenticated %}{% url 'main:welcome' id_user=user.id %}{% else %}{% url 'main:login' %}{% endif %}"
+                    class="has-text-white">
+                    <span class="icon-text">
+                        <span class="icon is-medium"><i class="fas fa-rocket fa-lg"></i></span>
+                        <strong class="is-size-5 ml-2">Brain 🧠</strong>
+                    </span>
+                </a>
+            </div>
+            <aside class="menu p-4">
+                <ul class="menu-list">
+                    {% if user.is_authenticated %}
+                    <p class="menu-label">Usuário</p>
+                    <div id="user" class="navbar-item has-text-grey-light name">
+                        Olá, {{ user.username }}
+                    </div>
+                    <div class="navbar-item">
+                        <form method="post" action="{% url 'main:logout' %}">
+                            {% csrf_token %}<button type="submit" class="logout-button">
+                                🚪 Sair
+                            </button>
+                        </form>
+                    </div>
+                    <p class="menu-label">Opções</p>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:configs' id_user=user.id %}">⚙️ Configurações</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:sobre' %}">𐦂𖨆𐀪𖠋 Sobre</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">⾕ Início</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗒 Agenda</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">✧ Eventos</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">⟟ Anotações</a>
+                    </li>
+                    {% else %}
+                    <p class="menu-label">
+                        Crie uma conta ou realize login
+                    </p>
+                    {% endif %}
+                </ul>
+            </aside>
+        </div>
+
+        {# --- COLUNA DE CONTEÚDO PRINCIPAL --- #}
+        <div id="mainContent" class="column is-10-desktop main-content-column">
+            <div class="is-flex is-justify-content-space-between is-align-items-center p-3">
+                <a role="button" id="desktop-menu-toggle" class="button is-dark"><i class="fas fa-bars"></i></a>
+                {% if tempo_restante %}
+                <span class="tag is-info is-light" id="session-timer-desktop" data-seconds="{{ tempo_restante }}">
+                    <i class="fas fa-clock mr-1"></i>
+                    <span class="timer-text">--:--</span>
+                </span>
+                {% endif %}
+            </div>
+
+            <main class="section">
+                <div class="container is-fluid">
+                    {% block content %}{% endblock content %}
+                </div>
+            </main>
+        </div>
+    </div>
+    {% endblock body_wrapper %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Timer Session
+            const initTimer = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                let timeLeft = parseInt(el.dataset.seconds);
+                const textEl = el.querySelector(".timer-text");
+                const update = () => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        const m = Math.floor(timeLeft / 60);
+                        const s = timeLeft % 60;
+                        textEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+                        if (timeLeft < 60)
+                            el.classList.replace("is-info", "is-danger");
+                    } else {
+                        textEl.textContent = "Expirado!";
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                };
+                setInterval(update, 1000);
+                update();
+            };
+            initTimer("session-timer-mobile");
+            initTimer("session-timer-desktop");
+
+            // Mobile Menu Toggle
+            const $navbarBurgers = Array.prototype.slice.call(
+                document.querySelectorAll(".navbar-burger"),
+                0,
+            );
+            if ($navbarBurgers.length > 0) {
+                $navbarBurgers.forEach((el) => {
+                    el.addEventListener("click", () => {
+                        const target = el.dataset.target;
+                        const $target = document.getElementById(target);
+                        el.classList.toggle("is-active");
+                        $target.classList.toggle("is-active");
+                    });
+                });
+            }
+
+            // Sidebar Toggle
+            const toggle = document.getElementById("desktop-menu-toggle");
+            const sidebar = document.getElementById("desktopSidebar");
+            const main = document.getElementById("mainContent");
+            if (toggle) {
+                toggle.addEventListener("click", () => {
+                    sidebar.classList.toggle("is-hidden");
+                    main.classList.toggle("is-10-desktop");
+                    main.classList.toggle("is-12-desktop");
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+
+</html>

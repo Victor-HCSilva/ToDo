@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Início - Brain{% endblock title %}
+
+{% block content %}
+{# ========================================================================= #}
+{# === Bloco de boas-vindas: já estava bem estruturado com Bulma.        === #}
+{# ========================================================================= #}
+<div class="box has-background-black-bis has-text-centered">
+    <h1 class="title is-2 has-text-weight-light">
+        O que vai fazer hoje, <strong class="has-text-white">{{ user.username }}</strong>?
+    </h1>
+    <p class="subtitle is-5 has-text-grey">
+        Escolha uma das opções abaixo para começar suas atividades.
+    </p>
+
+    {# Os botões já usam boas práticas do Bulma. #}
+    <div class="buttons is-centered are-large mt-5">
+        <a class="button is-link" href="{% url 'main:main' id_user=user.id %}">
+            <span class="icon">
+                <i class="fas fa-pen-alt"></i>
+            </span>
+            <span>Criar uma Anotação</span>
+        </a>
+        <a class="button is-primary" href="{% url 'agenda:eventos' id_user=user.id %}">
+            <span class="icon">
+  <i class="fas fa-check-square"></i>
+            </span>
+            <span>Seus eventos</span>
+        </a>
+        <a class="button is-link" href="{% url 'agenda:agenda' id_user=user.id %}">
+            <span class="icon">
+                <i class="fas fa-calendar-alt"></i>
+            </span>
+            <span>Ver sua Agenda</span>
+        </a>
+    </div>
+</div>
+
+
+{# ========================================================================= #}
+{# === MELHORIA: Bloco de anotações recentes.                            === #}
+{# ========================================================================= #}
+<div class="panel has-background-black-bis mt-5">
+
+    <p class="panel-heading has-background-black-ter has-text-grey-light">
+        Suas Anotações Mais Recentes
+    </p>
+
+    {% for todo in todos|slice:":4" %}
+        <a class="panel-block" href="{% url 'main:show' id_user=user.id id_anotacao=todo.id%}">
+            <span class="panel-icon">
+              <i class="fas fa-book" aria-hidden="true"></i>
+            </span>
+            {{ todo.titulo }}
+        </a>
+    {% empty %}
+        {# ========================================================================= #}
+        {# === MELHORIA APLICADA AQUI: Tratamento do estado vazio com um botão claro. #}
+        {# ========================================================================= #}
+        <div class="panel-block">
+            <div class="content has-text-centered" style="width: 100%;">
+                <p class="has-text-grey mb-3">
+                    Você ainda não tem nenhuma anotação.
+                </p>
+                {# Este é um botão real, consistente com o design, porém menor. #}
+                <a href="{% url 'main:main' id_user=user.id %}" class="button is-primary is-small">
+                    <span class="icon is-small">
+                        <i class="fas fa-plus"></i>
+                    </span>
+                    <span>Criar a primeira</span>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}
