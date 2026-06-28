@@ -111,7 +111,12 @@
 
                 <div class="field is-grouped is-grouped-right">
                     <div class="control">
-                        <a class="button is-light" href="{% url 'main:anotacoes' id_user=user.id %}">
+                        <!-- <a class="button is-light" href="{% url 'main:anotacoes' id_user=user.id %}">
+                            <span class="icon"><i class="fas fa-times"></i></span>
+                            <span>Cancelar</span>
+                        </a> -->
+                        
+                        <a class="button is-light" href="{% url 'main:show' id_user=user.id id_anotacao=tarefa.id %}" class="card-footer-item">
                             <span class="icon"><i class="fas fa-times"></i></span>
                             <span>Cancelar</span>
                         </a>

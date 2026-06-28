@@ -125,7 +125,7 @@ def editar(request, id_user, id_anotacao):
         todo = form.save(commit=False)
         todo.user = user
         todo.save()
-        return redirect("main:anotacoes", id_user=id_user)
+        return redirect("main:show", id_user=id_user, id_anotacao=todo.id)
 
     context = {
         "user": user,
