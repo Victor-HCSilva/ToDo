@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Item, Link, Tarefa
@@ -74,9 +75,36 @@ def checklist(request):
                 link.save()
             return redirect("checklist")
 
+        elif "deletar_tarefa" in request.POST:
+            tarefa_id = request.POST.get("tarefa_id")
+            if tarefa_id:
+                tarefa = get_object_or_404(Tarefa, id=tarefa_id, user=request.user)
+                tarefa.is_active = False
+                tarefa.save()
+            return redirect("checklist")
+
+        # NOVA AÇÃO 9: Desativar Item (Soft Delete)
+        elif "deletar_item" in request.POST:
+            item_id = request.POST.get("item_id")
+            if item_id:
+                item = get_object_or_404(Item, id=item_id, user=request.user)
+                item.is_active = False
+                item.save()
+            return redirect("checklist")
+
+        # NOVA AÇÃO 10: Desativar Link (Soft Delete)
+        elif "deletar_link" in request.POST:
+            link_id = request.POST.get("link_id")
+            if link_id:
+                link = get_object_or_404(Link, id=link_id, user=request.user)
+                link.is_active = False
+                link.save()
+            return redirect("checklist")
+
     # Carrega os dados do usuário para exibição organizada
-    tarefas = Tarefa.objects.filter(user=request.user).prefetch_related(
-        "itens", "links"
+    tarefas = Tarefa.objects.filter(user=request.user, is_active=True).prefetch_related(
+        Prefetch("itens", queryset=Item.objects.filter(is_active=True)),
+        Prefetch("links", queryset=Link.objects.filter(is_active=True)),
     )
 
     return render(request, "checklist.html", {"tarefas": tarefas})

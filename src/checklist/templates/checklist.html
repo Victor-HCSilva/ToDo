@@ -25,12 +25,22 @@
         <div class="column is-4">
             <div class="card" style="border-top: 4px solid {{ tarefa.color }};">
                 
-                <!-- CABEÇALHO DO CARD (COM EDIÇÃO INLINE) -->
+                <!-- CABEÇALHO DO CARD (COM EDIÇÃO E DELETAR INLINE) -->
                 <header class="card-header">
                     <!-- Visualização Normal -->
                     <div id="display-tarefa-{{ tarefa.id }}" class="card-header-title is-flex is-justify-content-space-between is-align-items-center" style="width: 100%;">
                         <span>{{ tarefa.titulo }}</span>
-                        <button class="button is-small is-ghost py-0" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✏️</button>
+                        
+                        <div class="is-flex" style="gap: 5px;">
+                            <button class="button is-small is-ghost py-0 px-1" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✏️</button>
+                            
+                            <!-- Formulário de Exclusão Física/Lógica da Tarefa -->
+                            <form method="post" style="display: inline;" onsubmit="return confirm('Deseja mover esta checklist para a lixeira?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                                <button type="submit" name="deletar_tarefa" class="button is-small is-ghost py-0 px-1 has-text-danger">🗑️</button>
+                            </form>
+                        </div>
                     </div>
                     
                     <!-- Formulário Oculto de Edição -->
@@ -71,8 +81,17 @@
                                         {% endif %}
                                     </span>
                                     
-                                    <!-- Botão de Edição -->
-                                    <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('item', {{ item.id }})">✏️</button>
+                                    <div class="is-flex is-align-items-center" style="gap: 5px;">
+                                        <!-- Botão de Edição -->
+                                        <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('item', {{ item.id }})">✏️</button>
+                                        
+                                        <!-- Formulário de Exclusão do Item -->
+                                        <form method="post" style="display: inline;" onsubmit="return confirm('Deseja excluir este item?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                                            <button type="submit" name="deletar_item" class="button is-small is-ghost px-1 py-0 has-text-danger">🗑️</button>
+                                        </form>
+                                    </div>
 
                                     <!-- Menu de Mudança de Status -->
                                     <form method="post" class="is-marginless">
@@ -142,8 +161,18 @@
                                 
                                 <!-- Visualização Normal do Link -->
                                 <div id="display-link-{{ link.id }}" class="is-flex is-justify-content-space-between is-align-items-center">
-                                    <a href="{{ link.url }}" target="_blank" class="has-text-info" style="word-break: break-all; max-width: 85%;">{{ link.url }}</a>
-                                    <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('link', {{ link.id }})">✏️</button>
+                                    <a href="{{ link.url }}" target="_blank" class="has-text-info" style="word-break: break-all; max-width: 75%;">{{ link.url }}</a>
+                                    
+                                    <div class="is-flex" style="gap: 5px;">
+                                        <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('link', {{ link.id }})">✏️</button>
+                                        
+                                        <!-- Formulário de Exclusão do Link -->
+                                        <form method="post" style="display: inline;" onsubmit="return confirm('Deseja excluir este link de referência?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="link_id" value="{{ link.id }}">
+                                            <button type="submit" name="deletar_link" class="button is-small is-ghost px-1 py-0 has-text-danger">🗑️</button>
+                                        </form>
+                                    </div>
                                 </div>
 
                                 <!-- Formulário Oculto de Edição do Link -->
@@ -196,7 +225,6 @@
     </div>
 </div>
 
-<!-- SCRIPT AUXILIAR PARA ATIVAR O TOGGLE DOS ELEMENTOS INLINE -->
 <script>
     function toggleEdit(type, id) {
         const displayEl = document.getElementById(`display-${type}-${id}`);

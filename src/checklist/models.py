@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+
 from checklist.configs.colors import COLORS
 from main.models import Todo
 
@@ -16,6 +17,7 @@ class Tarefa(models.Model):
         blank=True,
         null=True,
     )
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.titulo} - {self.user.username}"
@@ -39,6 +41,7 @@ class Item(models.Model):
     tarefa = models.ForeignKey(
         Tarefa, on_delete=models.CASCADE, related_name="itens", blank=True, null=True
     )
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         tarefa_titulo = self.tarefa.titulo if self.tarefa else "Sem tarefa"
@@ -51,6 +54,7 @@ class Link(models.Model):
     tarefa = models.ForeignKey(
         Tarefa, on_delete=models.CASCADE, related_name="links", blank=True, null=True
     )
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.url}"
