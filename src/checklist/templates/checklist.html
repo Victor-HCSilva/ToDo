@@ -24,46 +24,89 @@
         {% for tarefa in tarefas %}
         <div class="column is-4">
             <div class="card" style="border-top: 4px solid {{ tarefa.color }};">
-
+                
+                <!-- CABEÇALHO DO CARD (COM EDIÇÃO INLINE) -->
                 <header class="card-header">
-                    <p class="card-header-title">{{ tarefa.titulo }}</p>
+                    <!-- Visualização Normal -->
+                    <div id="display-tarefa-{{ tarefa.id }}" class="card-header-title is-flex is-justify-content-space-between is-align-items-center" style="width: 100%;">
+                        <span>{{ tarefa.titulo }}</span>
+                        <button class="button is-small is-ghost py-0" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✏️</button>
+                    </div>
+                    
+                    <!-- Formulário Oculto de Edição -->
+                    <form id="edit-tarefa-{{ tarefa.id }}" method="post" class="card-header-title is-hidden" style="width: 100%;">
+                        {% csrf_token %}
+                        <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                        <input type="hidden" name="editar_tarefa" value="1">
+                        <div class="field has-addons" style="width: 100%;">
+                            <div class="control is-expanded">
+                                <input class="input is-small" type="text" name="titulo" value="{{ tarefa.titulo }}" required>
+                            </div>
+                            <div class="control">
+                                <button type="submit" class="button is-small is-success">✔</button>
+                            </div>
+                            <div class="control">
+                                <button type="button" class="button is-small is-danger" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✖</button>
+                            </div>
+                        </div>
+                    </form>
                 </header>
 
                 <div class="card-content">
-
+                    
                     <!-- SEÇÃO: LISTA DE ITENS INTERATIVOS -->
                     <div class="content">
                         <h6>Itens:</h6>
                         <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
                             {% for item in tarefa.itens.all %}
-                            <li class="is-flex is-justify-content-space-between is-align-items-center mb-2"
-                                style="gap: 10px;">
+                            <li class="mb-2">
+                                
+                                <!-- Visualização Normal do Item -->
+                                <div id="display-item-{{ item.id }}" class="is-flex is-justify-content-space-between is-align-items-center" style="gap: 10px;">
+                                    <span style="flex-grow: 1; word-break: break-all;">
+                                        {% if item.feito == 'concluido' %}
+                                            <strike class="has-text-grey-light">{{ item.descricao }}</strike>
+                                        {% else %}
+                                            {{ item.descricao }}
+                                        {% endif %}
+                                    </span>
+                                    
+                                    <!-- Botão de Edição -->
+                                    <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('item', {{ item.id }})">✏️</button>
 
-                                <!-- Descrição do Item (com risco se estiver concluído) -->
-                                <span style="flex-grow: 1; word-break: break-all;">
-                                    {% if item.feito == 'concluido' %}
-                                    <strike class="has-text-grey-light">{{ item.descricao }}</strike>
-                                    {% else %}
-                                    {{ item.descricao }}
-                                    {% endif %}
-                                </span>
+                                    <!-- Menu de Mudança de Status -->
+                                    <form method="post" class="is-marginless">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <input type="hidden" name="atualizar_status" value="1">
 
-                                <!-- FORMULÁRIO RÁPIDO PARA SELECIONAR STATUS -->
-                                <form method="post" class="is-marginless">
+                                        <div class="select is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-dark{% endif %}">
+                                            <select name="status" onchange="this.form.submit()" class="has-background-dark has-text-white">
+                                                {% for value, label in item.STATUS_CHOICES %}
+                                                    <option value="{{ value }}" {% if item.feito == value %}selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Formulário Oculto de Edição do Item -->
+                                <form id="edit-item-{{ item.id }}" method="post" class="is-hidden mt-1">
                                     {% csrf_token %}
                                     <input type="hidden" name="item_id" value="{{ item.id }}">
-                                    <input type="hidden" name="atualizar_status" value="1">
-
-                                    <div
-                                        class="select is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-dark{% endif %}">
-                                        <select name="status" onchange="this.form.submit()"
-                                            class="has-background-dark has-text-white">
-                                            {% for value, label in item.STATUS_CHOICES %}
-                                            <option value="{{ value }}" {% if item.feito == value %}selected{% endif %}>
-                                                {{ label }}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
+                                    <input type="hidden" name="editar_item" value="1">
+                                    <div class="field has-addons">
+                                        <div class="control is-expanded">
+                                            <input class="input is-small" type="text" name="descricao" value="{{ item.descricao }}" required>
+                                        </div>
+                                        <div class="control">
+                                            <button type="submit" class="button is-small is-success">✔</button>
+                                        </div>
+                                        <div class="control">
+                                            <button type="button" class="button is-small is-danger" onclick="toggleEdit('item', {{ item.id }})">✖</button>
+                                        </div>
                                     </div>
                                 </form>
 
@@ -73,13 +116,12 @@
                             {% endfor %}
                         </ul>
 
-                        <!-- FORMULÁRIO 2: Adicionar Item Rápido diretamente no Card -->
+                        <!-- Formulário para Criar Item Rápido -->
                         <form method="post" class="field has-addons mt-3">
                             {% csrf_token %}
                             <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
                             <div class="control is-expanded">
-                                <input class="input is-small" type="text" name="descricao" placeholder="Novo item..."
-                                    required>
+                                <input class="input is-small" type="text" name="descricao" placeholder="Novo item..." required>
                             </div>
                             <div class="control">
                                 <button type="submit" name="adicionar_item" class="button is-small is-success">
@@ -94,23 +136,46 @@
                     <!-- SEÇÃO: LISTA DE LINKS DE REFERÊNCIA -->
                     <div class="content">
                         <h6>Referências / Links:</h6>
-                        <ul>
+                        <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
                             {% for link in tarefa.links.all %}
-                            <li>
-                                <a href="{{ link.url }}" target="_blank" class="has-text-info">{{ link.url }}</a>
+                            <li class="mb-2">
+                                
+                                <!-- Visualização Normal do Link -->
+                                <div id="display-link-{{ link.id }}" class="is-flex is-justify-content-space-between is-align-items-center">
+                                    <a href="{{ link.url }}" target="_blank" class="has-text-info" style="word-break: break-all; max-width: 85%;">{{ link.url }}</a>
+                                    <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('link', {{ link.id }})">✏️</button>
+                                </div>
+
+                                <!-- Formulário Oculto de Edição do Link -->
+                                <form id="edit-link-{{ link.id }}" method="post" class="is-hidden mt-1">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="link_id" value="{{ link.id }}">
+                                    <input type="hidden" name="editar_link" value="1">
+                                    <div class="field has-addons">
+                                        <div class="control is-expanded">
+                                            <input class="input is-small" type="url" name="url" value="{{ link.url }}" required>
+                                        </div>
+                                        <div class="control">
+                                            <button type="submit" class="button is-small is-success">✔</button>
+                                        </div>
+                                        <div class="control">
+                                            <button type="button" class="button is-small is-danger" onclick="toggleEdit('link', {{ link.id }})">✖</button>
+                                        </div>
+                                    </div>
+                                </form>
+
                             </li>
                             {% empty %}
                             <li class="has-text-grey-light">Nenhum link adicionado.</li>
                             {% endfor %}
                         </ul>
 
-                        <!-- FORMULÁRIO 3: Adicionar Link Rápido diretamente no Card -->
+                        <!-- Formulário para Criar Link Rápido -->
                         <form method="post" class="field has-addons mt-3">
                             {% csrf_token %}
                             <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
                             <div class="control is-expanded">
-                                <input class="input is-small" type="url" name="url" placeholder="https://exemplo.com"
-                                    required>
+                                <input class="input is-small" type="url" name="url" placeholder="https://exemplo.com" required>
                             </div>
                             <div class="control">
                                 <button type="submit" name="adicionar_link" class="button is-small is-info">
@@ -131,4 +196,16 @@
     </div>
 </div>
 
+<!-- SCRIPT AUXILIAR PARA ATIVAR O TOGGLE DOS ELEMENTOS INLINE -->
+<script>
+    function toggleEdit(type, id) {
+        const displayEl = document.getElementById(`display-${type}-${id}`);
+        const editEl = document.getElementById(`edit-${type}-${id}`);
+        
+        if (displayEl && editEl) {
+            displayEl.classList.toggle('is-hidden');
+            editEl.classList.toggle('is-hidden');
+        }
+    }
+</script>
 {% endblock content %}

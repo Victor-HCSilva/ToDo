@@ -45,6 +45,35 @@ def checklist(request):
                 item_obj.save()
             return redirect("checklist")
 
+        elif "editar_tarefa" in request.POST:
+            tarefa_id = request.POST.get("tarefa_id")
+            novo_titulo = request.POST.get("titulo")
+            if tarefa_id and novo_titulo:
+                tarefa = get_object_or_404(Tarefa, id=tarefa_id, user=request.user)
+                tarefa.titulo = novo_titulo
+                tarefa.save()
+            return redirect("checklist")
+
+        # NOVA AÇÃO 6: Editar a descrição de um Item existente
+        elif "editar_item" in request.POST:
+            item_id = request.POST.get("item_id")
+            nova_descricao = request.POST.get("descricao")
+            if item_id and nova_descricao:
+                item = get_object_or_404(Item, id=item_id, user=request.user)
+                item.descricao = nova_descricao
+                item.save()
+            return redirect("checklist")
+
+        # NOVA AÇÃO 7: Editar a URL de um Link existente
+        elif "editar_link" in request.POST:
+            link_id = request.POST.get("link_id")
+            nova_url = request.POST.get("url")
+            if link_id and nova_url:
+                link = get_object_or_404(Link, id=link_id, user=request.user)
+                link.url = nova_url
+                link.save()
+            return redirect("checklist")
+
     # Carrega os dados do usuário para exibição organizada
     tarefas = Tarefa.objects.filter(user=request.user).prefetch_related(
         "itens", "links"
