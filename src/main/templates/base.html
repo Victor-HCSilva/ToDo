@@ -119,20 +119,23 @@
                         <a class="white-link" href="{% url 'main:sobre' %}">𐦂𖨆𐀪𖠋 Sobre</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">⾕ Início</a>
+                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">🏠 Início</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗒 Agenda</a>
+                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗓️ Agenda</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">✧ Eventos</a>
+                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">⭐ Eventos</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">⟟ Anotações</a>
+                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">✏️ Anotações</a>
                     </li>
-
+                    
                     <li>
                         <a class="white-link" href="{% url 'main:folders' %}">📁 Gerenciar Pastas</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'checklist' %}">📝 Listas de tarefas</a>
                     </li>
 
                     {% else %}
@@ -182,17 +185,24 @@
                     <li>
                         <a class="white-link" href="{% url 'main:sobre' %}">𐦂𖨆𐀪𖠋 Sobre</a>
                     </li>
-                    <li>
-                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">⾕ Início</a>
+                   <li>
+                        <a class="white-link" href="{% url 'main:welcome' id_user=user.id %}">🏠 Início</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗒 Agenda</a>
+                        <a class="white-link" href="{% url 'agenda:agenda' id_user=user.id %}">🗓️ Agenda</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">✧ Eventos</a>
+                        <a class="white-link" href="{% url 'agenda:eventos' id_user=user.id %}">⭐ Eventos</a>
                     </li>
                     <li>
-                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">⟟ Anotações</a>
+                        <a class="white-link" href="{% url 'main:anotacoes' id_user=user.id %}">✏️ Anotações</a>
+                    </li>
+                    
+                    <li>
+                        <a class="white-link" href="{% url 'main:folders' %}">📁 Gerenciar Pastas</a>
+                    </li>
+                    <li>
+                        <a class="white-link" href="{% url 'checklist' %}">📝 Listas de tarefas</a>
                     </li>
                     {% else %}
                     <p class="menu-label">

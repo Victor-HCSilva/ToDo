@@ -35,6 +35,15 @@ def checklist(request):
                 tarefa_obj = get_object_or_404(Tarefa, id=tarefa_id, user=request.user)
                 Link.objects.create(url=url, tarefa=tarefa_obj, user=request.user)
             return redirect("checklist")
+        elif "atualizar_status" in request.POST:
+            item_id = request.POST.get("item_id")
+            novo_status = request.POST.get("status")
+            if item_id and novo_status:
+                # Garante que o item pertence ao usuário logado por segurança
+                item_obj = get_object_or_404(Item, id=item_id, user=request.user)
+                item_obj.feito = novo_status
+                item_obj.save()
+            return redirect("checklist")
 
     # Carrega os dados do usuário para exibição organizada
     tarefas = Tarefa.objects.filter(user=request.user).prefetch_related(

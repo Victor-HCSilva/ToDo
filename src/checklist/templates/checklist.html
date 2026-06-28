@@ -24,28 +24,49 @@
         {% for tarefa in tarefas %}
         <div class="column is-4">
             <div class="card" style="border-top: 4px solid {{ tarefa.color }};">
+
                 <header class="card-header">
                     <p class="card-header-title">{{ tarefa.titulo }}</p>
                 </header>
 
                 <div class="card-content">
-                    <!-- LISTA DE ITENS DA TAREFA -->
+
+                    <!-- SEÇÃO: LISTA DE ITENS INTERATIVOS -->
                     <div class="content">
                         <h6>Itens:</h6>
                         <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
                             {% for item in tarefa.itens.all %}
-                            <li class="is-flex is-justify-content-space-between mb-2">
-                                <span>
+                            <li class="is-flex is-justify-content-space-between is-align-items-center mb-2"
+                                style="gap: 10px;">
+
+                                <!-- Descrição do Item (com risco se estiver concluído) -->
+                                <span style="flex-grow: 1; word-break: break-all;">
                                     {% if item.feito == 'concluido' %}
-                                    <strike class="has-text-grey">{{ item.descricao }}</strike>
+                                    <strike class="has-text-grey-light">{{ item.descricao }}</strike>
                                     {% else %}
                                     {{ item.descricao }}
                                     {% endif %}
                                 </span>
-                                <span
-                                    class="tag is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-light{% endif %}">
-                                    {{ item.get_feito_display }}
-                                </span>
+
+                                <!-- FORMULÁRIO RÁPIDO PARA SELECIONAR STATUS -->
+                                <form method="post" class="is-marginless">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                                    <input type="hidden" name="atualizar_status" value="1">
+
+                                    <div
+                                        class="select is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-dark{% endif %}">
+                                        <select name="status" onchange="this.form.submit()"
+                                            class="has-background-dark has-text-white">
+                                            {% for value, label in item.STATUS_CHOICES %}
+                                            <option value="{{ value }}" {% if item.feito == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </form>
+
                             </li>
                             {% empty %}
                             <li class="has-text-grey-light">Nenhum item adicionado ainda.</li>
@@ -70,7 +91,7 @@
 
                     <hr>
 
-                    <!-- LISTA DE LINKS DE REFERÊNCIA -->
+                    <!-- SEÇÃO: LISTA DE LINKS DE REFERÊNCIA -->
                     <div class="content">
                         <h6>Referências / Links:</h6>
                         <ul>
@@ -109,4 +130,5 @@
         {% endfor %}
     </div>
 </div>
+
 {% endblock content %}
