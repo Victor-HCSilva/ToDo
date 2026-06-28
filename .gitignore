@@ -1,0 +1,78 @@
+# ==========================================
+# Python (Arquivos compilados e temporários)
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==========================================
+# Ambientes Virtuais (Venv)
+# ==========================================
+venv/
+.venv/
+env/
+.env_venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# Django (Arquivos específicos do Framework)
+# ==========================================
+# Ignora o banco de dados padrão SQLite local para evitar misturar dados de teste com produção
+src/db.sqlite3
+src/db.sqlite3-journal
+
+# Ignora a pasta de uploads de mídia
+src/media/
+
+# Ignora a pasta de arquivos estáticos gerada em produção
+src/staticfiles/
+
+# ==========================================
+# Variáveis de Ambiente e Segredos (Segurança)
+# ==========================================
+.env
+.secrets
+secrets.json
+local_settings.py
+
+# ==========================================
+# Editores de Código e IDEs (VS Code, PyCharm)
+# ==========================================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# ==========================================
+# Sistema Operacional (macOS e Windows)
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
