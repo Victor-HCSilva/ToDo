@@ -2,25 +2,16 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from checklist.configs.colors import COLORS
-from main.models import Todo
 
 
 class Tarefa(models.Model):
     titulo = models.CharField(max_length=100)
     color = models.CharField(max_length=20, choices=COLORS, default="black")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    todo = models.ForeignKey(
-        Todo,
-        help_text="Tarefa associada | não é obrigatório",
-        on_delete=models.CASCADE,
-        related_name="tarefas",
-        blank=True,
-        null=True,
-    )
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.titulo} - {self.user.username}"
+        return f"{self.titulo}"
 
 
 class Item(models.Model):

@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, models
 from django.utils import timezone
 
+from checklist.models import Tarefa
 from main.utils import get_time_remainder
 
 
@@ -27,6 +28,7 @@ class Todo(models.Model):
         ("Média", "2"),
         ("Alta", "3"),
     ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=200, default="Sem titulo")
     favorito = models.BooleanField(default=False)
@@ -46,6 +48,9 @@ class Todo(models.Model):
     folder = models.ForeignKey(
         "folder", on_delete=models.CASCADE, blank=True, null=True
     )
+    # NOTE: Pensar como fazer lógica de colaboradores
+    # excluir = models.BooleanField(default=False)
+    # editavel = models.BooleanField(default=True)
 
     @property
     def prazo_dias(self):
@@ -107,3 +112,25 @@ class Folder(models.Model):
 
     class Meta:
         unique_together = ["name", "user"]
+
+
+class LinkerTaskTodo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    # Aponta para a Anotação (da app 'main')
+    todo = models.ForeignKey(
+        Todo, on_delete=models.CASCADE, related_name="vinculos_tarefas"
+    )
+
+    # Aponta para o Checklist (da app 'checklist')
+    tarefa = models.ForeignKey(
+        Tarefa, on_delete=models.CASCADE, related_name="vinculos_anotacoes"
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.username} | {self.todo.titulo}"
+
+    class Meta:
+        unique_together = ["todo", "user", "tarefa"]

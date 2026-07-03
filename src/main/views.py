@@ -9,15 +9,13 @@ from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
 
 from agenda.models import Colors
-from main.forms import ImageForm, TodoForm
-from main.models import Folder, Image, Todo
+from main.forms import FolderForm, ImageForm, LinkerTaskTodoForm, TodoForm, UserForm
+from main.models import Folder, Image, LinkerTaskTodo, Todo
 from main.utils import (
     adjust_boolean_fields,
     clean_dict,
     get_label,
 )
-
-from .forms import FolderForm, UserForm
 
 
 @login_required
@@ -25,89 +23,145 @@ def anotacoes(request, id_user):
     if request.user.id != id_user:
         return redirect("main:login")
 
-    prazo_inicial = request.GET.get("prazo_inicial", "2025-01-01")
-    prazo_final = request.GET.get("prazo_final", "2026-01-01")
-    prazo_inicial = parse_date(prazo_inicial)
-    prazo_final = parse_date(prazo_final)
-
-    # Coleta a pasta selecionada no filtro
+    # Coleta a pasta selecionada na URL (?folder=ID)
     selected_folder = request.GET.get("folder", None)
     if selected_folder and selected_folder.isdigit():
-        selected_folder = int(
-            selected_folder
-        )  # Converte para int para bater com o ID no template
+        selected_folder = int(selected_folder)
+    else:
+        selected_folder = None
 
+    # Filtros base comuns a qualquer consulta
     filters = {
-        "tag": request.GET.get("tag", None),
-        "prioridade": get_label(request.GET.get("prioridade", None)),
-        "favorito": request.GET.get("favorito", None),
-        "completo": request.GET.get("completo", None),
-        "titulo__icontains": request.GET.get("titulo", None),
-        "folder_id": selected_folder,  # Filtro por ID da pasta
-        "user": get_object_or_404(User, id=id_user),
+        "user_id": id_user,
         "is_active": True,
     }
 
-    if filters.get("user", None) is None:
-        return redirect("main:login")
+    # Se estivermos DENTRO de uma pasta, aplicamos os subfiltros refinados
+    if selected_folder:
+        filters["folder_id"] = selected_folder
 
+        # Filtros condicionais que só aparecem dentro da pasta
+        if request.GET.get("tag"):
+            filters["tag"] = request.GET.get("tag")
+        if request.GET.get("prioridade"):
+            filters["prioridade"] = get_label(request.GET.get("prioridade"))
+        if request.GET.get("favorito") == "true":
+            filters["favorito"] = True
+        if request.GET.get("completo") == "true":
+            filters["completo"] = True
+        if request.GET.get("titulo"):
+            filters["titulo__icontains"] = request.GET.get("titulo")
+
+        # Filtro de Intervalo de Datas (Prazo de/até)
+        prazo_inicial = request.GET.get("prazo_inicial")
+        prazo_final = request.GET.get("prazo_final")
+        if prazo_inicial:
+            filters["prazo_inicial__gte"] = parse_date(prazo_inicial)
+        if prazo_final:
+            filters["prazo_final__lte"] = parse_date(prazo_final)
+    else:
+        # Se NÃO houver pasta selecionada, mostra apenas anotações sem pasta (raiz)
+        filters["folder_id__isnull"] = True
+
+    # Limpa e formata o dicionário de filtros
     filters = clean_dict(filters)
     filters = adjust_boolean_fields(filters)
 
-    # Busca todas as anotações baseadas nos filtros
+    # Busca as anotações com base nos filtros ativos
     todos = Todo.objects.filter(**filters).order_by("-id")
 
-    # Busca todas as pastas ativas do usuário logado para carregar no dropdown do filtro
-    folders = Folder.objects.filter(user=filters["user"], is_active=True)
+    # Busca as pastas do usuário para renderizar o grid
+    folders = Folder.objects.filter(user_id=id_user, is_active=True)
 
-    cor_obj = Colors.objects.filter(user=filters["user"]).first()
+    # Cor de destaque personalizada
+    cor_obj = Colors.objects.filter(user_id=id_user).first()
     cor_de_destaque = cor_obj.cor_de_destaque if cor_obj else "#3273dc"
 
     context = {
         "anotacoes": todos,
-        "folders": folders,  # Passa as pastas para o template
+        "folders": folders,
         "all_tags": Todo.TAGS,
         "all_prioridades": Todo.PRIORIDADES,
-        "selected_tag": filters.get("tag"),
-        "selected_prioridade": filters.get("prioridade"),
-        "selected_favorito": filters.get("favorito"),
-        "selected_completo": filters.get("completo"),
         "selected_folder": selected_folder,
+        "selected_tag": request.GET.get("tag", ""),
+        "selected_prioridade": request.GET.get("prioridade", ""),
+        "selected_favorito": request.GET.get("favorito", ""),
+        "selected_completo": request.GET.get("completo", ""),
         "selected_titulo": request.GET.get("titulo", ""),
+        "prazo_inicial": request.GET.get("prazo_inicial", ""),
+        "prazo_final": request.GET.get("prazo_final", ""),
         "cor_de_destaque": cor_de_destaque,
-        "prazo_inicial": prazo_inicial,
-        "prazo_final": prazo_final,
     }
 
-    # Atualizado: 'anotacoes.html' agora está em 'todo/anotacoes.html'
     return render(request, "todo/anotacoes.html", context)
 
 
 @login_required()
 def show(request, id_user, id_anotacao):
-    form = ImageForm()
-
     if request.user.id != id_user:
         return redirect("main:login")
+
     task = get_object_or_404(Todo, id=id_anotacao)
     user = get_object_or_404(User, id=id_user)
 
-    if request.method == "POST":
-        form = ImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            image = form.save(commit=False)
-            image.user = get_object_or_404(Todo, id=id_anotacao)
-            image.save()
+    img_form = ImageForm()
+    # Passamos o usuário logado para que o formulário filtre a lista de seleção
+    task_form = LinkerTaskTodoForm(user=user)
 
-    imgs = Image.objects.filter(user=get_object_or_404(Todo, id=id_anotacao))
+    if request.method == "POST":
+        if "submit_image" in request.POST:
+            img_form = ImageForm(request.POST, request.FILES)
+            if img_form.is_valid():
+                image = img_form.save(commit=False)
+                image.user = task
+                image.save()
+                return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
+
+        elif "submit_linker_task" in request.POST:
+            task_form = LinkerTaskTodoForm(request.POST, user=user)
+            if task_form.is_valid():
+                linker = task_form.save(commit=False)
+                linker.user = user
+                linker.todo = task
+
+                # Otimizado: .exists() retorna True/False de forma rápida no banco
+                vinculo_ja_existe = LinkerTaskTodo.objects.filter(
+                    tarefa=linker.tarefa,
+                    user=linker.user,
+                    todo=linker.todo,
+                    is_active=True,  # Opcional: Garante que busca apenas os ativos
+                ).exists()
+
+                if not vinculo_ja_existe:
+                    linker.save()
+                    messages.success(request, "Checklist vinculado com sucesso!")
+                    return redirect(
+                        "main:show", id_user=id_user, id_anotacao=id_anotacao
+                    )
+                else:
+                    # Envia a mensagem de erro que aparecerá no seu template
+                    messages.error(
+                        request, "Este checklist já está vinculado a esta anotação."
+                    )
+                    return redirect(
+                        "main:show", id_user=id_user, id_anotacao=id_anotacao
+                    )
+
+    # Nova busca baseada na tabela intermediária de vínculos
+    tarefas_vinculadas = LinkerTaskTodo.objects.filter(
+        todo=task, is_active=True
+    ).select_related("tarefa")
+
+    imgs = Image.objects.filter(user=task)
 
     context = {
         "tarefa": task,
         "user": user,
-        "form": form,
+        "img_form": img_form,
         "imagens": imgs,
+        "task_form": task_form,
+        "tarefas_vinculadas": tarefas_vinculadas,
     }
-    # Atualizado: 'show.html' agora está em 'todo/show.html'
     return render(request, "todo/show.html", context)
 
 

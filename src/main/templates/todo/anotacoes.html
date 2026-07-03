@@ -29,14 +29,6 @@
         background-color: #f14668;
         color: white;
     }
-    .filter-checkbox-group label {
-        margin-left: 0.5em;
-        margin-right: 1em;
-        color: white;
-    }
-    .filter-checkbox-group input[type="checkbox"] {
-        vertical-align: middle;
-    }
     .filter-section {
         background-color: #2f2f2f;
         padding: 1.5rem;
@@ -44,41 +36,26 @@
         margin-bottom: 2rem;
         border: 1px solid #4a4a4a;
     }
-    .filter-section .field:not(:last-child) {
-        margin-bottom: 1rem;
-    }
-
-    /* Estilos para as pastas interativas */
     .folder-card {
         background-color: #242424;
         border: 1px dashed #4a4a4a;
-        cursor: pointer;
         transition: transform 0.2s, background-color 0.2s;
-        position: relative;
     }
     .folder-card:hover {
         background-color: #2f2f2f;
         transform: translateY(-2px);
-    }
-    .folder-actions {
-        opacity: 0.8;
-        transition: opacity 0.2s;
-    }
-    .folder-card:hover .folder-actions {
-        opacity: 1;
     }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
 
+{# --- CABEÇALHO DA PÁGINA --- #}
 <div class="level mb-5">
     <div class="level-left">
         <div class="level-item">
             <h1 style="color: rgb(200, 200, 200)" class="title is-2">
-                <span style="color: rgb(200, 200, 200)" class="icon mr-3">
-                    <i class="fas fa-clipboard-list fa-lg"></i>
-                </span>
+                <span class="icon mr-3"><i class="fas fa-clipboard-list fa-lg"></i></span>
                 Minhas Anotações
             </h1>
         </div>
@@ -87,199 +64,179 @@
         <div class="level-item">
             <div class="buttons">
                 <a class="button is-primary" href="{% url 'main:main' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-plus"></i></span>
-                    <span>Nova Anotação</span>
+                    <span class="icon"><i class="fas fa-plus"></i></span><span>Nova Anotação</span>
                 </a>
-                <!-- Novo Botão de Gerenciamento/Criação de Pasta -->
                 <a class="button is-warning" href="{% url 'main:folders' %}">
-                    <span class="icon"><i class="fas fa-folder-plus"></i></span>
-                    <span>Gerenciar Pastas</span>
-                </a>
-                <a class="button is-link" href="{% url 'agenda:agenda' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-calendar-alt"></i></span>
-                    <span>Agenda</span>
+                    <span class="icon"><i class="fas fa-folder-plus"></i></span><span>Gerenciar Pastas</span>
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-{# Seção de Filtros #}
-<div class="filter-section mb-5">
-    <h3 class="title is-4 has-text-light mb-4">Filtros</h3>
-    <form action="" method="get">
-        <div class="field is-grouped is-grouped-multiline">
-            {# Filtro por Título #}
-            <div class="control is-expanded">
-                <div class="field has-addons">
-                    <div class="control">
-                        <span class="button is-static is-dark">Título</span>
-                    </div>
-                    <div class="control is-expanded">
-                        <input class="input is-dark" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo|default:'' }}" />
-                    </div>
-                </div>
-            </div>
+{# --- ESTADO 1: O USUÁRIO CLICOU EM UMA PASTA (ESTÁ DENTRO DELA) --- #}
+{% if selected_folder %}
 
-            {# Filtro por Pasta #}
-            <div class="control">
-                <div class="field has-addons">
-                    <div class="control">
-                        <span class="button is-static is-dark">Pasta</span>
-                    </div>
-                    <div class="control is-expanded">
-                        <div class="select is-fullwidth is-dark">
-                            <select name="folder">
-                                <option value="">Todas</option>
-                                {% for folder in folders %}
-                                <option value="{{ folder.id }}" {% if selected_folder == folder.id %}selected{% endif %}>
-                                    {{ folder.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Filtro por Tag #}
-            <div class="control">
-                <div class="field has-addons">
-                    <div class="control">
-                        <span class="button is-static is-dark">Tag</span>
-                    </div>
-                    <div class="control is-expanded">
-                        <div class="select is-fullwidth is-dark">
-                            <select name="tag">
-                                <option value="">Todas</option>
-                                {% for tag_value, tag_display in all_tags %}
-                                <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>
-                                    {{ tag_display }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Filtro por Prioridade #}
-            <div class="control">
-                <div class="field has-addons">
-                    <div class="control">
-                        <span class="button is-static is-dark">Prioridade</span>
-                    </div>
-                    <div class="control is-expanded">
-                        <div class="select is-fullwidth is-dark">
-                            <select name="prioridade">
-                                <option value="">Todas</option>
-                                {% for prioridade_value, prioridade_display in all_prioridades %}
-                                <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>
-                                    {{ prioridade_value }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Barra de Navegação: Voltar para a Raiz -->
+    <div class="box mb-5 is-flex is-justify-content-space-between is-align-items-center" style="background-color: #2f2f2f; border: 1px solid #4a4a4a;">
+        <div class="is-flex is-align-items-center">
+            <span class="icon is-medium has-text-warning mr-2">
+                <i class="fas fa-folder-open fa-lg"></i>
+            </span>
+            <h3 class="title is-4 has-text-light mb-0">
+                Pasta: {% for f in folders %}{% if f.id == selected_folder %}{{ f.name }}{% endif %}{% endfor %}
+            </h3>
         </div>
-
-        {# Checkboxes e Botões #}
-        <div class="field is-grouped is-grouped-multiline mt-4">
-            <div class="control">
-                <label class="checkbox has-text-white">
-                    <input type="checkbox" name="favorito" value="true" {% if selected_favorito == 'true' %}checked{% endif %} />
-                    Apenas Favoritos
-                </label>
-            </div>
-            <div class="control">
-                <label class="checkbox has-text-white">
-                    <input type="checkbox" name="completo" value="true" {% if selected_completo == 'true' %}checked{% endif %} />
-                    Apenas Concluídos
-                </label>
-            </div>
-            <div class="control">
-                <button type="submit" class="button is-info">
-                    Aplicar Filtros
-                </button>
-            </div>
-            <div class="control">
-                <a href="{% url 'main:anotacoes' id_user=user.id %}" class="button is-light">Limpar Filtros</a>
-            </div>
-        </div>
-    </form>
-</div>
-{# Fim da Seção de Filtros #}
-
-{# Barra de Navegação de Pastas (Mostrada dinamicamente ao clicar em uma pasta) #}
-<div id="folder-nav-bar" class="box mb-5" style="display: none; background-color: #2f2f2f; border: 1px solid #4a4a4a; align-items: center; justify-content: space-between;">
-    <div class="is-flex" style="align-items: center;">
-        <span class="icon is-medium has-text-warning mr-2">
-            <i class="fas fa-folder-open fa-lg"></i>
-        </span>
-        <h3 class="title is-4 has-text-light mb-0" id="current-folder-title">Pasta</h3>
+        <!-- Link de volta limpa o parâmetro "folder" da URL -->
+        <a href="{% url 'main:anotacoes' id_user=user.id %}" class="button is-light is-small">
+            <span class="icon"><i class="fas fa-arrow-left"></i></span>
+            <span>Voltar para as pastas</span>
+        </a>
     </div>
-    <button class="button is-light is-small" id="btn-back-folders">
-        <span class="icon"><i class="fas fa-arrow-left"></i></span>
-        <span>Voltar para as pastas</span>
-    </button>
-</div>
 
-{# Seção de Exibição das Pastas #}
-<div id="folders-container" class="mb-6">
-    <h3 class="title is-5 has-text-grey-light mb-3">Pastas</h3>
-    <div class="columns is-multiline">
-        {% for folder in folders %}
-        <div class="column is-one-quarter-desktop is-one-third-tablet">
-            <div class="card folder-card" data-folder-id="{{ folder.id }}" data-folder-name="{{ folder.name }}">
-                <div class="card-content has-text-centered py-4">
-                    <span class="icon is-large has-text-warning">
-                        <i class="fas fa-folder fa-2x"></i>
-                    </span>
-                    <p class="subtitle is-6 has-text-light mt-2 mb-3"><strong>{{ folder.name }}</strong></p>
+    <!-- SEÇÃO DE FILTROS (Exibida APENAS dentro de uma pasta) -->
+    <div class="filter-section mb-5">
+        <h3 class="title is-5 has-text-light mb-4"><i class="fas fa-filter mr-2"></i> Filtrar nesta pasta</h3>
+        <form method="get" action="">
+            <!-- Mantém a pasta selecionada ativa no formulário -->
+            <input type="hidden" name="folder" value="{{ selected_folder }}">
 
-                    {# Ações da Pasta: Editar e Apagar #}
-                    <div class="folder-actions field is-grouped is-grouped-centered mb-0">
-                        <p class="control">
-                            <a href="{% url 'main:folder_edit' folder_id=folder.id %}" class="button is-small is-dark btn-folder-action" title="Editar pasta">
-                                <span class="icon is-small"><i class="fas fa-edit"></i></span>
-                            </a>
-                        </p>
-                        <p class="control">
-                            <form action="{% url 'main:folder_delete' folder_id=folder.id %}" method="post" style="display: inline;" class="btn-folder-action-form" onsubmit="return confirm('Deseja mesmo remover esta pasta?');">
-                                {% csrf_token %}
-                                <button type="submit" class="button is-small is-danger" title="Apagar pasta">
-                                    <span class="icon is-small"><i class="fas fa-trash-alt"></i></span>
-                                </button>
-                            </form>
-                        </p>
+            <div class="field is-grouped is-grouped-multiline">
+                {# Filtro por Título #}
+                <div class="control is-expanded">
+                    <div class="field has-addons">
+                        <div class="control"><span class="button is-static is-dark">Título</span></div>
+                        <div class="control is-expanded">
+                            <input class="input is-dark" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo }}" />
+                        </div>
+                    </div>
+                </div>
+
+                {# Filtro por Tag #}
+                <div class="control">
+                    <div class="field has-addons">
+                        <div class="control"><span class="button is-static is-dark">Tag</span></div>
+                        <div class="control">
+                            <div class="select is-dark">
+                                <select name="tag">
+                                    <option value="">Todas</option>
+                                    {% for tag_value, tag_display in all_tags %}
+                                    <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>{{ tag_display }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Filtro por Prioridade #}
+                <div class="control">
+                    <div class="field has-addons">
+                        <div class="control"><span class="button is-static is-dark">Prioridade</span></div>
+                        <div class="control">
+                            <div class="select is-dark">
+                                <select name="prioridade">
+                                    <option value="">Todas</option>
+                                    {% for prioridade_value, prioridade_display in all_prioridades %}
+                                    <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>{{ prioridade_value }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# NOVO Filtro de Data Inicial #}
+                <div class="control">
+                    <div class="field has-addons">
+                        <div class="control"><span class="button is-static is-dark">De</span></div>
+                        <div class="control">
+                            <input class="input is-dark" type="date" name="prazo_inicial" value="{{ prazo_inicial }}" />
+                        </div>
+                    </div>
+                </div>
+
+                {# NOVO Filtro de Data Final #}
+                <div class="control">
+                    <div class="field has-addons">
+                        <div class="control"><span class="button is-static is-dark">Até</span></div>
+                        <div class="control">
+                            <input class="input is-dark" type="date" name="prazo_final" value="{{ prazo_final }}" />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        {% empty %}
-        <div class="column is-12">
-            <p class="has-text-grey">Nenhuma pasta criada. Clique em "Gerenciar Pastas" para adicionar.</p>
-        </div>
-        {% endfor %}
+
+            {# Checkboxes e Botões de Submissão #}
+            <div class="field is-grouped is-grouped-multiline mt-4">
+                <div class="control">
+                    <label class="checkbox has-text-white">
+                        <input type="checkbox" name="favorito" value="true" {% if selected_favorito == 'true' %}checked{% endif %} />
+                        Apenas Favoritos
+                    </label>
+                </div>
+                <div class="control">
+                    <label class="checkbox has-text-white">
+                        <input type="checkbox" name="completo" value="true" {% if selected_completo == 'true' %}checked{% endif %} />
+                        Apenas Concluídos
+                    </label>
+                </div>
+                <div class="control">
+                    <button type="submit" class="button is-info">Aplicar Filtros</button>
+                </div>
+                <div class="control">
+                    <!-- Limpar filtros mantém o usuário na pasta, mas remove os filtros adicionais -->
+                    <a href="?folder={{ selected_folder }}" class="button is-light">Limpar Filtros</a>
+                </div>
+            </div>
+        </form>
     </div>
-</div>
 
-<h3 class="title is-5 has-text-grey-light mb-3" id="notes-section-title">Anotações sem pasta</h3>
+    <h3 class="title is-5 has-text-grey-light mb-3">Anotações nesta pasta</h3>
 
+{# --- ESTADO 2: O USUÁRIO ESTÁ NA RAIZ (VÊ APENAS AS PASTAS E ANOTAÇÕES AVULSAS) --- #}
+{% else %}
+
+    <!-- Seção de Exibição das Pastas -->
+    <div id="folders-container" class="mb-6">
+        <h3 class="title is-5 has-text-grey-light mb-3">Minhas Pastas</h3>
+        <div class="columns is-multiline">
+            {% for folder in folders %}
+            <div class="column is-one-quarter-desktop is-one-third-tablet">
+                <!-- O Card agora é um link real que passa o ID da pasta por GET -->
+                <a href="?folder={{ folder.id }}">
+                    <div class="card folder-card">
+                        <div class="card-content has-text-centered py-4">
+                            <span class="icon is-large has-text-warning">
+                                <i class="fas fa-folder fa-2x"></i>
+                            </span>
+                            <p class="subtitle is-6 has-text-light mt-2 mb-3"><strong>{{ folder.name }}</strong></p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="column is-12">
+                <p class="has-text-grey">Nenhuma pasta criada. Clique em "Gerenciar Pastas" para adicionar.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <h3 class="title is-5 has-text-grey-light mb-3">Anotações sem pasta (Avulsas)</h3>
+
+{% endif %}
+
+{# --- GRID DE EXIBIÇÃO DAS ANOTAÇÕES (Roda de forma idêntica para os dois estados) --- #}
 {% if anotacoes %}
-<div class="columns is-multiline" id="notes-grid">
+<div class="columns is-multiline">
     {% for anotacao_item in anotacoes %}
-    <div class="column is-one-third-desktop is-half-tablet note-item-card {% if anotacao_item.folder %}has-folder{% else %}no-folder{% endif %}"
-         data-folder-ref="{% if anotacao_item.folder %}{{ anotacao_item.folder.id }}{% endif %}"
-         {% if anotacao_item.folder %}style="display: none;"{% endif %}>
-
+    <div class="column is-one-third-desktop is-half-tablet">
         <div class="card card-anotacao">
             <header class="card-header">
                 <p class="card-header-title is-clipped">
                     <span class="icon-text">
-                        <span class="icon" title="{% if anotacao_item.favorito %}Favorito{% endif %}">
+                        <span class="icon">
                             {% if anotacao_item.favorito %}
                             <i class="fas fa-star has-text-warning"></i>
                             {% else %}
@@ -290,11 +247,9 @@
                     </span>
                 </p>
                 <div class="card-header-icon">
-                    {% with prioridade_value=anotacao_item.prioridade %}
-                    <span class="tag {% if prioridade_value == 'Máxima' %}is-danger {% elif prioridade_value == 'Mediana' %}is-warning {% elif prioridade_value == 'Mínima' %}is-success {% else %}is-dark{% endif %}">
+                    <span class="tag {% if anotacao_item.prioridade == 'Máxima' %}is-danger {% elif anotacao_item.prioridade == 'Mediana' %}is-warning {% elif anotacao_item.prioridade == 'Mínima' %}is-success {% else %}is-dark{% endif %}">
                         {{ anotacao_item.get_prioridade_display }}
                     </span>
-                    {% endwith %}
                 </div>
             </header>
             <div class="card-content">
@@ -320,7 +275,7 @@
                                 {% if anotacao_item.prazo_dias is not None %}
                                     {{ anotacao_item.message }}
                                     {% if anotacao_item.prazo_dias == 1 %}
-                                        {{ anotacao_item.prazo_dias }} dia
+                                        1 dia
                                     {% else %}
                                         {{ anotacao_item.prazo_dias }} dias
                                     {% endif %}
@@ -355,10 +310,10 @@
         <i class="fas fa-folder-open fa-3x"></i>
     </span>
     <h2 class="title is-4 mt-4">Nenhuma anotação encontrada</h2>
-    <p class="subtitle is-6">Que tal criar a sua primeira agora mesmo?</p>
+    <p class="subtitle is-6">Que tal criar uma anotação nesta pasta?</p>
     <a class="button is-primary is-medium mt-4" href="{% url 'main:main' id_user=user.id %}">
         <span class="icon"><i class="fas fa-plus"></i></span>
-        <span>Criar Primeira Anotação</span>
+        <span>Criar Anotação</span>
     </a>
 </div>
 {% endif %}
@@ -366,62 +321,5 @@
 {% endblock content %}
 
 {% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const folderCards = document.querySelectorAll('.folder-card');
-        const foldersContainer = document.getElementById('folders-container');
-        const folderNavBar = document.getElementById('folder-nav-bar');
-        const currentFolderTitle = document.getElementById('current-folder-title');
-        const btnBack = document.getElementById('btn-back-folders');
-        const notesSectionTitle = document.getElementById('notes-section-title');
-
-        const allNotes = document.querySelectorAll('.note-item-card');
-        const unlinkedNotes = document.querySelectorAll('.note-item-card.no-folder');
-        const linkedNotes = document.querySelectorAll('.note-item-card.has-folder');
-
-        // Evento de clique em uma pasta para abrir o conteúdo
-        folderCards.forEach(card => {
-            card.addEventListener('click', function() {
-                const folderId = this.getAttribute('data-folder-id');
-                const folderName = this.getAttribute('data-folder-name');
-
-                foldersContainer.style.display = 'none';
-
-                currentFolderTitle.textContent = 'Pasta: ' + folderName;
-                folderNavBar.style.display = 'flex';
-                notesSectionTitle.textContent = 'Anotações nesta pasta';
-
-                unlinkedNotes.forEach(note => note.style.display = 'none');
-
-                linkedNotes.forEach(note => {
-                    if (note.getAttribute('data-folder-ref') === folderId) {
-                        note.style.display = 'block';
-                    } else {
-                        note.style.display = 'none';
-                    }
-                });
-            });
-        });
-
-        // Impede que os cliques nos botões de edição/remoção da pasta abram a pasta
-        const folderActions = document.querySelectorAll('.btn-folder-action, .btn-folder-action-form');
-        folderActions.forEach(element => {
-            element.addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-        });
-
-        // Evento de clique para retornar à raiz
-        if (btnBack) {
-            btnBack.addEventListener('click', function() {
-                foldersContainer.style.display = 'block';
-                folderNavBar.style.display = 'none';
-                notesSectionTitle.textContent = 'Anotações sem pasta';
-
-                linkedNotes.forEach(note => note.style.display = 'none');
-                unlinkedNotes.forEach(note => note.style.display = 'block');
-            });
-        }
-    });
-</script>
+<!-- O bloco extra_js agora está limpo de Javascripts de ocultação manuais, pois o Django faz a divisão nativa! -->
 {% endblock extra_js %}

@@ -53,67 +53,202 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         font-size: 1.1rem;
         line-height: 1.8;
-        color: #e0e0e0;
+        color: #d4d4d4;
         background-color: #181818;
         border: 1px solid #2d2d2d;
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
         padding: 1.75rem;
         word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word;
-
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
-    
+
     /* Regras de tipografia dentro do Markdown */
-    #markdown-view h1, #markdown-view h2, #markdown-view h3, #markdown-view h4 {
+    #markdown-view h1,
+    #markdown-view h2,
+    #markdown-view h3,
+    #markdown-view h4,
+    #markdown-view h5,
+    #markdown-view h6 {
         color: #ffffff !important;
         font-weight: 600;
         margin-top: 1.5rem;
         margin-bottom: 0.75rem;
+        line-height: 1.3;
     }
-    #markdown-view h1 { font-size: 1.8rem; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3rem; }
-    #markdown-view h2 { font-size: 1.5rem; }
+    #markdown-view h1 { font-size: 1.8rem; border-bottom: 1px solid #3a3a3a; padding-bottom: 0.4rem; }
+    #markdown-view h2 { font-size: 1.5rem; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3rem; }
     #markdown-view h3 { font-size: 1.25rem; }
-    #markdown-view p { margin-bottom: 1.25rem; color: #cccccc; }
-    
+    #markdown-view h4 { font-size: 1.1rem; }
+
+    #markdown-view p {
+        margin-bottom: 1.25rem;
+        color: #d4d4d4;
+    }
+
+    /* Links */
+    #markdown-view a {
+        color: #58a6ff !important;
+        text-decoration: underline;
+        text-decoration-color: rgba(88, 166, 255, 0.4);
+        transition: color 0.15s, text-decoration-color 0.15s;
+    }
+    #markdown-view a:hover {
+        color: #79c0ff !important;
+        text-decoration-color: rgba(121, 192, 255, 0.8);
+    }
+
     /* Listas */
-    #markdown-view ul, #markdown-view ol { margin-left: 1.5rem; margin-bottom: 1.25rem; list-style-position: outside; }
-    #markdown-view li { margin-bottom: 0.4rem; color: #cccccc; }
-    
+    #markdown-view ul,
+    #markdown-view ol {
+        margin-left: 1.5rem;
+        margin-bottom: 1.25rem;
+        list-style-position: outside;
+    }
+    #markdown-view ul { list-style-type: disc; }
+    #markdown-view ol { list-style-type: decimal; }
+    #markdown-view li {
+        margin-bottom: 0.4rem;
+        color: #d4d4d4;
+    }
+    #markdown-view li > ul,
+    #markdown-view li > ol {
+        margin-top: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+
+    /* Checkboxes (task lists) */
+    #markdown-view input[type="checkbox"] {
+        margin-right: 0.5rem;
+        transform: scale(1.15);
+        accent-color: #58a6ff;
+        vertical-align: middle;
+    }
+
     /* Citações */
     #markdown-view blockquote {
-        background-color: #222;
+        background-color: #1e2228;
         border-left: 4px solid #3273dc;
-        padding: 0.5rem 1.25rem;
+        padding: 0.75rem 1.25rem;
         margin: 1.5rem 0;
-        color: #b0b0b0;
+        color: #c0c8d4;
         font-style: italic;
+        border-radius: 0 6px 6px 0;
     }
-    
-    /* Elementos de Código */
+    #markdown-view blockquote p {
+        color: #c0c8d4;
+        margin-bottom: 0.5rem;
+    }
+    #markdown-view blockquote p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Código inline */
     #markdown-view code {
-        background-color: #2d2d2d;
-        color: #f14668;
-        padding: 0.2rem 0.4rem;
+        background-color: rgba(110, 118, 129, 0.25);
+        color: #e06c75;
+        padding: 0.2rem 0.45rem;
         border-radius: 4px;
-        font-family: "Courier New", Courier, monospace;
-        font-size: 0.95rem;
+        font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', Courier, monospace;
+        font-size: 0.9em;
+        border: 1px solid rgba(110, 118, 129, 0.15);
     }
+
+    /* Blocos de código (pre > code) */
     #markdown-view pre {
-        background-color: #111111;
+        background-color: #0d1117 !important;
         padding: 1.25rem;
-        border-radius: 6px;
+        border-radius: 8px;
         overflow-x: auto;
-        border: 1px solid #2d2d2d;
+        border: 1px solid #30363d;
         margin: 1.5rem 0;
         max-width: 100%;
+        position: relative;
     }
     #markdown-view pre code {
-        background-color: transparent;
+        background-color: transparent !important;
+        border: none;
         padding: 0;
-        color: #abb2bf;
-        font-size: 0.9rem;
+        color: #c9d1d9;
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    /* Rótulo de linguagem no bloco de código */
+    #markdown-view pre[data-lang]::before {
+        content: attr(data-lang);
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.7rem;
+        color: #8b949e;
+        background-color: #161b22;
+        border-bottom-left-radius: 6px;
+        border-top-right-radius: 7px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Tabelas */
+    #markdown-view table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    #markdown-view th {
+        background-color: #161b22;
+        color: #e6edf3 !important;
+        font-weight: 600;
+        padding: 0.75rem 1rem;
+        border: 1px solid #30363d;
+        text-align: left;
+    }
+    #markdown-view td {
+        padding: 0.65rem 1rem;
+        border: 1px solid #30363d;
+        color: #d4d4d4;
+    }
+    #markdown-view tr:nth-child(even) {
+        background-color: rgba(110, 118, 129, 0.06);
+    }
+
+    /* Separadores (hr) */
+    #markdown-view hr {
+        border: none;
+        border-top: 1px solid #30363d;
+        margin: 2rem 0;
+    }
+
+    /* Imagens inline no markdown */
+    #markdown-view img {
+        max-width: 100%;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border: 1px solid #30363d;
+    }
+
+    /* Strong & Em */
+    #markdown-view strong {
+        color: #e6edf3 !important;
+        font-weight: 600;
+    }
+    #markdown-view em {
+        color: #d4d4d4;
+    }
+    #markdown-view del {
+        color: #8b949e;
+    }
+
+    /* Override highlight.js background to match our theme */
+    #markdown-view pre code.hljs {
+        background-color: transparent !important;
+        padding: 0;
     }
 
     /* --- ESTILIZAÇÃO DO BOX DE IMAGENS --- */
@@ -148,11 +283,47 @@
     .gallery-img:hover {
         transform: scale(1.005);
     }
+
+    /* --- ESTILIZAÇÃO DA SEÇÃO DE VÍNCULOS (LINKER) --- */
+    .linker-box {
+        background-color: #1e1e1e;
+        border: 1px solid #2d2d2d;
+        border-radius: 8px;
+        padding: 2rem;
+    }
+    .linked-task-card {
+        background-color: #181818;
+        border: 1px solid #2d2d2d;
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: border-color 0.2s;
+    }
+    .linked-task-card:hover {
+        border-color: #3273dc;
+    }
+    .linked-task-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .linked-task-info .icon {
+        color: #58a6ff;
+    }
+    .linked-task-info .task-name {
+        color: #d4d4d4;
+        font-weight: 500;
+    }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
 
    <div class="columns">
@@ -268,6 +439,48 @@
                 {% endfor %}
             </div>
 
+            {# --- LISTAS DE TAREFAS VINCULADAS --- #}
+            <div class="box linker-box mt-5" id="vinculos">
+                <h2 class="title is-4 has-text-light">
+                    <span class="icon-text">
+                        <span class="icon"><i class="fas fa-link"></i></span>
+                        <span>Listas de Tarefas Vinculadas</span>
+                    </span>
+                </h2>
+                <hr class="has-background-grey-darker">
+
+                {% for vinculo in tarefas_vinculadas %}
+                    <div class="linked-task-card">
+                        <div class="linked-task-info">
+                            <span class="icon"><i class="fas fa-tasks"></i></span>
+                            <span class="task-name">{{ vinculo.tarefa.titulo|default:"Sem título" }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="has-text-grey-light">Nenhuma lista de tarefas vinculada a esta anotação.</p>
+                {% endfor %}
+
+                {# Formulário para vincular nova lista de tarefas #}
+                <div class="mt-5">
+                    <h4 class="subtitle is-6 has-text-grey-light mb-3">Vincular Lista de Tarefas</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="field has-addons">
+                            <div class="control is-expanded">
+                                {{ task_form.tarefa }}
+                            </div>
+                            <div class="control">
+                                <button type="submit" name="submit_linker_task" class="button is-link">
+                                    <span class="icon"><i class="fas fa-link"></i></span>
+                                    <span>Vincular</span>
+                                </button>
+                            </div>
+                        </div>
+                        {% for error in task_form.tarefa.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                    </form>
+                </div>
+            </div>
+
             {# --- FORMULÁRIO PARA ADICIONAR NOVAS IMAGENS --- #}
             <div class="box image-gallery-box mt-5" id="adicionar_imagem">
                 <h2 class="title is-4 has-text-light">Adicionar Nova Imagem</h2>
@@ -276,23 +489,23 @@
                     {% csrf_token %}
 
                     <div class="field">
-                        <label class="label has-text-grey-light">{{ form.titulo.label }}</label>
-                        <div class="control">{{ form.titulo }}</div>
-                        {% for error in form.titulo.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        <label class="label has-text-grey-light">{{ img_form.titulo.label }}</label>
+                        <div class="control">{{ img_form.titulo }}</div>
+                        {% for error in img_form.titulo.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
                     </div>
 
                     <div class="field">
-                        <label class="label has-text-grey-light">{{ form.observacao.label }}</label>
-                        <div class="control">{{ form.observacao }}</div>
-                        {% for error in form.observacao.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        <label class="label has-text-grey-light">{{ img_form.observacao.label }}</label>
+                        <div class="control">{{ img_form.observacao }}</div>
+                        {% for error in img_form.observacao.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
                     </div>
 
                     <div class="field">
-                        <label class="label has-text-grey-light">{{ form.img.label }}</label>
+                        <label class="label has-text-grey-light">{{ img_form.img.label }}</label>
                         <div class="control">
                            <div class="file has-name is-fullwidth is-dark">
                                 <label class="file-label">
-                                    {{ form.img }}
+                                    {{ img_form.img }}
                                     <span class="file-cta">
                                         <span class="file-icon"><i class="fas fa-upload"></i></span>
                                         <span class="file-label">Escolher arquivo…</span>
@@ -301,12 +514,12 @@
                                 </label>
                             </div>
                         </div>
-                        {% for error in form.img.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
+                        {% for error in img_form.img.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
                     </div>
 
                     <div class="field is-grouped is-grouped-right mt-5">
                         <div class="control"><a href="#topo" class="button is-dark">Topo</a></div>
-                        <div class="control"><button type="submit" class="button is-success">Salvar Imagem</button></div>
+                        <div class="control"><button type="submit" name="submit_image" class="button is-success">Salvar Imagem</button></div>
                     </div>
                 </form>
             </div>
@@ -336,11 +549,58 @@
             };
         }
 
-        // Renderizador Markdown do Marked.js
+        // Renderizador Markdown com Syntax Highlighting
         const markdownElement = document.getElementById('markdown-view');
         const rawMarkdown = JSON.parse(document.getElementById('anotacao-data').textContent);
         if (markdownElement && rawMarkdown) {
-            // marked.parse converte a string bruta em HTML estruturado
+            // Configura o marked.js com highlight.js para syntax highlighting
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        try {
+                            return hljs.highlight(code, { language: lang }).value;
+                        } catch (e) { /* fallback */ }
+                    }
+                    // Auto-detect quando a linguagem não é especificada
+                    try {
+                        return hljs.highlightAuto(code).value;
+                    } catch (e) { /* fallback */ }
+                    return code;
+                }
+            });
+
+            // Renderer customizado para adicionar label de linguagem nos blocos de código
+            const renderer = new marked.Renderer();
+            renderer.code = function(code, language) {
+                // marked v14+ pode passar um objeto ao invés de strings separadas
+                if (typeof code === 'object' && code !== null) {
+                    language = code.lang || '';
+                    code = code.text || '';
+                }
+                const lang = (language || '').trim();
+                let highlighted;
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        highlighted = hljs.highlight(code, { language: lang }).value;
+                    } catch (e) {
+                        highlighted = code;
+                    }
+                } else {
+                    try {
+                        highlighted = hljs.highlightAuto(code).value;
+                    } catch (e) {
+                        highlighted = code;
+                    }
+                }
+                const dataLang = lang ? ` data-lang="${lang}"` : '';
+                return `<pre${dataLang}><code class="hljs${lang ? ' language-' + lang : ''}">${highlighted}</code></pre>`;
+            };
+
+            marked.setOptions({ renderer: renderer });
+
+            // Renderiza o markdown
             markdownElement.innerHTML = marked.parse(rawMarkdown);
         }
 

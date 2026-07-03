@@ -43,7 +43,7 @@ HOUR = 3600
 AXES_COOLOFF_TIME = 200 if DEBUG else int(HOUR / 2)
 
 # O tempo é definido em segundos.
-SESSION_COOKIE_AGE = 120 if DEBUG else int(HOUR / 10)
+SESSION_COOKIE_AGE = 10000 if DEBUG else int(HOUR / 10)
 
 # Isso garante que a sessão expire quando o navegador for fechado
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

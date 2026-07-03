@@ -1,9 +1,9 @@
 from django import forms
 from django.forms import ModelForm, Textarea
 
+from checklist.models import Tarefa
 from core.middleware import get_current_user
-
-from .models import Folder, Image, Todo, User
+from main.models import Folder, Image, LinkerTaskTodo, Todo, User
 
 
 class TodoForm(ModelForm):
@@ -101,3 +101,20 @@ class FolderForm(forms.ModelForm):
     class Meta:
         model = Folder
         fields = ["name"]
+
+
+class LinkerTaskTodoForm(forms.ModelForm):
+    class Meta:
+        model = LinkerTaskTodo
+        fields = [
+            "tarefa"
+        ]  # O usuário selecionará apenas qual checklist deseja vincular
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if user:
+            # Filtra o Select para mostrar apenas os checklists ativos do próprio usuário
+            self.fields["tarefa"].queryset = Tarefa.objects.filter(
+                user=user, is_active=True
+            )
