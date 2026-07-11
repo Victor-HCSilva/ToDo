@@ -1,9 +1,10 @@
 from django import forms
+from django.db.models import Q
 from django.forms import ModelForm, Textarea
 
 from checklist.models import Tarefa
 from core.middleware import get_current_user
-from main.models import Folder, Image, LinkerTaskTodo, Todo, User
+from main.models import CollaborationGroup, Folder, Image, LinkerTaskTodo, Todo, User
 
 
 class TodoForm(ModelForm):
@@ -15,7 +16,9 @@ class TodoForm(ModelForm):
 
         # Se o usuário foi passado, filtramos as opções dos campos desejados
         if user:
-            self.fields["folder"].queryset = Folder.objects.filter(user=user)
+            self.fields["folder"].queryset = Folder.objects.filter(
+                Q(user=user) | Q(colaboradores=user), is_active=True
+            ).distinct()
 
             # Se o campo 'tag' também for associado ao usuário, você pode filtrar da mesma forma:
             # self.fields['tag'].queryset = Tag.objects.filter(user=user)
@@ -54,6 +57,62 @@ class TodoForm(ModelForm):
         labels = {
             "anotacao": "Anotação",
         }
+
+
+class TodoFormComColaboradores(ModelForm):
+    """Form de Todo com opção de adicionar colaboradores individuais e grupos"""
+
+    class Meta:
+        model = Todo
+        fields = [
+            "titulo",
+            "anotacao",
+            "prioridade",
+            "tag",
+            "prazo_inicial",
+            "prazo_final",
+            "completo",
+            "favorito",
+            "folder",
+            "colaboradores",
+            "grupos_colaboracao",
+        ]
+
+        widgets = {
+            "anotacao": Textarea(
+                attrs={
+                    "class": "textarea",
+                    "rows": 20,
+                    "placeholder": "Escreva sua anotação aqui...",
+                }
+            ),
+            "prazo_final": forms.DateInput(
+                attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
+            ),
+            "prazo_inicial": forms.DateInput(
+                attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
+            ),
+            "colaboradores": forms.CheckboxSelectMultiple(),
+            "grupos_colaboracao": forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            # Filtra pastas onde o usuário pode colocar anotações
+            self.fields["folder"].queryset = Folder.objects.filter(
+                Q(user=user) | Q(colaboradores=user), is_active=True
+            ).distinct()
+
+            # Filtra colaboradores - excluindo o próprio usuário
+            self.fields["colaboradores"].queryset = User.objects.exclude(id=user.id)
+
+            # Filtra grupos - apenas grupos que o usuário criou
+            self.fields[
+                "grupos_colaboracao"
+            ].queryset = CollaborationGroup.objects.filter(owner=user, is_active=True)
 
 
 class UserForm(forms.ModelForm):
@@ -101,6 +160,75 @@ class FolderForm(forms.ModelForm):
     class Meta:
         model = Folder
         fields = ["name"]
+
+
+class FolderFormComColaboradores(forms.ModelForm):
+    """Form de Folder com opção de adicionar colaboradores individuais e grupos"""
+
+    class Meta:
+        model = Folder
+        fields = ["name", "colaboradores", "grupos_colaboracao"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "input", "placeholder": "Nome da pasta"}
+            ),
+            "colaboradores": forms.CheckboxSelectMultiple(),
+            "grupos_colaboracao": forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            # Filtra colaboradores - excluindo o próprio usuário
+            self.fields["colaboradores"].queryset = User.objects.exclude(id=user.id)
+
+            # Filtra grupos - apenas grupos que o usuário criou
+            self.fields[
+                "grupos_colaboracao"
+            ].queryset = CollaborationGroup.objects.filter(owner=user, is_active=True)
+
+
+class CollaborationGroupForm(forms.ModelForm):
+    """Form para criar e editar grupos de colaboração"""
+
+    class Meta:
+        model = CollaborationGroup
+        fields = ["name", "descricao", "membros"]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "input", "placeholder": "Nome do grupo"}
+            ),
+            "descricao": forms.Textarea(
+                attrs={
+                    "class": "textarea",
+                    "rows": 3,
+                    "placeholder": "Descrição do grupo...",
+                }
+            ),
+            "membros": forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user:
+            # Filtra membros - excluindo o owner do grupo
+            self.fields["membros"].queryset = User.objects.exclude(id=user.id)
+
+
+class AddColaboradorForm(forms.Form):
+    """Form simples para adicionar um único colaborador por username"""
+
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={"class": "input", "placeholder": "Digite o nome do usuário..."}
+        ),
+        label="Nome de Usuário",
+    )
 
 
 class LinkerTaskTodoForm(forms.ModelForm):

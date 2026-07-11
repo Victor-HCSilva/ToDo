@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'main:home' %}">Home</a></li>
+                <li><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
+                <li class="is-active"><a href="#">Deletar: {{ grupo.name }}</a></li>
+            </ul>
+        </nav>
+
+        <div class="columns is-centered">
+            <div class="column is-5">
+                <div class="card">
+                    <div class="card-content has-text-centered">
+                        <p class="is-size-5 mb-4">
+                            <span class="icon is-large has-text-danger">
+                                <i class="fas fa-2x fa-exclamation-triangle"></i>
+                            </span>
+                        </p>
+                        <p class="is-size-5 mb-4">
+                            Tem certeza que deseja deletar o grupo <strong>{{ grupo.name }}</strong>?
+                        </p>
+                        <p class="has-text-grey mb-6">
+                            Isso não pode ser desfeito. Os usuários continuarão tendo acesso aos itens 
+                            através de outras permissões.
+                        </p>
+
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="field is-grouped is-grouped-centered">
+                                <p class="control">
+                                    <button type="submit" class="button is-danger is-large">
+                                        <span class="icon"><i class="fas fa-trash"></i></span>
+                                        <span>Sim, Deletar Grupo</span>
+                                    </button>
+                                </p>
+                                <p class="control">
+                                    <a href="{% url 'main:listar_grupos' %}" class="button is-light is-large">
+                                        Cancelar
+                                    </a>
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

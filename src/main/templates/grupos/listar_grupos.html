@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'main:home' %}">Home</a></li>
+                <li class="is-active"><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
+            </ul>
+        </nav>
+
+        <div class="columns is-centered">
+            <div class="column is-8">
+                <div class="card">
+                    <header class="card-header has-background-info">
+                        <p class="card-header-title has-text-white">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Meus Grupos de Colaboração</span>
+                        </p>
+                        <div class="card-header-icon">
+                            <a href="{% url 'main:criar_grupo' %}" class="button is-small is-success">
+                                <span class="icon"><i class="fas fa-plus"></i></span>
+                                <span>Novo Grupo</span>
+                            </a>
+                        </div>
+                    </header>
+                    <div class="card-content">
+                        {% if grupos %}
+                            <div class="table-container">
+                                <table class="table is-fullwidth is-hoverable is-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome do Grupo</th>
+                                            <th class="has-text-right">Membros</th>
+                                            <th class="has-text-right">Criado em</th>
+                                            <th class="has-text-right">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for grupo in grupos %}
+                                        <tr>
+                                            <td class="is-vcentered">
+                                                <strong>{{ grupo.name }}</strong>
+                                                <br>
+                                                <small class="has-text-grey">{{ grupo.descricao }}</small>
+                                            </td>
+                                            <td class="has-text-right is-vcentered">
+                                                <span class="tag is-info">{{ grupo.membros.count }} membros</span>
+                                            </td>
+                                            <td class="has-text-right is-vcentered">
+                                                <small>{{ grupo.created_at|date:"d/m/Y" }}</small>
+                                            </td>
+                                            <td class="has-text-right">
+                                                <a href="{% url 'main:gerenciar_membros_grupo' grupo.id %}" class="button is-small is-info is-light">
+                                                    <span class="icon"><i class="fas fa-user-plus"></i></span>
+                                                    <span>Membros</span>
+                                                </a>
+                                                <a href="{% url 'main:editar_grupo' grupo.id %}" class="button is-small is-warning is-light">
+                                                    <span class="icon"><i class="fas fa-edit"></i></span>
+                                                </a>
+                                                <a href="{% url 'main:deletar_grupo' grupo.id %}" class="button is-small is-danger is-light">
+                                                    <span class="icon"><i class="fas fa-trash"></i></span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="notification is-light is-warning">
+                                <p>Você ainda não criou nenhum grupo. <a href="{% url 'main:criar_grupo' %}">Crie um agora!</a></p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

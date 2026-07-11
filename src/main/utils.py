@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # 3️⃣ Inicialize o Django
     django.setup()
 
-    from init.models import Todo
+    from main.models import Todo
 
     s = Todo.objects.all()
     for i in s:

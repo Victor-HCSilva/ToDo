@@ -1,12 +1,142 @@
-# Create your models here.
 import uuid
 
 from django.contrib.auth.models import User
 from django.db import IntegrityError, models
+from django.db.models import Q
 from django.utils import timezone
 
-from checklist.models import Tarefa
-from main.utils import get_time_remainder
+# Assumindo que estes imports existem no seu projeto
+# from checklist.models import Tarefa
+# from main.utils import get_time_remainder
+
+# --- MANAGER PARA LÓGICA DE COLABORAÇÃO ---
+
+
+class TodoQuerySet(models.QuerySet):
+    def para_usuario(self, user):
+        """
+        Retorna apenas os Todos que o usuário tem permissão para ver:
+        1. É o dono do Todo.
+        2. É um colaborador direto do Todo.
+        3. É um colaborador da Pasta onde o Todo está.
+        4. É o dono da Pasta onde o Todo está.
+        5. Pertence a um grupo que tem acesso ao Todo.
+        6. Pertence a um grupo que tem acesso à Pasta.
+        """
+        if user.is_anonymous:
+            return self.none()
+
+        # Busca os grupos aos quais o usuário pertence
+        user_groups = CollaborationGroup.objects.filter(membros=user)
+
+        return self.filter(
+            Q(user=user)
+            | Q(colaboradores=user)
+            | Q(grupos_colaboracao__in=user_groups)
+            | Q(folder__colaboradores=user)
+            | Q(folder__grupos_colaboracao__in=user_groups)
+            | Q(folder__user=user)
+        ).distinct()
+
+
+class TodoManager(models.Manager):
+    def get_queryset(self):
+        return TodoQuerySet(self.model, using=self._db)
+
+    def para_usuario(self, user):
+        return self.get_queryset().para_usuario(user)
+
+
+# --- MODELO DE COLABORAÇÃO: GRUPOS ---
+
+
+class CollaborationGroup(models.Model):
+    """
+    Modelo para gerenciar grupos de colaboradores.
+    Um grupo pode conter múltiplos usuários e compartilhar acesso a Todos e Pastas.
+    """
+
+    name = models.CharField(max_length=100)
+    descricao = models.TextField(default="", blank=True)
+    owner = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="grupos_que_criei"
+    )
+    membros = models.ManyToManyField(
+        User, related_name="grupos_que_participo", blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ["name", "owner"]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} (criado por {self.owner.username})"
+
+    def adicionar_membro(self, user):
+        """Adiciona um usuário ao grupo"""
+        if user not in self.membros.all():
+            self.membros.add(user)
+            return True
+        return False
+
+    def remover_membro(self, user):
+        """Remove um usuário do grupo"""
+        if user in self.membros.all():
+            self.membros.remove(user)
+            return True
+        return False
+
+    def pode_gerenciar(self, user):
+        """Verifica se o usuário pode gerenciar este grupo"""
+        return user == self.owner
+
+
+# --- MODELOS ---
+
+
+class Folder(models.Model):
+    name = models.CharField(max_length=100, default="folder")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="minhas_pastas"
+    )
+    colaboradores = models.ManyToManyField(
+        User, related_name="pastas_compartilhadas", blank=True
+    )
+    grupos_colaboracao = models.ManyToManyField(
+        CollaborationGroup, related_name="pastas_compartilhadas", blank=True
+    )
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError:
+            suffix = str(uuid.uuid4())[:8]
+            self.name = f"{self.name[:90]}+{suffix}"
+            super().save(*args, **kwargs)
+
+    class Meta:
+        unique_together = ["name", "user"]
+
+    def pode_editar(self, user):
+        """Verifica se o usuário pode editar a pasta"""
+        if user == self.user:
+            return True
+        if self.colaboradores.filter(id=user.id).exists():
+            return True
+        if self.grupos_colaboracao.filter(membros=user).exists():
+            return True
+        return False
+
+    def pode_excluir(self, user):
+        """Apenas o dono pode excluir"""
+        return user == self.user
 
 
 class Todo(models.Model):
@@ -29,13 +159,13 @@ class Todo(models.Model):
         ("Alta", "3"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meus_todos")
     titulo = models.CharField(max_length=200, default="Sem titulo")
     favorito = models.BooleanField(default=False)
     completo = models.BooleanField(default=False)
     anotacao = models.TextField(("Anotação"), default="Escreva algo aqui!")
     prioridade = models.CharField(choices=PRIORIDADES, max_length=10, default="1")
-    tag = models.CharField(choices=TAGS, max_length=13, default=("Avulso", "Avulso"))
+    tag = models.CharField(choices=TAGS, max_length=13, default="Avulso")
     prazo_inicial = models.DateField(
         default=timezone.now, help_text=f"eg. {str(timezone.now().date())}"
     )
@@ -45,27 +175,64 @@ class Todo(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(("Data de Criação"), auto_now_add=True)
     updated_at = models.DateTimeField(("Data de Atualização"), auto_now=True)
-    folder = models.ForeignKey(
-        "folder", on_delete=models.CASCADE, blank=True, null=True
-    )
-    # NOTE: Pensar como fazer lógica de colaboradores
-    # excluir = models.BooleanField(default=False)
-    # editavel = models.BooleanField(default=True)
 
+    folder = models.ForeignKey(
+        Folder, on_delete=models.CASCADE, blank=True, null=True, related_name="todos"
+    )
+    colaboradores = models.ManyToManyField(
+        User, related_name="todos_compartilhados", blank=True
+    )
+    grupos_colaboracao = models.ManyToManyField(
+        CollaborationGroup, related_name="todos_compartilhados", blank=True
+    )
+
+    # Ativa o manager customizado
+    objects = TodoManager()
+
+    def __str__(self):
+        return self.titulo
+
+    # --- Lógica de Permissão ---
+    def pode_editar(self, user):
+        """Verifica se o usuário pode alterar o conteúdo"""
+        if user == self.user:
+            return True
+        if self.colaboradores.filter(id=user.id).exists():
+            return True
+        if self.grupos_colaboracao.filter(membros=user).exists():
+            return True
+        if self.folder and self.folder.pode_editar(user):
+            return True
+        return False
+
+    def pode_excluir(self, user):
+        """Geralmente apenas o dono ou o dono da pasta pode excluir"""
+        return user == self.user or (self.folder and user == self.folder.user)
+
+    # --- Propriedades de Interface ---
     @property
     def prazo_dias(self):
         if self.prazo_final:
-            return get_time_remainder(self.prazo_final)
+            # Importado no topo se necessário: from main.utils import get_time_remainder
+            try:
+                from main.utils import get_time_remainder
+
+                return get_time_remainder(self.prazo_final)
+            except ImportError:
+                delta = self.prazo_final - timezone.now().date()
+                return delta.days
         return None
 
     def message(self):
-        if self.prazo_dias is None:
+        dias = self.prazo_dias
+        if dias is None:
             return ""
-        return "Passou do prazo: " if self.prazo_dias <= 0 else "Dias restantes: "
+        return "Passou do prazo: " if dias <= 0 else "Dias restantes: "
 
     @property
     def color(self):
-        match self.prazo_dias:
+        dias = self.prazo_dias
+        match dias:
             case None:
                 return "gray"
             case x if x >= 7:
@@ -77,56 +244,29 @@ class Todo(models.Model):
             case _:
                 return "#b82b14"
 
-    def save(self, *args, **kwargs):
-        # NOTE: Isso implica em um texto de tamanho indefinido
-        super().save(*args, **kwargs)
-
 
 class Image(models.Model):
     img = models.ImageField(upload_to="imgs")
     descricao = models.CharField(max_length=1000, default="Imagem sem descriçao")
     titulo = models.CharField(max_length=1000, default="Sem titulo")
     data_de_criacao = models.DateField(default=timezone.now)
-    user = models.ForeignKey(Todo, on_delete=models.CASCADE, related_name="imagem")
+    # Alterado para apontar para o Todo (Pai)
+    todo = models.ForeignKey(Todo, on_delete=models.CASCADE, related_name="imagens")
     observacao = models.CharField(max_length=1000, default="Sem observação")
 
     def __str__(self):
-        return f"Tarefa: {self.titulo} - {self.user.username}"
-
-
-class Folder(models.Model):
-    name = models.CharField(max_length=100, default="folder")
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.name}"
-
-    def save(self, *args, **kwargs):
-        try:
-            super().save(*args, **kwargs)
-        except IntegrityError:
-            suffix = str(uuid.uuid4())[:8]
-            self.name = f"{self.name[:90]}+{suffix}"
-            super().save(*args, **kwargs)
-
-    class Meta:
-        unique_together = ["name", "user"]
+        return f"Imagem: {self.titulo} - Ref Todo: {self.todo.titulo}"
 
 
 class LinkerTaskTodo(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    # Aponta para a Anotação (da app 'main')
     todo = models.ForeignKey(
         Todo, on_delete=models.CASCADE, related_name="vinculos_tarefas"
     )
-
-    # Aponta para o Checklist (da app 'checklist')
+    # Supondo que Tarefa venha de checklist.models
     tarefa = models.ForeignKey(
-        Tarefa, on_delete=models.CASCADE, related_name="vinculos_anotacoes"
+        "checklist.Tarefa", on_delete=models.CASCADE, related_name="vinculos_anotacoes"
     )
-
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

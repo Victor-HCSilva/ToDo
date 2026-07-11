@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'main:home' %}">Home</a></li>
+                <li><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
+                <li class="is-active"><a href="#">Membros: {{ grupo.name }}</a></li>
+            </ul>
+        </nav>
+
+        <div class="columns is-centered">
+            <div class="column is-6">
+                <div class="card">
+                    <header class="card-header has-background-info">
+                        <p class="card-header-title has-text-white">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>Gerenciar Membros: {{ grupo.name }}</span>
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        
+                        <!-- Formulário para Adicionar -->
+                        <form method="POST" class="mb-5">
+                            {% csrf_token %}
+                            <h5 class="title is-5 mb-3">Adicionar Membro</h5>
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <input class="input" type="text" name="username" placeholder="Digite o nome do usuário..." required>
+                                </div>
+                                <div class="control">
+                                    <button type="submit" name="add_user" class="button is-link">
+                                        <span class="icon"><i class="fas fa-user-plus"></i></span>
+                                        <span>Adicionar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <hr>
+
+                        <!-- Lista de Membros Atuais -->
+                        <h5 class="title is-5 mb-3">Membros Atuais ({{ membros.count }})</h5>
+                        {% if membros %}
+                            <table class="table is-fullwidth is-hoverable">
+                                <thead>
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th class="has-text-right">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for membro in membros %}
+                                    <tr>
+                                        <td class="is-vcentered">
+                                            <strong>{{ membro.username }}</strong>
+                                            <br>
+                                            <small class="has-text-grey">{{ membro.email }}</small>
+                                        </td>
+                                        <td class="has-text-right">
+                                            <form method="POST" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="user_id" value="{{ membro.id }}">
+                                                <button type="submit" name="remove_user" class="button is-danger is-small is-light">
+                                                    <span class="icon"><i class="fas fa-times"></i></span>
+                                                    <span>Remover</span>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="notification is-light is-warning">
+                                Este grupo ainda não possui membros.
+                            </div>
+                        {% endif %}
+
+                        <hr class="my-4">
+
+                        <div class="field">
+                            <p class="help">
+                                <strong>Dica:</strong> Adicione usuários para que possam colaborar em itens compartilhados com este grupo.
+                            </p>
+                        </div>
+
+                        <div class="mt-5">
+                            <a href="{% url 'main:listar_grupos' %}" class="button is-fullwidth">
+                                <span class="icon"><i class="fas fa-arrow-left"></i></span>
+                                <span>Voltar para Grupos</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

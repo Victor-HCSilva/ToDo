@@ -1,27 +1,34 @@
-from axes.models import AccessAttempt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
-from django.http import Http404
+from django.db.models import Q
+from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
 
 from agenda.models import Colors
-from main.forms import FolderForm, ImageForm, LinkerTaskTodoForm, TodoForm, UserForm
-from main.models import Folder, Image, LinkerTaskTodo, Todo
+from main.forms import (
+    AddColaboradorForm,
+    CollaborationGroupForm,
+    FolderForm,
+    ImageForm,
+    LinkerTaskTodoForm,
+    TodoForm,
+    UserForm,
+)
+from main.models import CollaborationGroup, Folder, Image, LinkerTaskTodo, Todo
 from main.utils import (
-    adjust_boolean_fields,
-    clean_dict,
     get_label,
 )
 
 
 @login_required
 def anotacoes(request, id_user):
-    if request.user.id != id_user:
-        return redirect("main:login")
+    # LÓGICA DE COLABORAÇÃO:
+    # Um usuário pode ver suas próprias anotações OU anotações de outros onde ele é colaborador.
+    # Por isso, não redirecionamos mais apenas pelo ID da URL.
 
     # Coleta a pasta selecionada na URL (?folder=ID)
     selected_folder = request.GET.get("folder", None)
@@ -30,17 +37,15 @@ def anotacoes(request, id_user):
     else:
         selected_folder = None
 
-    # Filtros base comuns a qualquer consulta
-    filters = {
-        "user_id": id_user,
-        "is_active": True,
-    }
+    # Usamos o manager customizado 'para_usuario' que criamos nos Models
+    base_queryset = Todo.objects.para_usuario(request.user).filter(is_active=True)
 
-    # Se estivermos DENTRO de uma pasta, aplicamos os subfiltros refinados
+    # Filtros de busca
+    filters = {}
     if selected_folder:
         filters["folder_id"] = selected_folder
 
-        # Filtros condicionais que só aparecem dentro da pasta
+        # Filtros condicionais (dentro da pasta)
         if request.GET.get("tag"):
             filters["tag"] = request.GET.get("tag")
         if request.GET.get("prioridade"):
@@ -52,7 +57,6 @@ def anotacoes(request, id_user):
         if request.GET.get("titulo"):
             filters["titulo__icontains"] = request.GET.get("titulo")
 
-        # Filtro de Intervalo de Datas (Prazo de/até)
         prazo_inicial = request.GET.get("prazo_inicial")
         prazo_final = request.GET.get("prazo_final")
         if prazo_inicial:
@@ -60,21 +64,19 @@ def anotacoes(request, id_user):
         if prazo_final:
             filters["prazo_final__lte"] = parse_date(prazo_final)
     else:
-        # Se NÃO houver pasta selecionada, mostra apenas anotações sem pasta (raiz)
+        # Se não houver pasta, mostra os que não tem pasta vinculada
         filters["folder_id__isnull"] = True
 
-    # Limpa e formata o dicionário de filtros
-    filters = clean_dict(filters)
-    filters = adjust_boolean_fields(filters)
+    # Aplica os filtros ao queryset base que já respeita a colaboração
+    todos = base_queryset.filter(**filters).order_by("-id")
 
-    # Busca as anotações com base nos filtros ativos
-    todos = Todo.objects.filter(**filters).order_by("-id")
+    # Busca as pastas onde o usuário é dono OU colaborador
+    folders = Folder.objects.filter(
+        Q(user=request.user) | Q(colaboradores=request.user), is_active=True
+    ).distinct()
 
-    # Busca as pastas do usuário para renderizar o grid
-    folders = Folder.objects.filter(user_id=id_user, is_active=True)
-
-    # Cor de destaque personalizada
-    cor_obj = Colors.objects.filter(user_id=id_user).first()
+    # Cor de destaque (sempre baseada no usuário logado)
+    cor_obj = Colors.objects.filter(user=request.user).first()
     cor_de_destaque = cor_obj.cor_de_destaque if cor_obj else "#3273dc"
 
     context = {
@@ -91,72 +93,66 @@ def anotacoes(request, id_user):
         "prazo_inicial": request.GET.get("prazo_inicial", ""),
         "prazo_final": request.GET.get("prazo_final", ""),
         "cor_de_destaque": cor_de_destaque,
+        "id_user": id_user,  # Mantido para compatibilidade de URL no template
     }
-
     return render(request, "todo/anotacoes.html", context)
 
 
 @login_required()
 def show(request, id_user, id_anotacao):
-    if request.user.id != id_user:
-        return redirect("main:login")
-
+    # Busca a tarefa, mas verifica se o usuário logado tem acesso a ela
     task = get_object_or_404(Todo, id=id_anotacao)
-    user = get_object_or_404(User, id=id_user)
+
+    # SEGURANÇA: Se não for dono e não for colaborador, bloqueia
+    if not task.pode_editar(request.user):
+        return HttpResponseForbidden(
+            "Você não tem permissão para visualizar esta anotação."
+        )
 
     img_form = ImageForm()
-    # Passamos o usuário logado para que o formulário filtre a lista de seleção
-    task_form = LinkerTaskTodoForm(user=user)
+    # O user aqui deve ser o logado para filtrar os checklists DELE
+    task_form = LinkerTaskTodoForm(user=request.user)
 
     if request.method == "POST":
         if "submit_image" in request.POST:
             img_form = ImageForm(request.POST, request.FILES)
             if img_form.is_valid():
                 image = img_form.save(commit=False)
-                image.user = task
+                image.todo = task  # Vincula ao todo pai
                 image.save()
                 return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
 
         elif "submit_linker_task" in request.POST:
-            task_form = LinkerTaskTodoForm(request.POST, user=user)
+            task_form = LinkerTaskTodoForm(request.POST, user=request.user)
             if task_form.is_valid():
                 linker = task_form.save(commit=False)
-                linker.user = user
+                linker.user = request.user
                 linker.todo = task
 
-                # Otimizado: .exists() retorna True/False de forma rápida no banco
                 vinculo_ja_existe = LinkerTaskTodo.objects.filter(
                     tarefa=linker.tarefa,
-                    user=linker.user,
                     todo=linker.todo,
-                    is_active=True,  # Opcional: Garante que busca apenas os ativos
+                    is_active=True,
                 ).exists()
 
                 if not vinculo_ja_existe:
                     linker.save()
                     messages.success(request, "Checklist vinculado com sucesso!")
-                    return redirect(
-                        "main:show", id_user=id_user, id_anotacao=id_anotacao
-                    )
                 else:
-                    # Envia a mensagem de erro que aparecerá no seu template
-                    messages.error(
-                        request, "Este checklist já está vinculado a esta anotação."
-                    )
-                    return redirect(
-                        "main:show", id_user=id_user, id_anotacao=id_anotacao
-                    )
+                    messages.error(request, "Este checklist já está vinculado.")
 
-    # Nova busca baseada na tabela intermediária de vínculos
+                return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
+
     tarefas_vinculadas = LinkerTaskTodo.objects.filter(
         todo=task, is_active=True
     ).select_related("tarefa")
 
-    imgs = Image.objects.filter(user=task)
+    # Corrigido para usar a relação 'imagens' definida no model
+    imgs = task.imagens.all()
 
     context = {
         "tarefa": task,
-        "user": user,
+        "user": request.user,
         "img_form": img_form,
         "imagens": imgs,
         "task_form": task_form,
@@ -167,118 +163,101 @@ def show(request, id_user, id_anotacao):
 
 @login_required()
 def editar(request, id_user, id_anotacao):
-    if request.user.id != id_user:
-        return redirect("main:login")
-
     todo = get_object_or_404(Todo, id=id_anotacao)
-    user = get_object_or_404(User, id=id_user)
-    form = TodoForm(instance=todo)
+
+    if not todo.pode_editar(request.user):
+        return HttpResponseForbidden("Sem permissão para editar.")
 
     if request.method == "POST":
         form = TodoForm(request.POST, instance=todo)
-        todo = form.save(commit=False)
-        todo.user = user
-        todo.save()
-        return redirect("main:show", id_user=id_user, id_anotacao=todo.id)
+        if form.is_valid():
+            form.save()
+            return redirect("main:show", id_user=id_user, id_anotacao=todo.id)
+    else:
+        form = TodoForm(instance=todo)
 
     context = {
-        "user": user,
+        "user": request.user,
         "form": form,
         "tarefa": todo,
     }
-    # Atualizado: 'editar.html' agora está em 'todo/editar.html'
     return render(request, "todo/editar.html", context)
 
 
 @login_required()
 def remover(request, id_user, id_anotacao):
-    if request.user.id != id_user:
-        return redirect("main:login")
     todo = get_object_or_404(Todo, id=id_anotacao)
-    user = get_object_or_404(User, id=id_user)
+
+    # APENAS O DONO ou o DONO DA PASTA pode remover
+    if not todo.pode_excluir(request.user):
+        return HttpResponseForbidden(
+            "Apenas o proprietário pode excluir esta anotação."
+        )
 
     if request.method == "POST":
         todo.is_active = False
         todo.save()
         return redirect("main:anotacoes", id_user=id_user)
-    else:
-        # Atualizado: 'delete.html' agora está em 'todo/delete.html'
-        return render(request, "todo/delete.html", {"user": user, "tarefa": todo})
+
+    return render(request, "todo/delete.html", {"user": request.user, "tarefa": todo})
 
 
 @login_required()
 def apagar_imagem(request, id_user, id_imagem, id_anotacao):
     image = get_object_or_404(Image, id=id_imagem)
-    user = get_object_or_404(User, id=id_user)
     todo = get_object_or_404(Todo, id=id_anotacao)
-    form = ImageForm(instance=image)
 
-    if request.user.id != id_user:
-        return redirect("main:login")
+    if not todo.pode_editar(request.user):
+        return HttpResponseForbidden("Sem permissão.")
 
     if request.method == "POST":
         image.delete()
         return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
-    else:
-        print(form.errors)
-    # Atualizado: 'apagar_imagem.html' agora está em 'todo/apagar_imagem.html'
+
     return render(
         request,
         "todo/apagar_imagem.html",
-        {"user": user, "imagem": image, "tarefa": todo},
+        {"user": request.user, "imagem": image, "tarefa": todo},
     )
 
 
 @login_required()
 def editar_descricao(request, id_user, id_imagem, id_anotacao):
     image = get_object_or_404(Image, id=id_imagem)
-    user = get_object_or_404(User, id=id_user)
     todo = get_object_or_404(Todo, id=id_anotacao)
-    form = ImageForm(request.POST, request.FILES, instance=image)
 
-    if request.user.id != id_user:
-        return redirect("main:login")
+    if not todo.pode_editar(request.user):
+        return HttpResponseForbidden()
 
     if request.method == "POST":
-        image = form.save(commit=False)
-        image.user = todo
-        image.save()
-        return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
+        form = ImageForm(request.POST, request.FILES, instance=image)
+        if form.is_valid():
+            form.save()
+            return redirect("main:show", id_user=id_user, id_anotacao=id_anotacao)
+    else:
+        form = ImageForm(instance=image)
 
-    context = {"user": user, "imagem": image, "tarefa": todo, "form": form}
-    # Atualizado: 'editar_descricao.html' agora está em 'todo/editar_descricao.html'
-    return render(request, "todo/editar_descricao.html", context)
-
-
-def not_found(request):
-    # Atualizado: '404.html' agora está em 'base/404.html'
-    return render(request, "base/404.html")
+    return render(
+        request,
+        "todo/editar_descricao.html",
+        {"user": request.user, "imagem": image, "tarefa": todo, "form": form},
+    )
 
 
 @login_required
 def folder_update(request, folder_id):
+    # Apenas o dono da pasta pode mudar o nome ou configurações dela
     folder = get_object_or_404(Folder, id=folder_id, user=request.user, is_active=True)
 
     if request.method == "POST":
         form = FolderForm(request.POST, instance=folder)
         if form.is_valid():
-            name = form.cleaned_data["name"]
-            if (
-                Folder.objects.filter(user=request.user, name=name, is_active=True)
-                .exclude(id=folder_id)
-                .exists()
-            ):
-                messages.error(
-                    request, "Você já possui outra pasta ativa com este nome."
-                )
-            else:
-                form.save()
-                messages.success(request, "Pasta atualizada com sucesso!")
-                return redirect("main:folders")
+            form.save()
+            messages.success(request, "Pasta atualizada!")
+            return redirect("main:folders")
     else:
         form = FolderForm(instance=folder)
 
-    # Atualizado: 'folder_edit.html' agora está em 'folders/folder_edit.html'
     return render(request, "folders/folder_edit.html", {"form": form, "folder": folder})
 
 
@@ -288,150 +267,283 @@ def folder_delete(request, folder_id):
     if request.method == "POST":
         folder.is_active = False
         folder.save()
-        messages.success(
-            request, f"Pasta '{folder.name}' movida para a lixeira (removida)."
-        )
+        messages.success(request, f"Pasta '{folder.name}' removida.")
     return redirect("main:folders")
+
+
+@login_required()
+def create_todo(request, id_user: int):
+    # Garantir que o usuário só crie coisas para ele mesmo, mas possa escolher pastas compartilhadas
+    if request.user.id != id_user:
+        return redirect("main:anotacoes", id_user=request.user.id)
+
+    if request.method == "POST":
+        form = TodoForm(request.POST)
+        if form.is_valid():
+            todo = form.save(commit=False)
+            todo.user = request.user
+            todo.save()
+            form.save_m2m()  # Importante para salvar colaboradores se houver no form
+            return redirect("main:anotacoes", id_user=request.user.id)
+    else:
+        form = TodoForm()
+
+    # Filtra pastas onde ele pode colocar anotações (dele ou compartilhadas com ele)
+    folders = Folder.objects.filter(
+        Q(user=request.user) | Q(colaboradores=request.user), is_active=True
+    ).distinct()
+
+    context = {
+        "username": request.user.username.title(),
+        "form": form,
+        "folders": folders,
+    }
+    return render(request, "base/main.html", context)
+
+
+@login_required
+def folder_list_create(request):
+    # Lista pastas dele + pastas onde é colaborador
+    folders = Folder.objects.filter(
+        Q(user=request.user) | Q(colaboradores=request.user), is_active=True
+    ).distinct()
+
+    if request.method == "POST":
+        form = FolderForm(request.POST)
+        if form.is_valid():
+            folder = form.save(commit=False)
+            folder.user = request.user
+            folder.save()
+            messages.success(request, "Pasta criada!")
+            return redirect("main:folders")
+    else:
+        form = FolderForm()
+
+    return render(request, "folders/folders.html", {"folders": folders, "form": form})
+
+
+# --- Mantidos sem alterações de lógica de colaboração (Contas e Home) ---
 
 
 def home(request):
     if not request.user.is_authenticated:
         return redirect("main:login")
-    # Atualizado: 'home.html' agora está em 'base/home.html'
-    return render(request, "base/home.html")
-
-
-@login_required()
-def create_todo(request, id_user: int):
-    filters = {
-        "user": get_object_or_404(User, id=id_user, is_active=True),
-        "is_active": True,
-    }
-    folders = Folder.objects.filter(**filters)
-    todos = Todo.objects.filter(**filters)
-    form = TodoForm()
-    user = get_object_or_404(User, id=id_user)
-
-    if request.user.id != id_user:
-        raise Http404("Página não encontrada")
-
-    if request.method == "POST":
-        form = TodoForm(request.POST)
-        todo = form.save(commit=False)
-        todo.user = user
-        todo.save()
-        return redirect("main:anotacoes", id_user=id_user)
-
-    context = {
-        "username": user.username.title(),
-        "todos": todos,
-        "form": form,
-        "folders": folders,
-    }
-    # Atualizado: 'main.html' agora está em 'base/main.html'
-    return render(request, "base/main.html", context)
+    return render(request, "base/home.html", {"user": request.user})
 
 
 @login_required()
 def welcome(request, id_user):
     if request.user.id != id_user:
-        return redirect("main:login")
-
+        return redirect("main:welcome", id_user=request.user.id)
     user = get_object_or_404(User, id=id_user, is_active=True)
-    todos = Todo.objects.filter(user=user, is_active=True)
-    context = {
-        "nick": "nick",
-        "todos": todos,
-        "user": user,
-    }
-    # Atualizado: 'welcome.html' agora está em 'base/welcome.html'
-    return render(request, "base/welcome.html", context)
+    todos = Todo.objects.para_usuario(user).filter(is_active=True)
+    return render(request, "base/welcome.html", {"todos": todos, "user": user})
 
 
 def sobre(request):
     if not request.user.is_authenticated:
-        raise Http404("Página não encontrada")
-    user = get_object_or_404(User, id=request.user.id)
-    # Atualizado: 'sobre.html' agora está em 'base/sobre.html'
-    return render(request, "base/sobre.html", {"user": user})
+        raise Http404()
+    return render(request, "base/sobre.html", {"user": request.user})
 
 
 def create_account(request):
     if request.method == "GET":
-        form = UserForm()
-        # Atualizado: 'new_account.html' agora está em 'base/new_account.html'
-        return render(request, "base/new_account.html", {"form": form})
-
+        return render(request, "base/new_account.html", {"form": UserForm()})
     elif request.method == "POST":
         form = UserForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
-
-            user = User.objects.create_user(username=username, password=password)
-            if user.id:
-                return redirect(reverse_lazy("main:login"))
-        else:
-            # Atualizado: 'new_account.html' agora está em 'base/new_account.html'
-            return render(request, "base/new_account.html", {"form": form})
+            User.objects.create_user(username=username, password=password)
+            return redirect(reverse_lazy("main:login"))
+        return render(request, "base/new_account.html", {"form": form})
 
 
 class CustomLoginView(LoginView):
-    # Atualizado: 'login.html' agora está em 'base/login.html'
     template_name = "base/login.html"
 
     def get_success_url(self):
         return reverse_lazy("main:welcome", kwargs={"id_user": self.request.user.id})
 
     def form_invalid(self, form):
-        username = self.request.POST.get("username")
-        attempts = AccessAttempt.objects.filter(username=username).count()
-        limit = 5
-        remaining = limit - attempts
-
-        if remaining > 0:
-            messages.error(
-                self.request,
-                f"Usuário ou senha inválidos. Você possui {remaining} tentativa(s) restante(s).",
-            )
-        else:
-            messages.error(
-                self.request,
-                "Conta bloqueada por excesso de tentativas. Tente novamente em 5 minutos.",
-            )
-
+        messages.error(self.request, "Usuário ou senha inválidos.")
         return super().form_invalid(form)
 
 
 @login_required
-def folder_list_create(request):
-    folders = Folder.objects.filter(user=request.user, is_active=True)
+def gerenciar_colaboradores(request, tipo, pk):
+    """
+    tipo: 'todo' ou 'folder'
+    pk: id do objeto
+    """
+    # 1. Busca o objeto e garante que o usuário logado é o dono
+    if tipo == "todo":
+        obj = get_object_or_404(Todo, pk=pk, user=request.user)
+        titulo = obj.titulo
+        back_url = redirect("main:show", id_user=request.user.id, id_anotacao=obj.id)
+    else:
+        obj = get_object_or_404(Folder, pk=pk, user=request.user)
+        titulo = obj.name
+        back_url = redirect("main:folders")
+
+    # 2. Lógica para ADICIONAR colaborador
+    if request.method == "POST" and "add_user" in request.POST:
+        username = request.POST.get("username")
+        try:
+            user_to_add = User.objects.get(username=username)
+            if user_to_add == request.user:
+                messages.warning(request, "Você já é o proprietário deste item.")
+            else:
+                obj.colaboradores.add(user_to_add)
+                messages.success(request, f"Usuário {username} adicionado com sucesso!")
+        except User.DoesNotExist:
+            messages.error(request, "Usuário não encontrado.")
+        return redirect(request.path)
+
+    # 3. Lógica para REMOVER colaborador
+    if request.method == "POST" and "remove_user" in request.POST:
+        user_id = request.POST.get("user_id")
+        user_to_remove = get_object_or_404(User, id=user_id)
+        obj.colaboradores.remove(user_to_remove)
+        messages.success(request, f"Colaborador {user_to_remove.username} removido.")
+        return redirect(request.path)
+
+    colaboradores = obj.colaboradores.all()
+
+    context = {
+        "obj": obj,
+        "titulo": titulo,
+        "tipo": tipo,
+        "colaboradores": colaboradores,
+        "back_url": back_url,
+    }
+    return render(request, "todo/colaboradores.html", context)
+
+
+# --- VIEWS PARA GERENCIAR GRUPOS DE COLABORAÇÃO ---
+
+
+@login_required
+def listar_grupos(request):
+    """Lista todos os grupos criados pelo usuário"""
+    grupos = CollaborationGroup.objects.filter(
+        owner=request.user, is_active=True
+    ).prefetch_related("membros")
+
+    context = {
+        "grupos": grupos,
+    }
+    return render(request, "grupos/listar_grupos.html", context)
+
+
+@login_required
+def criar_grupo(request):
+    """Cria um novo grupo de colaboração"""
+    if request.method == "POST":
+        form = CollaborationGroupForm(request.POST, user=request.user)
+        if form.is_valid():
+            grupo = form.save(commit=False)
+            grupo.owner = request.user
+            grupo.save()
+            form.save_m2m()
+            messages.success(request, "Grupo criado com sucesso!")
+            return redirect("main:listar_grupos")
+    else:
+        form = CollaborationGroupForm(user=request.user)
+
+    context = {
+        "form": form,
+        "titulo": "Criar Novo Grupo",
+    }
+    return render(request, "grupos/grupo_form.html", context)
+
+
+@login_required
+def editar_grupo(request, grupo_id):
+    """Edita um grupo de colaboração"""
+    grupo = get_object_or_404(
+        CollaborationGroup, id=grupo_id, owner=request.user, is_active=True
+    )
 
     if request.method == "POST":
-        form = FolderForm(request.POST)
+        form = CollaborationGroupForm(request.POST, instance=grupo, user=request.user)
         if form.is_valid():
-            name = form.cleaned_data["name"]
-
-            if Folder.objects.filter(
-                user=request.user, name=name, is_active=True
-            ).exists():
-                messages.error(request, "Você já possui uma pasta ativa com este nome.")
-            else:
-                inactive_folder = Folder.objects.filter(
-                    user=request.user, name=name, is_active=False
-                ).first()
-                if inactive_folder:
-                    inactive_folder.is_active = True
-                    inactive_folder.save()
-                    messages.success(request, f"Pasta '{name}' reativada com sucesso!")
-                else:
-                    folder = form.save(commit=False)
-                    folder.user = request.user
-                    folder.save()
-                    messages.success(request, f"Pasta '{name}' criada com sucesso!")
-                return redirect("main:folders")
+            form.save()
+            messages.success(request, "Grupo atualizado com sucesso!")
+            return redirect("main:listar_grupos")
     else:
-        form = FolderForm()
+        form = CollaborationGroupForm(instance=grupo, user=request.user)
 
-    # Atualizado: 'folders.html' agora está em 'folders/folders.html'
-    return render(request, "folders/folders.html", {"folders": folders, "form": form})
+    context = {
+        "form": form,
+        "grupo": grupo,
+        "titulo": f"Editar Grupo: {grupo.name}",
+    }
+    return render(request, "grupos/grupo_form.html", context)
+
+
+@login_required
+def deletar_grupo(request, grupo_id):
+    """Deleta um grupo de colaboração"""
+    grupo = get_object_or_404(
+        CollaborationGroup, id=grupo_id, owner=request.user, is_active=True
+    )
+
+    if request.method == "POST":
+        grupo.is_active = False
+        grupo.save()
+        messages.success(request, f"Grupo '{grupo.name}' removido com sucesso!")
+        return redirect("main:listar_grupos")
+
+    context = {
+        "grupo": grupo,
+    }
+    return render(request, "grupos/deletar_grupo.html", context)
+
+
+@login_required
+def gerenciar_membros_grupo(request, grupo_id):
+    """Gerencia membros de um grupo (adiciona/remove usuários)"""
+    grupo = get_object_or_404(
+        CollaborationGroup, id=grupo_id, owner=request.user, is_active=True
+    )
+
+    # Lógica para ADICIONAR membro
+    if request.method == "POST" and "add_user" in request.POST:
+        username = request.POST.get("username")
+        try:
+            user_to_add = User.objects.get(username=username)
+            if user_to_add == request.user:
+                messages.warning(request, "Você é o proprietário do grupo.")
+            elif user_to_add in grupo.membros.all():
+                messages.warning(request, f"Usuário {username} já é membro do grupo.")
+            else:
+                grupo.adicionar_membro(user_to_add)
+                messages.success(request, f"Usuário {username} adicionado ao grupo!")
+        except User.DoesNotExist:
+            messages.error(request, "Usuário não encontrado.")
+        return redirect(request.path)
+
+    # Lógica para REMOVER membro
+    if request.method == "POST" and "remove_user" in request.POST:
+        user_id = request.POST.get("user_id")
+        user_to_remove = get_object_or_404(User, id=user_id)
+        grupo.remover_membro(user_to_remove)
+        messages.success(
+            request, f"Membro {user_to_remove.username} removido do grupo."
+        )
+        return redirect(request.path)
+
+    membros = grupo.membros.all()
+    form = AddColaboradorForm()
+
+    context = {
+        "grupo": grupo,
+        "membros": membros,
+        "form": form,
+    }
+    return render(request, "grupos/gerenciar_membros.html", context)
+
+
+def not_found(request):
+    return render(request, "base/404.html")

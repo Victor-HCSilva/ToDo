@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'main:home' %}">Home</a></li>
+                <li class="is-active"><a href="#">Colaboradores</a></li>
+            </ul>
+        </nav>
+
+        <div class="columns is-centered">
+            <div class="column is-6">
+                <div class="card">
+                    <header class="card-header has-background-link">
+                        <p class="card-header-title has-text-white">
+                            Gerenciar Colaboradores: {{ titulo }}
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        
+                        <!-- Formulário para Adicionar -->
+                        <form method="POST" class="mb-5">
+                            {% csrf_token %}
+                            <label class="label">Adicionar por Nome de Usuário</label>
+                            <div class="field has-addons">
+                                <div class="control is-expanded">
+                                    <input class="input" type="text" name="username" placeholder="Digite o nome do usuário..." required>
+                                </div>
+                                <div class="control">
+                                    <button type="submit" name="add_user" class="button is-link">
+                                        <span class="icon"><i class="fas fa-user-plus"></i></span>
+                                        <span>Adicionar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <hr>
+
+                        <!-- Lista de Colaboradores Atuais -->
+                        <h3 class="subtitle is-5">Colaboradores com Acesso</h3>
+                        {% if colaboradores %}
+                            <table class="table is-fullwidth is-hoverable">
+                                <thead>
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th class="has-text-right">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for colab in colaboradores %}
+                                    <tr>
+                                        <td class="is-vcentered">
+                                            <strong>{{ colab.username }}</strong>
+                                        </td>
+                                        <td class="has-text-right">
+                                            <form method="POST" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="user_id" value="{{ colab.id }}">
+                                                <button type="submit" name="remove_user" class="button is-danger is-small is-light">
+                                                    Remover
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="notification is-light">
+                                Este item ainda não possui colaboradores.
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-5">
+                            <a href="javascript:history.back()" class="button is-fullwidth">Voltar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

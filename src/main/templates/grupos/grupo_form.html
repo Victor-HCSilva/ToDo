@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'main:home' %}">Home</a></li>
+                <li><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
+                <li class="is-active"><a href="#">{{ titulo }}</a></li>
+            </ul>
+        </nav>
+
+        <div class="columns is-centered">
+            <div class="column is-6">
+                <div class="card">
+                    <header class="card-header has-background-info">
+                        <p class="card-header-title has-text-white">
+                            <span class="icon"><i class="fas fa-users"></i></span>
+                            <span>{{ titulo }}</span>
+                        </p>
+                    </header>
+                    <div class="card-content">
+                        <form method="POST">
+                            {% csrf_token %}
+                            
+                            <div class="field">
+                                <label class="label">Nome do Grupo *</label>
+                                <div class="control">
+                                    {{ form.name }}
+                                </div>
+                                {% if form.name.errors %}
+                                    <p class="help is-danger">{{ form.name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field">
+                                <label class="label">Descrição</label>
+                                <div class="control">
+                                    {{ form.descricao }}
+                                </div>
+                                {% if form.descricao.errors %}
+                                    <p class="help is-danger">{{ form.descricao.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field">
+                                <label class="label">Membros do Grupo</label>
+                                <div class="control">
+                                    <div class="box" style="max-height: 300px; overflow-y: auto;">
+                                        {{ form.membros }}
+                                    </div>
+                                </div>
+                                {% if form.membros.errors %}
+                                    <p class="help is-danger">{{ form.membros.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button type="submit" class="button is-success">
+                                        <span class="icon"><i class="fas fa-save"></i></span>
+                                        <span>Salvar Grupo</span>
+                                    </button>
+                                </div>
+                                <div class="control">
+                                    <a href="{% url 'main:listar_grupos' %}" class="button is-light">
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    input[type="text"], textarea {
+        width: 100% !important;
+    }
+    .box input[type="checkbox"] {
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
