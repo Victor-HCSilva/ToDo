@@ -7,9 +7,21 @@
 
 - Ilustração
 ![<imagem>](<docs/imgs/inicio.png>)
+
+- Anotações com suporte a markdown
 ![<imagem>](<docs/imgs/markdown.png>)
+
+- Lista de tarefas
 ![<imagem>](<docs/imgs/lista-de-tarefas.png>)
+
+- Agenda
 ![<imagem>](<docs/imgs/agenda.png>)
+
+- Compartilhamento de tarefas
+![<imagem>](<docs/imgs/compartilhar.png>)
+
+- Tarefa compartilhada
+![<imagem>](<docs/imgs/em-grupo.png>)
 
 ---
 - 🆙🆙🆙 Fique à vontade para fazer um `fork`.
