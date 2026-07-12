@@ -44,44 +44,46 @@ source .venv/bin/activate
 ```
 - Instale as bibliotecas:
 ```bash
-pip install -r requeriments.txt
-```
-- Faça as migrações:
+# ToDo — Lista de Tarefas (Django monolito)
+
+Resumo rápido
+- Pequeno monolito Django com 3 apps principais: `main` (anotações/tarefas), `agenda` (calendário/eventos) e `checklist` (tarefas e itens). Frontend usa Bulma CSS e templates Django.
+
+Objetivo deste repositório
+- Congelar estado atual para pausa de desenvolvimento: documentação mínima, pequenas correções de higiene e backlog organizado.
+
+Rápido "Getting started" (Linux)
 ```bash
-python src/manage.py makemigrations; python src/manage.py migrate
-```
-- Execute localmente:
-```bash
+git clone <este-repositorio>
+cd ToDo
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python src/manage.py migrate
 python src/manage.py runserver
 ```
-- Pronto, pode testar! 🐱
 
-### Windows
+Dependências
+- Veja `requirements.txt` para a lista completa. Projeto foi testado com Python 3.12 + Django 5.x (veja versão no `src/.venv` se houver dúvidas).
 
-- Clone o repositório:
-```bash
-git clone <este repositorio>
-```
-- Crie um ambiente virtual:
-```bash
-python -m venv .venv
-```
-- Ative seu ambiente virtual:
-```bash
-.venv\Scripts\activate
-```
-- Instale as bibliotecas:
-```bash
-pip install -r requeriments.txt
-```
-- Faça as migrações:
-```bash
-python src\manage.py makemigrations
-python src\manage.py migrate
-```
-- Execute localmente:
-```bash
-python src\manage.py runserver
-```
-- Pronto, pode testar! 🐱
+Variáveis de ambiente
+- O projeto carrega `.envs/.env` (pré-configurado no `src/core/settings.py`). As variáveis importantes:
+	- `SECRET_KEY` — chave do Django (obrigatório)
+	- `DEBUG` — `True`/`False`
+	- `TRUSTED_HOSTS` — hosts confiáveis, separados por vírgula
+
+Estrutura e comandos úteis
+- Código está em `src/` (manage.py em `src/manage.py`).
+- Comandos úteis:
+	- `python src/manage.py createsuperuser`
+	- `python src/manage.py loaddata <fixture>` (caso tenha fixtures)
+
+Congelamento (freeze) — nota para manutenção
+- Para pausar o projeto mantenha o repositório com tags (ex: `v1.0-freeze`) e salve um snapshot da `.envs/.env` seguro fora do repositório.
+- Não há mudanças de arquitetura neste commit — apenas documentação e pequenas remoções de prints de debug.
+
+Onde ler mais
+- Veja `docs/ARCHITECTURE.md` e `docs/TECHNICAL.md` para informações sobre arquitetura e detalhes técnicos.
+
+Se quiser que eu execute testes, gere uma tag ou adicione um arquivo de checklist para retomada, diga qual ação prefere em seguida.
 

@@ -1,13 +1,13 @@
 import calendar
-from django.shortcuts import get_object_or_404
-from datetime import datetime
-from django.shortcuts import render, redirect
-from django.http import HttpRequest
-from .forms import ColorForm
-from django.contrib.auth.models import User
-from .models import Colors, AgendaModel
-from .forms import AgendaForm
 from collections import defaultdict
+from datetime import datetime
+
+from django.contrib.auth.models import User
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404, redirect, render
+
+from .forms import AgendaForm, ColorForm
+from .models import AgendaModel, Colors
 
 
 class Agenda:
@@ -112,7 +112,6 @@ class Configs:
             if form.is_valid():
                 config = form.save(commit=False)
                 config.user = user
-                print("User:", config.user)
                 config.save()
                 return redirect("agenda:agenda", id_user=id_user)
 
@@ -153,7 +152,8 @@ class DeleteOrEditEvent:
             if form.is_valid():
                 form.save()
             else:
-                print("erros", form.errors)
+                # Form errors are handled by the template/messages flow; keep silent in logs.
+                pass
 
             return redirect("agenda:eventos", id_user=id_user)
 

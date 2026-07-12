@@ -15,13 +15,9 @@ BASE_DIR = SETTINGS_DIR.parent.parent
 
 # 3. Construir o caminho completo até o arquivo .env dentro da pasta .envs
 dotenv_path = BASE_DIR / ".envs" / ".env"
-print(f"Carregando variáveis de ambiente de: {dotenv_path}")
-# 4. Carregar as variáveis de ambiente passando o caminho explicitamente
+# Carrega o arquivo .env se existir (silencioso por padrão)
 if dotenv_path.exists():
     load_dotenv(dotenv_path=dotenv_path)
-else:
-    # Opcional: um aviso caso o arquivo não seja encontrado no caminho especificado
-    print(f"Aviso: Arquivo .env não encontrado em {dotenv_path}")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

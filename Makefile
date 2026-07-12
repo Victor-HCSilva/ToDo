@@ -40,6 +40,9 @@ activate:
 	@echo "source $(VENV_DIR)/bin/activate (Linux/macOS)"
 	@echo "$(VENV_DIR)\\Scripts\\activate (Windows)"
 
+run:
+	python src/manage.py runserver
+
 # Instala as dependências
 install: venv
 	@echo "Instalando dependências..."
