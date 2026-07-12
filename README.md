@@ -6,7 +6,10 @@
 ---
 
 - Ilustração
-![<imagem>](<images/image.png>)
+![<imagem>](<docs/imgs/inicio.png>)
+![<imagem>](<docs/imgs/markdown.png>)
+![<imagem>](<docs/imgs/lista-de-tarefas.png>)
+![<imagem>](<docs/imgs/agenda.png>)
 
 ---
 - 🆙🆙🆙 Fique à vontade para fazer um `fork`.
