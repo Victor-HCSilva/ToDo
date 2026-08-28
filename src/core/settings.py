@@ -1,52 +1,61 @@
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# 1. IDENTIFICAÇÃO DE CAMINHOS
+# Localização: projeto/src/core/settings.py
+CURRENT_FILE = Path(__file__).resolve()
 
-SETTINGS_DIR = Path(__file__).resolve().parent
+# Caminho da pasta 'src' (onde estão os apps e o manage.py)
+SRC_DIR = CURRENT_FILE.parent.parent
 
-# 2. Navegar para cima até a raiz do projeto
-# parent de settings.py -> "core"
-# parent de core -> "src"
-# parent de src -> raiz do projeto "."
-BASE_DIR = SETTINGS_DIR.parent.parent
+# Caminho da RAIZ do projeto (onde estão .envs, db.sqlite3, static e media)
+BASE_DIR = SRC_DIR.parent
 
-# 3. Construir o caminho completo até o arquivo .env dentro da pasta .envs
+# 2. AJUSTE DO PYTHON PATH (O "pulo do gato")
+# Isso faz o Django encontrar os apps (main, agenda) mesmo estando dentro de src/
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+# 3. CARREGAMENTO DAS VARIÁVEIS DE AMBIENTE
 dotenv_path = BASE_DIR / ".envs" / ".env"
-# Carrega o arquivo .env se existir (silencioso por padrão)
-if dotenv_path.exists():
-    load_dotenv(dotenv_path=dotenv_path)
+load_dotenv(dotenv_path)
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# 4. CONFIGURAÇÕES BÁSICAS
+SECRET_KEY = os.getenv("SECRET_KEY", "chave-secreta-padrao")
 
+# IMPORTANTE: Converter string do env para booleano real
+DEBUG = False  # False  # os.getenv("DEBUG", "False").lower() == "true"
+
+trusted_hosts_raw = (
+    "127.0.0.1,localhost,192.168.122.1,10.0.0.108,victoraccount2.pythonanywhere.com"
+)
+
+
+ALLOWED_HOSTS = [host.strip() for host in trusted_hosts_raw.split(",")]
+
+# 5. LOGIN E SESSÃO
 LOGIN_URL = "main:login"
 LOGOUT_REDIRECT_URL = "main:create_account"
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-DEBUG = os.getenv("DEBUG")
-
-ALLOWED_HOSTS = os.getenv("TRUSTED_HOSTS").split(",")
-
-# Bloqueia após 5 tentativas falhas
+# 6. DJANGO AXES (Correção do reset)
 AXES_FAILURE_LIMIT = 5
-
-# Bloqueia por 1 hora (em segundos) após o limite
-# Exemplo: 3600 segundos = 1 hora de inatividade
 HOUR = 3600
 AXES_COOLOFF_TIME = 200 if DEBUG else int(HOUR / 2)
 
-# O tempo é definido em segundos.
+# --- AS LINHAS QUE RESOLVEM O SEU PROBLEMA ---
+AXES_RESET_ON_SUCCESS = True  # Reseta as chances ao acertar a senha
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True  # Bloqueio inteligente
+AXES_THRESHOLD_WINDOW = 24  # Esquece tentativas muito antigas (em horas)
+
+# SESSÕES
 SESSION_COOKIE_AGE = 10000 if DEBUG else int(HOUR / 10)
-
-# Isso garante que a sessão expire quando o navegador for fechado
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-# Isso garante que o Django renove o tempo da sessão a cada requisição
 SESSION_SAVE_EVERY_REQUEST = True
 
+# 7. APPS E MIDDLEWARE
 INSTALLED_APPS = [
     "corsheaders",
     "django.contrib.admin",
@@ -71,15 +80,17 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
-    "core.middleware.CurrentUserMiddleware",  # Adiciona o middleware para capturar o usuário atual
+    "core.middleware.CurrentUserMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
 
+# 8. TEMPLATES (Ajustado para o novo BASE_DIR)
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "main" / "templates"],
+        # Agora busca em projeto/src/main/templates
+        "DIRS": [SRC_DIR / "main" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -93,6 +104,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
+# 9. BANCO DE DATOS (Na raiz do projeto)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -100,45 +112,29 @@ DATABASES = {
     }
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "https://" + host for host in os.getenv("TRUSTED_HOSTS").split(",")
-]
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
-TIME_ZONE = "America/Sao_Paulo"
-
-LANGUAGE_CODE = "pt-br"
-
-USE_I18N = True
-
-USE_TZ = True
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# 10. ESTÁTICOS E MEDIA
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
-
 MEDIA_ROOT = BASE_DIR / "media"
 
-STATIC_URL = "/static/"
-
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-
-
+# 11. AUTENTICAÇÃO
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
+
+# INTERNACIONALIZAÇÃO
+TIME_ZONE = "America/Sao_Paulo"
+LANGUAGE_CODE = "pt-br"
+USE_I18N = True
+USE_TZ = True
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+if not DEBUG:
+    AXES_PROXY_COUNT = 1
+    AXES_META_PRECEDENCE_ORDER = (
+        "HTTP_X_FORWARDED_FOR",
+        "REMOTE_ADDR",
+    )
