@@ -4,104 +4,74 @@
 {% block title %}Eventos{% endblock title %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
+<div class="max-w-4xl mx-auto mt-6">
 
-        <div class="level">
-            <div class="level-left">
-                <div class="level-item">
-                    <h1 class="title is-1 has-text-white">Eventos marcados</h1>
-                </div>
-            </div>
-            <div class="level-right">
-                <div class="level-item">
-                    <a class="button is-link is-light" href="{% url 'agenda:agenda' id_user=user.id  %}">
-                        <span class="icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </span>
-                        <span>Ver minha Agenda</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between gap-4 mb-8">
+        <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+            <i class="fas fa-calendar-check text-blue-500"></i>
+            <span>Eventos Marcados</span>
+        </h1>
+        <a class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md" href="{% url 'agenda:agenda' id_user=user.id %}">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Ver minha Agenda</span>
+        </a>
+    </div>
 
+    <!-- Lista de Eventos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {% for evento in eventos %}
-            <div class="card mb-5 has-background-dark">
-                <header class="card-header">
-                    {# Título principal do evento dentro do card, mais proeminente #}
-                    <p class="card-header-title is-size-4 has-text-primary"> {# is-size-4 para maior, has-text-primary para destaque #}
+            <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg flex flex-col justify-between">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 bg-gray-750 border-b border-gray-700">
+                    <h3 class="font-semibold text-white text-lg truncate max-w-[200px]" title="{{ evento.titulo }}">
                         {{ evento.titulo }}
-                    </p>
-                    <span class="card-header-icon">
-                        {# Data como uma tag, mas podemos deixá-la aqui ou movê-la #}
-                        <span class="tag is-info">{{ evento.dia_do_evento|date:"d/m/Y" }}</span>
+                    </h3>
+                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-200 border border-blue-800">
+                        {{ evento.dia_do_evento|date:"d/m/Y" }}
                     </span>
-                </header>
-
-                <div class="card-content">
-                    <div class="content has-text-light">
-                        {# Aqui vamos criar uma estrutura mais organizada para as informações #}
-                        <div class="columns is-mobile is-vcentered">
-                            <div class="column is-narrow">
-                                <span class="icon-text has-text-warning"> {# Exemplo de ícone e texto para a data #}
-                                    <span class="icon">
-                                        <i class="far fa-calendar-alt"></i> {# Ícone de calendário diferente #}
-                                    </span>
-                                    <span>Data:</span>
-                                </span>
-                            </div>
-                            <div class="column">
-                                <p class="is-size-6 has-text-weight-bold">{{ evento.dia_do_evento|date:"d/m/Y" }}</p>
-                            </div>
-                        </div>
-
-                        {# Adicionar uma linha para separar as instruções das informações #}
-                        <hr class="has-background-grey-darker">
-
-                        <p class="has-text-grey-light is-size-7 mt-3">
-                            <span class="icon-text">
-                                <span class="icon has-text-grey-light">
-                                    <i class="fas fa-hand-pointer"></i>
-                                </span>
-                                <span>Selecione uma das opções abaixo para gerenciar este evento:</span>
-                            </span>
-                        </p>
-                    </div>
                 </div>
 
-                <footer class="card-footer">
-                    <a href="{% url 'agenda:detalhe_sobre_evento' id_user=user.id id_evento=evento.id %}" class="card-footer-item has-text-info">
-                        <span class="icon is-small">
-                            <i class="fas fa-info-circle"></i>
-                        </span>
+                <!-- Body -->
+                <div class="p-5 flex-grow">
+                    <div class="flex items-center gap-2 text-yellow-400 mb-4">
+                        <i class="far fa-calendar-alt"></i>
+                        <span class="text-sm font-medium">Data do Evento:</span>
+                        <span class="text-gray-300 text-sm ml-auto">{{ evento.dia_do_evento|date:"d/m/Y" }}</span>
+                    </div>
+
+                    <hr class="border-gray-700 my-4">
+
+                    <p class="text-gray-400 text-xs flex items-center gap-2">
+                        <i class="fas fa-hand-pointer text-gray-500"></i>
+                        <span>Gerencie ou visualize os detalhes abaixo.</span>
+                    </p>
+                </div>
+
+                <!-- Footer / Actions -->
+                <div class="flex border-t border-gray-700 bg-gray-750">
+                    <a href="{% url 'agenda:detalhe_sobre_evento' id_user=user.id id_evento=evento.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-colors border-r border-gray-700 flex items-center justify-center gap-1.5">
+                        <i class="fas fa-info-circle"></i>
                         <span>Detalhes</span>
                     </a>
-                    <a href="{% url 'agenda:editar_evento' id_user=user.id id_event=evento.id %}" class="card-footer-item has-text-warning">
-                        <span class="icon is-small">
-                            <i class="fas fa-edit"></i>
-                        </span>
+                    <a href="{% url 'agenda:editar_evento' id_user=user.id id_event=evento.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-yellow-400 hover:text-yellow-300 text-sm font-medium transition-colors border-r border-gray-700 flex items-center justify-center gap-1.5">
+                        <i class="fas fa-edit"></i>
                         <span>Editar</span>
                     </a>
-                    <a href="{% url 'agenda:deletar_evento' id_user=user.id id_event=evento.id %}" class="card-footer-item has-text-danger">
-                        <span class="icon is-small">
-                            <i class="fas fa-trash-alt"></i>
-                        </span>
+                    <a href="{% url 'agenda:deletar_evento' id_user=user.id id_event=evento.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-red-400 hover:text-red-300 text-sm font-medium transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fas fa-trash-alt"></i>
                         <span>Deletar</span>
                     </a>
-                </footer>
+                </div>
             </div>
 
         {% empty %}
-            <div class="notification is-warning">
-                <p class="has-text-centered">
-                    <span class="icon mr-2">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </span>
-                    Você ainda não possui eventos marcados na sua agenda.
-                </p>
+            <div class="col-span-full p-6 rounded-xl bg-yellow-900/40 border border-yellow-800 text-yellow-200 text-center flex flex-col items-center gap-3">
+                <i class="fas fa-exclamation-triangle text-3xl"></i>
+                <p>Você ainda não possui eventos marcados na sua agenda.</p>
             </div>
         {% endfor %}
-
     </div>
-</section>
+
+</div>
 {% endblock content %}

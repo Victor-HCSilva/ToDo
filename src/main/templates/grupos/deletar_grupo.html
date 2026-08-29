@@ -1,53 +1,39 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ul>
-                <li><a href="{% url 'main:home' %}">Home</a></li>
-                <li><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
-                <li class="is-active"><a href="#">Deletar: {{ grupo.name }}</a></li>
-            </ul>
-        </nav>
+<div class="max-w-md mx-auto mt-12">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <a href="{% url 'main:home' %}" class="hover:text-white transition-colors">Home</a>
+        <span>/</span>
+        <a href="{% url 'main:listar_grupos' %}" class="hover:text-white transition-colors">Meus Grupos</a>
+        <span>/</span>
+        <span class="text-red-400">Deletar: {{ grupo.name }}</span>
+    </nav>
 
-        <div class="columns is-centered">
-            <div class="column is-5">
-                <div class="card">
-                    <div class="card-content has-text-centered">
-                        <p class="is-size-5 mb-4">
-                            <span class="icon is-large has-text-danger">
-                                <i class="fas fa-2x fa-exclamation-triangle"></i>
-                            </span>
-                        </p>
-                        <p class="is-size-5 mb-4">
-                            Tem certeza que deseja deletar o grupo <strong>{{ grupo.name }}</strong>?
-                        </p>
-                        <p class="has-text-grey mb-6">
-                            Isso não pode ser desfeito. Os usuários continuarão tendo acesso aos itens 
-                            através de outras permissões.
-                        </p>
-
-                        <form method="POST">
-                            {% csrf_token %}
-                            <div class="field is-grouped is-grouped-centered">
-                                <p class="control">
-                                    <button type="submit" class="button is-danger is-large">
-                                        <span class="icon"><i class="fas fa-trash"></i></span>
-                                        <span>Sim, Deletar Grupo</span>
-                                    </button>
-                                </p>
-                                <p class="control">
-                                    <a href="{% url 'main:listar_grupos' %}" class="button is-light is-large">
-                                        Cancelar
-                                    </a>
-                                </p>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+    <div class="bg-gray-800 rounded-xl shadow-lg border border-red-900 p-8 text-center">
+        <div class="text-red-500 text-5xl mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
         </div>
+        <p class="text-xl text-gray-200 mb-3">
+            Tem certeza que deseja deletar o grupo <strong class="text-white">{{ grupo.name }}</strong>?
+        </p>
+        <p class="text-gray-400 text-sm mb-8">
+            Isso não pode ser desfeito. Os usuários continuarão tendo acesso aos itens através de outras permissões.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="flex justify-center gap-4">
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors">
+                    <i class="fas fa-trash"></i>
+                    <span>Sim, Deletar Grupo</span>
+                </button>
+                <a href="{% url 'main:listar_grupos' %}" class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors">
+                    Cancelar
+                </a>
+            </div>
+        </form>
     </div>
-</section>
+</div>
 {% endblock %}

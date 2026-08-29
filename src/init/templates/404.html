@@ -28,12 +28,12 @@
             overflow: hidden;
         }
 
-        .container {
+        .container mx-auto px-4 {
             max-width: 500px;
             padding: 40px;
             background-color: var(--surface-color);
             border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             transform: translateY(-20px);
             animation: floatUp 0.8s ease-out forwards;
         }
@@ -85,7 +85,7 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="container mx-auto px-4">
         <!-- Ícone sutil que remete a uma tarefa ou nota perdida -->
         <div class="icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-file-earmark-x" viewBox="0 0 16 16">

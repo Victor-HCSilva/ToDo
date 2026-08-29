@@ -7,29 +7,29 @@
 {# ========================================================================= #}
 {# === Bloco de boas-vindas: já estava bem estruturado com Bulma.        === #}
 {# ========================================================================= #}
-<div class="box has-background-black-bis has-text-centered">
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 has-background-black-bis text-center">
     <h1 class="title is-2 has-text-weight-light">
-        O que vai fazer hoje, <strong class="has-text-white">{{ user.username }}</strong>?
+        O que vai fazer hoje, <strong class="text-white">{{ user.username }}</strong>?
     </h1>
-    <p class="subtitle is-5 has-text-grey">
+    <p class="text-xl text-gray-600 dark:text-gray-400 field is-5 text-gray-500 dark:text-gray-400">
         Escolha uma das opções abaixo para começar suas atividades.
     </p>
 
     {# Os botões já usam boas práticas do Bulma. #}
     <div class="buttons is-centered are-large mt-5">
-        <a class="button is-link" href="{% url 'main:main' id_user=user.id %}">
+        <a class="button bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600" href="{% url 'main:main' id_user=user.id %}">
             <span class="icon">
                 <i class="fas fa-pen-alt"></i>
             </span>
             <span>Criar uma Anotação</span>
         </a>
-        <a class="button is-primary" href="{% url 'agenda:eventos' id_user=user.id %}">
+        <a class="button bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600" href="{% url 'agenda:eventos' id_user=user.id %}">
             <span class="icon">
   <i class="fas fa-check-square"></i>
             </span>
             <span>Seus eventos</span>
         </a>
-        <a class="button is-link" href="{% url 'agenda:agenda' id_user=user.id %}">
+        <a class="button bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600" href="{% url 'agenda:agenda' id_user=user.id %}">
             <span class="icon">
                 <i class="fas fa-calendar-alt"></i>
             </span>
@@ -44,7 +44,7 @@
 {# ========================================================================= #}
 <div class="panel has-background-black-bis mt-5">
 
-    <p class="panel-heading has-background-black-ter has-text-grey-light">
+    <p class="panel-heading has-background-black-ter text-gray-500 dark:text-gray-400-light">
         Suas Anotações Mais Recentes
     </p>
 
@@ -60,12 +60,12 @@
         {# === MELHORIA APLICADA AQUI: Tratamento do estado vazio com um botão claro. #}
         {# ========================================================================= #}
         <div class="panel-block">
-            <div class="content has-text-centered" style="width: 100%;">
-                <p class="has-text-grey mb-3">
+            <div class="content text-center" style="width: 100%;">
+                <p class="text-gray-500 dark:text-gray-400 mb-3">
                     Você ainda não tem nenhuma anotação.
                 </p>
                 {# Este é um botão real, consistente com o design, porém menor. #}
-                <a href="{% url 'main:main' id_user=user.id %}" class="button is-primary is-small">
+                <a href="{% url 'main:main' id_user=user.id %}" class="button bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600 is-small">
                     <span class="icon is-small">
                         <i class="fas fa-plus"></i>
                     </span>

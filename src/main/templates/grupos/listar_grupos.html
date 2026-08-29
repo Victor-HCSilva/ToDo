@@ -1,82 +1,74 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ul>
-                <li><a href="{% url 'main:home' %}">Home</a></li>
-                <li class="is-active"><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
-            </ul>
-        </nav>
+<div class="max-w-4xl mx-auto mt-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <a href="{% url 'main:home' %}" class="hover:text-white transition-colors">Home</a>
+        <span>/</span>
+        <span class="text-gray-300">Meus Grupos</span>
+    </nav>
 
-        <div class="columns is-centered">
-            <div class="column is-8">
-                <div class="card">
-                    <header class="card-header has-background-info">
-                        <p class="card-header-title has-text-white">
-                            <span class="icon"><i class="fas fa-users"></i></span>
-                            <span>Meus Grupos de Colaboração</span>
-                        </p>
-                        <div class="card-header-icon">
-                            <a href="{% url 'main:criar_grupo' %}" class="button is-small is-success">
-                                <span class="icon"><i class="fas fa-plus"></i></span>
-                                <span>Novo Grupo</span>
-                            </a>
-                        </div>
-                    </header>
-                    <div class="card-content">
-                        {% if grupos %}
-                            <div class="table-container">
-                                <table class="table is-fullwidth is-hoverable is-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Nome do Grupo</th>
-                                            <th class="has-text-right">Membros</th>
-                                            <th class="has-text-right">Criado em</th>
-                                            <th class="has-text-right">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for grupo in grupos %}
-                                        <tr>
-                                            <td class="is-vcentered">
-                                                <strong>{{ grupo.name }}</strong>
-                                                <br>
-                                                <small class="has-text-grey">{{ grupo.descricao }}</small>
-                                            </td>
-                                            <td class="has-text-right is-vcentered">
-                                                <span class="tag is-info">{{ grupo.membros.count }} membros</span>
-                                            </td>
-                                            <td class="has-text-right is-vcentered">
-                                                <small>{{ grupo.created_at|date:"d/m/Y" }}</small>
-                                            </td>
-                                            <td class="has-text-right">
-                                                <a href="{% url 'main:gerenciar_membros_grupo' grupo.id %}" class="button is-small is-info is-light">
-                                                    <span class="icon"><i class="fas fa-user-plus"></i></span>
-                                                    <span>Membros</span>
-                                                </a>
-                                                <a href="{% url 'main:editar_grupo' grupo.id %}" class="button is-small is-warning is-light">
-                                                    <span class="icon"><i class="fas fa-edit"></i></span>
-                                                </a>
-                                                <a href="{% url 'main:deletar_grupo' grupo.id %}" class="button is-small is-danger is-light">
-                                                    <span class="icon"><i class="fas fa-trash"></i></span>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <div class="notification is-light is-warning">
-                                <p>Você ainda não criou nenhum grupo. <a href="{% url 'main:criar_grupo' %}">Crie um agora!</a></p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
+    <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-blue-700 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-users text-white"></i>
+                <h1 class="text-white font-semibold">Meus Grupos de Colaboração</h1>
             </div>
+            <a href="{% url 'main:criar_grupo' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <i class="fas fa-plus"></i>
+                <span>Novo Grupo</span>
+            </a>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6">
+            {% if grupos %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-600">
+                            <th class="py-3 text-gray-400 font-medium">Nome do Grupo</th>
+                            <th class="py-3 text-gray-400 font-medium text-right">Membros</th>
+                            <th class="py-3 text-gray-400 font-medium text-right">Criado em</th>
+                            <th class="py-3 text-gray-400 font-medium text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for grupo in grupos %}
+                        <tr>
+                            <td class="py-4">
+                                <strong class="text-gray-200">{{ grupo.name }}</strong>
+                                <br>
+                                <small class="text-gray-400">{{ grupo.descricao }}</small>
+                            </td>
+                            <td class="py-4 text-right">
+                                <span class="px-2 py-1 bg-blue-600 text-white text-xs rounded-full">{{ grupo.membros.count }} membros</span>
+                            </td>
+                            <td class="py-4 text-right text-sm text-gray-400">{{ grupo.created_at|date:"d/m/Y" }}</td>
+                            <td class="py-4 text-right space-x-2">
+                                <a href="{% url 'main:gerenciar_membros_grupo' grupo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors" title="Membros">
+                                    <i class="fas fa-user-plus text-sm"></i>
+                                </a>
+                                <a href="{% url 'main:editar_grupo' grupo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-yellow-600 hover:bg-yellow-500 text-white transition-colors" title="Editar">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                                <a href="{% url 'main:deletar_grupo' grupo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-red-600 hover:bg-red-500 text-white transition-colors" title="Excluir">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-6 rounded-lg bg-yellow-900/40 border border-yellow-700 text-yellow-200">
+                <p>Você ainda não criou nenhum grupo. <a href="{% url 'main:criar_grupo' %}" class="underline hover:text-white">Crie um agora!</a></p>
+            </div>
+            {% endif %}
         </div>
     </div>
-</section>
+</div>
 {% endblock %}

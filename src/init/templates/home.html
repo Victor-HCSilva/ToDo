@@ -4,21 +4,21 @@
 {% block title %}Anotações{% endblock title %}
 
 {% block content %}
-<section class="hero is-primary is-fullheight-with-navbar">
+<section class="hero bg-teal-600 hover:bg-teal-700 text-white dark:bg-teal-500 dark:hover:bg-teal-600 is-fullheight-with-navbar">
     <div class="hero-body">
-        <div class="container has-text-centered">
+        <div class="container mx-auto px-4 text-center">
 
             <!-- Título principal -->
             <h1 class="title is-2">
                 <span class="has-text-weight-bold">Página incial</span>
             </h1>
-            <h2 class="subtitle is-4">
+            <h2 class="text-xl text-gray-600 dark:text-gray-400 field is-4">
                 Organize suas <strong>tarefas</strong> e <strong>agendamentos</strong> de forma simples e rápida.
             </h2>
 
             <!-- Botões principais -->
             <div class="buttons is-centered mt-5">
-                <a href="{% url 'create_account' %}" class="button is-success is-medium">
+                <a href="{% url 'create_account' %}" class="button bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600 is-medium">
                     Criar Conta
                 </a>
                 <a href="{% url 'main:login' %}" class="button is-light is-medium">
@@ -40,12 +40,12 @@
 
 <!-- Seção extra -->
 <section class="section">
-    <div class="container">
+    <div class="container mx-auto px-4">
         <h1 style="color:green important!;">Em breve</h1>
-        <div class="columns is-multiline is-centered">
+        <div class="flex flex-wrap -mx-3 is-multiline is-centered">
 
-            <div class="column is-4">
-                <div class="box has-text-centered">
+            <div class="w-full md:w-1/3 px-3">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
                     <span class="icon is-large has-text-info">
                         <i class="fas fa-tasks fa-2x"></i>
                     </span>
@@ -54,8 +54,8 @@
                 </div>
             </div>
 
-            <div class="column is-4">
-                <div class="box has-text-centered">
+            <div class="w-full md:w-1/3 px-3">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
                     <span class="icon is-large has-text-primary">
                         <i class="fas fa-calendar-alt fa-2x"></i>
                     </span>
@@ -64,9 +64,9 @@
                 </div>
             </div>
 
-            <div class="column is-4">
-                <div class="box has-text-centered">
-                    <span class="icon is-large has-text-success">
+            <div class="w-full md:w-1/3 px-3">
+                <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 text-center">
+                    <span class="icon is-large text-green-600 dark:text-green-400">
                         <i class="fas fa-bell fa-2x"></i>
                     </span>
                     <h3 class="title is-5 mt-3">Receba Lembretes</h3>

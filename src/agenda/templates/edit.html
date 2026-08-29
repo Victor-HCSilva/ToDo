@@ -4,121 +4,74 @@
 {% block title %}Editar Evento: {{ form.instance.titulo|default:"Evento" }}{% endblock title %}
 
 {% block extra_css %}
-
 <style>
-    @media screen and (max-width: 769px) {
-            #id_descricao{
-                max-width: 45vw !important;
-            }
-
-    .container, .box {
-        max-width: 100vw !important;
+    form input[type="text"], form input[type="email"], form input[type="url"],
+    form input[type="number"], form input[type="search"], form input[type="date"],
+    form input[type="time"], form input[type="datetime-local"], form select, form textarea {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
     }
-    .control, .button, span{
-        padding: 2px;
-        font-size: 0.8rem !important;
-        tex-align: left !important;
+    form textarea {
+        min-height: 120px;
+        resize: vertical;
     }
-    .control > input{
-        max-width: 45vw !important;
+    form input:focus, form select:focus, form textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
-    .field {
-        padding: 0px !important;
+    form input::placeholder, form textarea::placeholder {
+        color: #6b7280;
     }
-        }
 </style>
-
 {% endblock extra_css %}
 
 {% block content %}
-<section class="section">
-    <div class="columns is-centered">
-        <div class="column is-two-thirds-tablet is-half-desktop">
+<div class="max-w-2xl mx-auto mt-8">
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h1 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+            <i class="fas fa-edit"></i>
+            <span>Editar Evento</span>
+        </h1>
+        <p class="text-gray-400 mb-6">Modifique os detalhes abaixo.</p>
+        <hr class="border-gray-750 mb-6">
 
-            <!-- A classe 'box' já cria um bom contêiner para o formulário -->
-            <!-- 'has-background-black-bis' cria um fundo cinza muito escuro, ideal para o tema -->
-            <div class="box has-background-black-bis">
+        <form method="POST">
+            {% csrf_token %}
 
-                <h1 class="title is-3 has-text-light"> {# 1. Adicionado 'has-text-light' para o título ficar branco #}
-                    <span class="icon-text">
-                        <span class="icon"><i class="fas fa-edit"></i></span>
-                        <span>Editar Evento</span>
-                    </span>
-                </h1>
-                <p class="subtitle is-6 has-text-grey-light"> {# 2. 'has-text-grey-light' para melhor contraste #}
-                    Modifique os detalhes
-                </p>
-
-                <hr class="has-background-grey-darker">
-
-                <form method="POST">
-                    {% csrf_token %}
-
-                    {% for field in form %}
-                        <div class="field">
-                            <!-- 3. Adicionado 'has-text-light' para as labels do formulário -->
-                            <label class="label has-text-light" for="{{ field.id_for_label }}">
-                                {{ field.label }}
-                            </label>
-                            <div class="control">
-                                {{ field }} {# O campo em si será estilizado via Python ou JS #}
-                            </div>
-                            {% if field.help_text %}
-                                <!-- 4. 'has-text-grey-light' para o texto de ajuda ficar mais legível -->
-                                <p class="help has-text-grey-light">{{ field.help_text }}</p>
-                            {% endif %}
-                            {% for error in field.errors %}
-                                <p class="help is-danger">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-
-                    <div class="field is-grouped mt-5">
-                        <div class="control">
-                            <button type="submit" class="button is-success is-medium">
-                                <span class="icon"><i class="fas fa-check"></i></span>
-                                <span>Salvar Alterações</span>
-                            </button>
-                        </div>
-                        <div class="control">
-                            <a class="button is-light is-medium" href="{% url 'agenda:agenda' id_user=user.id %}">
-                                Cancelar
-                            </a>
-                        </div>
+            {% for field in form %}
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-300 mb-2" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    <div>
+                        {{ field }}
                     </div>
-                </form>
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <hr class="border-gray-750 my-6">
+
+            <div class="flex gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-check"></i>
+                    <span>Salvar Alterações</span>
+                </button>
+                <a class="inline-flex items-center px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors" href="{% url 'agenda:agenda' id_user=user.id %}">
+                    Cancelar
+                </a>
             </div>
-
-        </div>
+        </form>
     </div>
-</section>
+</div>
 {% endblock content %}
-
-{% block extra_js %}
-{# Este bloco JS continua funcional, mas veja a recomendação abaixo para uma abordagem melhor #}
-{{ block.super }} {# Mantém o JS da base, se houver #}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('form');
-        if (form) {
-            form.querySelectorAll('input, textarea, select').forEach(el => {
-                // Não modifica botões ou checkboxes/radios
-                if (el.type === 'submit' || el.type === 'button' || el.type === 'reset' || el.type === 'checkbox' || el.type === 'radio') { return; }
-
-                // Adiciona classes de estilo dark aos campos
-                el.classList.add('has-background-grey-dark', 'has-text-light', 'is-focused');
-
-                // Adiciona as classes de estrutura do Bulma
-                if (!el.classList.contains('input') && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT') { el.classList.add('input'); }
-                if (el.tagName === 'TEXTAREA' && !el.classList.contains('textarea')) { el.classList.add('textarea'); }
-                if (el.tagName === 'SELECT' && !el.parentElement.classList.contains('select')) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'select is-fullwidth';
-                    el.parentNode.insertBefore(wrapper, el);
-                    wrapper.appendChild(el);
-                }
-            });
-        }
-    });
-</script>
-{% endblock extra_js %}

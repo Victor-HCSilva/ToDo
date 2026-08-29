@@ -1,225 +1,246 @@
 {% extends "base.html" %}
 
+{% block title %}Checklists - Brain 🧠{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom style overrides for checklist fields */
+    .checklist-input {
+        background-color: #111827;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        width: 100%;
+    }
+    .checklist-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+</style>
+{% endblock extra_css %}
+
 {% block content %}
-<div class="container">
-    <h1 class="title has-text-white">🧠 Checklists</h1>
+<div class="max-w-6xl mx-auto mt-6">
+    <h1 class="text-3xl font-bold text-white flex items-center gap-3 mb-8">
+        <i class="fas fa-clipboard-check text-blue-500"></i>
+        <span>Checklists</span>
+    </h1>
 
     <!-- FORMULÁRIO 1: Criar Nova Tarefa Principal -->
-    <div class="box has-background-dark-ter">
-        <form method="post" class="field has-addons">
+    <div class="bg-gray-800 rounded-xl p-5 border border-gray-700 mb-8 max-w-xl">
+        <form method="post" class="flex gap-2">
             {% csrf_token %}
-            <div class="control is-expanded">
-                <input class="input" type="text" name="titulo" placeholder="Nome da nova tarefa/checklist..." required>
-            </div>
-            <div class="control">
-                <button type="submit" name="criar_tarefa" class="button is-link">
-                    ➕ Nova Tarefa
-                </button>
-            </div>
+            <input class="checklist-input" type="text" name="titulo" placeholder="Nome da nova tarefa/checklist..." required>
+            <button type="submit" name="criar_tarefa" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap text-sm">
+                <i class="fas fa-plus"></i>
+                <span>Nova Tarefa</span>
+            </button>
         </form>
     </div>
 
-    <!-- EXIBIÇÃO DAS TAREFAS EM CARDS/COLUNAS -->
-    <div class="columns is-multiline">
+    <!-- EXIBIÇÃO DAS TAREFAS EM CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for tarefa in tarefas %}
-        <div class="column is-4">
-            <div class="card" style="border-top: 4px solid {{ tarefa.color }};">
-                
-                <!-- CABEÇALHO DO CARD (COM EDIÇÃO E DELETAR INLINE) -->
-                <header class="card-header">
-                    <!-- Visualização Normal -->
-                    <div id="display-tarefa-{{ tarefa.id }}" class="card-header-title is-flex is-justify-content-space-between is-align-items-center" style="width: 100%;">
-                        <span>{{ tarefa.titulo }}</span>
+        <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden flex flex-col justify-between" style="border-top: 4px solid {{ tarefa.color|default:'#4b5563' }};">
+            
+            <!-- CABEÇALHO DO CARD (COM EDIÇÃO E DELETAR INLINE) -->
+            <header class="bg-gray-750 border-b border-gray-700">
+                <!-- Visualização Normal -->
+                <div id="display-tarefa-{{ tarefa.id }}" class="flex items-center justify-between p-4">
+                    <span class="font-semibold text-white text-base truncate max-w-[180px]">{{ tarefa.titulo }}</span>
+                    
+                    <div class="flex items-center gap-1">
+                        <button class="w-8 h-8 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center text-xs" onclick="toggleEdit('tarefa', {{ tarefa.id }})">
+                            <i class="fas fa-edit"></i>
+                        </button>
                         
-                        <div class="is-flex" style="gap: 5px;">
-                            <button class="button is-small is-ghost py-0 px-1" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✏️</button>
-                            
-                            <!-- Formulário de Exclusão Física/Lógica da Tarefa -->
-                            <form method="post" style="display: inline;" onsubmit="return confirm('Deseja mover esta checklist para a lixeira?');">
-                                {% csrf_token %}
-                                <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
-                                <button type="submit" name="deletar_tarefa" class="button is-small is-ghost py-0 px-1 has-text-danger">🗑️</button>
-                            </form>
-                        </div>
+                        <!-- Formulário de Exclusão Física/Lógica da Tarefa -->
+                        <form method="post" class="inline" onsubmit="return confirm('Deseja mover esta checklist para a lixeira?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                            <button type="submit" name="deletar_tarefa" class="w-8 h-8 rounded-lg hover:bg-red-950 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center text-xs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
-                    
-                    <!-- Formulário Oculto de Edição -->
-                    <form id="edit-tarefa-{{ tarefa.id }}" method="post" class="card-header-title is-hidden" style="width: 100%;">
-                        {% csrf_token %}
-                        <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
-                        <input type="hidden" name="editar_tarefa" value="1">
-                        <div class="field has-addons" style="width: 100%;">
-                            <div class="control is-expanded">
-                                <input class="input is-small" type="text" name="titulo" value="{{ tarefa.titulo }}" required>
-                            </div>
-                            <div class="control">
-                                <button type="submit" class="button is-small is-success">✔</button>
-                            </div>
-                            <div class="control">
-                                <button type="button" class="button is-small is-danger" onclick="toggleEdit('tarefa', {{ tarefa.id }})">✖</button>
-                            </div>
-                        </div>
-                    </form>
-                </header>
+                </div>
+                
+                <!-- Formulário Oculto de Edição -->
+                <form id="edit-tarefa-{{ tarefa.id }}" method="post" class="hidden p-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                    <input type="hidden" name="editar_tarefa" value="1">
+                    <div class="flex gap-2">
+                        <input class="checklist-input" type="text" name="titulo" value="{{ tarefa.titulo }}" required>
+                        <button type="submit" class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button type="button" class="px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-xs font-semibold" onclick="toggleEdit('tarefa', {{ tarefa.id }})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </form>
+            </header>
 
-                <div class="card-content">
-                    
-                    <!-- SEÇÃO: LISTA DE ITENS INTERATIVOS -->
-                    <div class="content">
-                        <h6>Itens:</h6>
-                        <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
-                            {% for item in tarefa.itens.all %}
-                            <li class="mb-2">
+            <!-- CONTEÚDO DO CARD -->
+            <div class="p-5 flex-grow flex flex-col justify-between">
+                
+                <!-- SEÇÃO: LISTA DE ITENS INTERATIVOS -->
+                <div class="mb-6">
+                    <h6 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Itens:</h6>
+                    <ul class="space-y-3">
+                        {% for item in tarefa.itens.all %}
+                        <li class="bg-gray-900/40 border border-gray-750 rounded-lg p-3">
+                            
+                            <!-- Visualização Normal do Item -->
+                            <div id="display-item-{{ item.id }}" class="flex justify-between items-center gap-3">
+                                <span class="text-sm text-gray-200 flex-grow break-all">
+                                    {% if item.feito == 'concluido' %}
+                                        <strike class="text-gray-500">{{ item.descricao }}</strike>
+                                    {% else %}
+                                        {{ item.descricao }}
+                                    {% endif %}
+                                </span>
                                 
-                                <!-- Visualização Normal do Item -->
-                                <div id="display-item-{{ item.id }}" class="is-flex is-justify-content-space-between is-align-items-center" style="gap: 10px;">
-                                    <span style="flex-grow: 1; word-break: break-all;">
-                                        {% if item.feito == 'concluido' %}
-                                            <strike class="has-text-grey-light">{{ item.descricao }}</strike>
-                                        {% else %}
-                                            {{ item.descricao }}
-                                        {% endif %}
-                                    </span>
+                                <div class="flex items-center gap-1.5">
+                                    <!-- Botão de Edição -->
+                                    <button class="w-7 h-7 rounded hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center text-xs" onclick="toggleEdit('item', {{ item.id }})">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
                                     
-                                    <div class="is-flex is-align-items-center" style="gap: 5px;">
-                                        <!-- Botão de Edição -->
-                                        <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('item', {{ item.id }})">✏️</button>
-                                        
-                                        <!-- Formulário de Exclusão do Item -->
-                                        <form method="post" style="display: inline;" onsubmit="return confirm('Deseja excluir este item?');">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="item_id" value="{{ item.id }}">
-                                            <button type="submit" name="deletar_item" class="button is-small is-ghost px-1 py-0 has-text-danger">🗑️</button>
-                                        </form>
-                                    </div>
+                                    <!-- Formulário de Exclusão do Item -->
+                                    <form method="post" class="inline" onsubmit="return confirm('Deseja excluir este item?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <button type="submit" name="deletar_item" class="w-7 h-7 rounded hover:bg-red-950 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
 
                                     <!-- Menu de Mudança de Status -->
-                                    <form method="post" class="is-marginless">
+                                    <form method="post" class="inline m-0">
                                         {% csrf_token %}
                                         <input type="hidden" name="item_id" value="{{ item.id }}">
                                         <input type="hidden" name="atualizar_status" value="1">
-
-                                        <div class="select is-small {% if item.feito == 'concluido' %}is-success{% elif item.feito == 'fazendo' %}is-warning{% else %}is-dark{% endif %}">
-                                            <select name="status" onchange="this.form.submit()" class="has-background-dark has-text-white">
-                                                {% for value, label in item.STATUS_CHOICES %}
-                                                    <option value="{{ value }}" {% if item.feito == value %}selected{% endif %}>
-                                                        {{ label }}
-                                                    </option>
-                                                {% endfor %}
-                                            </select>
-                                        </div>
+                                        <select name="status" onchange="this.form.submit()" 
+                                                class="text-xs font-semibold px-2 py-1 rounded bg-gray-800 border border-gray-700 text-gray-300 focus:outline-none cursor-pointer
+                                                {% if item.feito == 'concluido' %} text-green-400 border-green-800/80 bg-green-950/20
+                                                {% elif item.feito == 'fazendo' %} text-yellow-400 border-yellow-800/80 bg-yellow-950/20
+                                                {% endif %}">
+                                            {% for value, label in item.STATUS_CHOICES %}
+                                                <option value="{{ value }}" {% if item.feito == value %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
                                     </form>
                                 </div>
-
-                                <!-- Formulário Oculto de Edição do Item -->
-                                <form id="edit-item-{{ item.id }}" method="post" class="is-hidden mt-1">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="item_id" value="{{ item.id }}">
-                                    <input type="hidden" name="editar_item" value="1">
-                                    <div class="field has-addons">
-                                        <div class="control is-expanded">
-                                            <input class="input is-small" type="text" name="descricao" value="{{ item.descricao }}" required>
-                                        </div>
-                                        <div class="control">
-                                            <button type="submit" class="button is-small is-success">✔</button>
-                                        </div>
-                                        <div class="control">
-                                            <button type="button" class="button is-small is-danger" onclick="toggleEdit('item', {{ item.id }})">✖</button>
-                                        </div>
-                                    </div>
-                                </form>
-
-                            </li>
-                            {% empty %}
-                            <li class="has-text-grey-light">Nenhum item adicionado ainda.</li>
-                            {% endfor %}
-                        </ul>
-
-                        <!-- Formulário para Criar Item Rápido -->
-                        <form method="post" class="field has-addons mt-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
-                            <div class="control is-expanded">
-                                <input class="input is-small" type="text" name="descricao" placeholder="Novo item..." required>
                             </div>
-                            <div class="control">
-                                <button type="submit" name="adicionar_item" class="button is-small is-success">
-                                    Adicionar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
 
-                    <hr>
-
-                    <!-- SEÇÃO: LISTA DE LINKS DE REFERÊNCIA -->
-                    <div class="content">
-                        <h6>Referências / Links:</h6>
-                        <ul style="list-style-type: none; margin-left: 0; padding-left: 0;">
-                            {% for link in tarefa.links.all %}
-                            <li class="mb-2">
-                                
-                                <!-- Visualização Normal do Link -->
-                                <div id="display-link-{{ link.id }}" class="is-flex is-justify-content-space-between is-align-items-center">
-                                    <a href="{{ link.url }}" target="_blank" class="has-text-info" style="word-break: break-all; max-width: 75%;">{{ link.url }}</a>
-                                    
-                                    <div class="is-flex" style="gap: 5px;">
-                                        <button class="button is-small is-ghost px-1 py-0" onclick="toggleEdit('link', {{ link.id }})">✏️</button>
-                                        
-                                        <!-- Formulário de Exclusão do Link -->
-                                        <form method="post" style="display: inline;" onsubmit="return confirm('Deseja excluir este link de referência?');">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="link_id" value="{{ link.id }}">
-                                            <button type="submit" name="deletar_link" class="button is-small is-ghost px-1 py-0 has-text-danger">🗑️</button>
-                                        </form>
-                                    </div>
+                            <!-- Formulário Oculto de Edição do Item -->
+                            <form id="edit-item-{{ item.id }}" method="post" class="hidden mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="editar_item" value="1">
+                                <div class="flex gap-2">
+                                    <input class="checklist-input text-xs" type="text" name="descricao" value="{{ item.descricao }}" required>
+                                    <button type="submit" class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="px-2.5 py-1.5 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-xs font-semibold" onclick="toggleEdit('item', {{ item.id }})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
+                            </form>
 
-                                <!-- Formulário Oculto de Edição do Link -->
-                                <form id="edit-link-{{ link.id }}" method="post" class="is-hidden mt-1">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="link_id" value="{{ link.id }}">
-                                    <input type="hidden" name="editar_link" value="1">
-                                    <div class="field has-addons">
-                                        <div class="control is-expanded">
-                                            <input class="input is-small" type="url" name="url" value="{{ link.url }}" required>
-                                        </div>
-                                        <div class="control">
-                                            <button type="submit" class="button is-small is-success">✔</button>
-                                        </div>
-                                        <div class="control">
-                                            <button type="button" class="button is-small is-danger" onclick="toggleEdit('link', {{ link.id }})">✖</button>
-                                        </div>
-                                    </div>
-                                </form>
+                        </li>
+                        {% empty %}
+                        <li class="text-gray-500 text-xs italic">Nenhum item adicionado ainda.</li>
+                        {% endfor %}
+                    </ul>
 
-                            </li>
-                            {% empty %}
-                            <li class="has-text-grey-light">Nenhum link adicionado.</li>
-                            {% endfor %}
-                        </ul>
-
-                        <!-- Formulário para Criar Link Rápido -->
-                        <form method="post" class="field has-addons mt-3">
-                            {% csrf_token %}
-                            <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
-                            <div class="control is-expanded">
-                                <input class="input is-small" type="url" name="url" placeholder="https://exemplo.com" required>
-                            </div>
-                            <div class="control">
-                                <button type="submit" name="adicionar_link" class="button is-small is-info">
-                                    Link
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
+                    <!-- Formulário para Criar Item Rápido -->
+                    <form method="post" class="flex gap-2 mt-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                        <input class="checklist-input text-xs" type="text" name="descricao" placeholder="Novo item..." required>
+                        <button type="submit" name="adicionar_item" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap">
+                            Adicionar
+                        </button>
+                    </form>
                 </div>
+
+                <hr class="border-gray-700 my-4">
+
+                <!-- SEÇÃO: LISTA DE LINKS DE REFERÊNCIA -->
+                <div>
+                    <h6 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Referências / Links:</h6>
+                    <ul class="space-y-2 mb-4">
+                        {% for link in tarefa.links.all %}
+                        <li class="bg-gray-900/40 border border-gray-750 rounded-lg p-2.5 flex justify-between items-center gap-2">
+                            <!-- Visualização Normal do Link -->
+                            <div id="display-link-{{ link.id }}" class="flex justify-between items-center w-full gap-2">
+                                <a href="{{ link.url }}" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 underline truncate max-w-[180px]">{{ link.url }}</a>
+                                
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button class="w-6 h-6 rounded hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center text-[10px]" onclick="toggleEdit('link', {{ link.id }})">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    
+                                    <!-- Formulário de Exclusão do Link -->
+                                    <form method="post" class="inline" onsubmit="return confirm('Deseja excluir este link de referência?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="link_id" value="{{ link.id }}">
+                                        <button type="submit" name="deletar_link" class="w-6 h-6 rounded hover:bg-red-950 text-red-400 hover:text-red-300 transition-colors flex items-center justify-center text-[10px]">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Formulário Oculto de Edição do Link -->
+                            <form id="edit-link-{{ link.id }}" method="post" class="hidden w-full">
+                                {% csrf_token %}
+                                <input type="hidden" name="link_id" value="{{ link.id }}">
+                                <input type="hidden" name="editar_link" value="1">
+                                <div class="flex gap-2 w-full">
+                                    <input class="checklist-input text-xs" type="url" name="url" value="{{ link.url }}" required>
+                                    <button type="submit" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-xs font-semibold" onclick="toggleEdit('link', {{ link.id }})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </li>
+                        {% empty %}
+                        <li class="text-gray-500 text-xs italic">Nenhum link adicionado.</li>
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Formulário para Criar Link Rápido -->
+                    <form method="post" class="flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="tarefa_id" value="{{ tarefa.id }}">
+                        <input class="checklist-input text-xs" type="url" name="url" placeholder="https://exemplo.com" required>
+                        <button type="submit" name="adicionar_link" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap">
+                            Link
+                        </button>
+                    </form>
+                </div>
+
             </div>
         </div>
         {% empty %}
-        <div class="column is-12">
-            <p class="has-text-centered has-text-grey">Nenhuma tarefa criada. Comece criando uma tarefa acima!</p>
+        <div class="col-span-full text-center py-12 bg-gray-800 border border-gray-700 rounded-xl max-w-md mx-auto">
+            <span class="text-gray-600 block mb-4">
+                <i class="fas fa-clipboard-list fa-4x"></i>
+            </span>
+            <p class="text-gray-400">Nenhuma tarefa criada. Comece criando uma tarefa acima!</p>
         </div>
         {% endfor %}
     </div>
@@ -231,8 +252,8 @@
         const editEl = document.getElementById(`edit-${type}-${id}`);
         
         if (displayEl && editEl) {
-            displayEl.classList.toggle('is-hidden');
-            editEl.classList.toggle('is-hidden');
+            displayEl.classList.toggle('hidden');
+            editEl.classList.toggle('hidden');
         }
     }
 </script>

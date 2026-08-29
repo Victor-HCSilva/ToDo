@@ -4,29 +4,22 @@
 {% block title %}Detalhes: {{ tarefa.titulo|default:"Anotação" }} - {{ user.username|default:"Meu App" }}{% endblock title %}
 
 {% block extra_css %}
-<style>
-    /* Estilos Gerais de Estrutura e Cores */
-    .detail-box { 
-        background-color: #1e1e1e; 
-        border: 1px solid #2d2d2d; 
-        border-radius: 8px; 
-        padding: 2rem; 
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-          word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word; 
+<!-- Twind Setup for Tailwind CSS in JS -->
+<script src="https://cdn.twind.style"></script>
+<script>
+  twind.install({
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          gray: twind.colors.trueGray,
+        }
+      }
     }
-    .actions-menu { 
-        margin-bottom: 2rem; 
-        padding-bottom: 1.25rem; 
-        border-bottom: 1px solid #2d2d2d; 
-    }
-    .actions-menu .button { 
-        margin-right: 0.5rem; 
-        margin-bottom: 0.5rem; 
-        border-radius: 6px;
-    }
+  });
+</script>
 
+<style>
     /* Tags de Prioridade Personalizadas */
     .priority-tag { 
         font-weight: 600; 
@@ -40,283 +33,22 @@
     .priority-baixa { background-color: #48c774; color: white; }
     .priority-default { background-color: #4a4a4a; color: white; }
 
-    /* --- ESTILIZAÇÃO DO LEITOR MARKDOWN (Foco em Legibilidade) --- */
-    .markdown-header-bar {
-        background-color: #252526;
-        border: 1px solid #2d2d2d;
-        border-bottom: none;
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-        padding: 0.5rem 1rem;
-    }
-    #markdown-view {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 1.1rem;
-        line-height: 1.8;
-        color: #d4d4d4;
-        background-color: #181818;
-        border: 1px solid #2d2d2d;
-        border-bottom-left-radius: 8px;
-        border-bottom-right-radius: 8px;
-        padding: 1.75rem;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
-
-    /* Regras de tipografia dentro do Markdown */
-    #markdown-view h1,
-    #markdown-view h2,
-    #markdown-view h3,
-    #markdown-view h4,
-    #markdown-view h5,
-    #markdown-view h6 {
-        color: #ffffff !important;
-        font-weight: 600;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-        line-height: 1.3;
-    }
-    #markdown-view h1 { font-size: 1.8rem; border-bottom: 1px solid #3a3a3a; padding-bottom: 0.4rem; }
-    #markdown-view h2 { font-size: 1.5rem; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3rem; }
-    #markdown-view h3 { font-size: 1.25rem; }
-    #markdown-view h4 { font-size: 1.1rem; }
-
-    #markdown-view p {
-        margin-bottom: 1.25rem;
-        color: #d4d4d4;
-    }
-
-    /* Links */
-    #markdown-view a {
-        color: #58a6ff !important;
-        text-decoration: underline;
-        text-decoration-color: rgba(88, 166, 255, 0.4);
-        transition: color 0.15s, text-decoration-color 0.15s;
-    }
-    #markdown-view a:hover {
-        color: #79c0ff !important;
-        text-decoration-color: rgba(121, 192, 255, 0.8);
-    }
-
-    /* Listas */
-    #markdown-view ul,
-    #markdown-view ol {
-        margin-left: 1.5rem;
-        margin-bottom: 1.25rem;
-        list-style-position: outside;
-    }
-    #markdown-view ul { list-style-type: disc; }
-    #markdown-view ol { list-style-type: decimal; }
-    #markdown-view li {
-        margin-bottom: 0.4rem;
-        color: #d4d4d4;
-    }
-    #markdown-view li > ul,
-    #markdown-view li > ol {
-        margin-top: 0.3rem;
-        margin-bottom: 0.3rem;
-    }
-
-    /* Checkboxes (task lists) */
-    #markdown-view input[type="checkbox"] {
-        margin-right: 0.5rem;
-        transform: scale(1.15);
-        accent-color: #58a6ff;
-        vertical-align: middle;
-    }
-
-    /* Citações */
-    #markdown-view blockquote {
-        background-color: #1e2228;
-        border-left: 4px solid #3273dc;
-        padding: 0.75rem 1.25rem;
-        margin: 1.5rem 0;
-        color: #c0c8d4;
-        font-style: italic;
-        border-radius: 0 6px 6px 0;
-    }
-    #markdown-view blockquote p {
-        color: #c0c8d4;
-        margin-bottom: 0.5rem;
-    }
-    #markdown-view blockquote p:last-child {
-        margin-bottom: 0;
-    }
-
-    /* Código inline */
-    #markdown-view code {
-        background-color: rgba(110, 118, 129, 0.25);
-        color: #e06c75;
-        padding: 0.2rem 0.45rem;
-        border-radius: 4px;
-        font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', Courier, monospace;
-        font-size: 0.9em;
-        border: 1px solid rgba(110, 118, 129, 0.15);
-    }
-
-    /* Blocos de código (pre > code) */
-    #markdown-view pre {
-        background-color: #0d1117 !important;
-        padding: 1.25rem;
-        border-radius: 8px;
-        overflow-x: auto;
-        border: 1px solid #30363d;
-        margin: 1.5rem 0;
-        max-width: 100%;
-        position: relative;
-    }
-    #markdown-view pre code {
-        background-color: transparent !important;
-        border: none;
-        padding: 0;
-        color: #c9d1d9;
-        font-size: 0.88rem;
-        line-height: 1.6;
-    }
-
-    /* Rótulo de linguagem no bloco de código */
-    #markdown-view pre[data-lang]::before {
-        content: attr(data-lang);
-        position: absolute;
-        top: 0;
-        right: 0;
-        padding: 0.2rem 0.6rem;
-        font-size: 0.7rem;
-        color: #8b949e;
-        background-color: #161b22;
-        border-bottom-left-radius: 6px;
-        border-top-right-radius: 7px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    /* Tabelas */
-    #markdown-view table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 1.5rem 0;
-        border: 1px solid #30363d;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-    #markdown-view th {
-        background-color: #161b22;
-        color: #e6edf3 !important;
-        font-weight: 600;
-        padding: 0.75rem 1rem;
-        border: 1px solid #30363d;
-        text-align: left;
-    }
-    #markdown-view td {
-        padding: 0.65rem 1rem;
-        border: 1px solid #30363d;
-        color: #d4d4d4;
-    }
-    #markdown-view tr:nth-child(even) {
-        background-color: rgba(110, 118, 129, 0.06);
-    }
-
-    /* Separadores (hr) */
-    #markdown-view hr {
-        border: none;
-        border-top: 1px solid #30363d;
-        margin: 2rem 0;
-    }
-
-    /* Imagens inline no markdown */
-    #markdown-view img {
-        max-width: 100%;
-        border-radius: 8px;
-        margin: 1rem 0;
-        border: 1px solid #30363d;
-    }
-
-    /* Strong & Em */
-    #markdown-view strong {
-        color: #e6edf3 !important;
-        font-weight: 600;
-    }
-    #markdown-view em {
-        color: #d4d4d4;
-    }
-    #markdown-view del {
-        color: #8b949e;
-    }
-
-    /* Override highlight.js background to match our theme */
-    #markdown-view pre code.hljs {
-        background-color: transparent !important;
-        padding: 0;
-    }
-
-    /* --- ESTILIZAÇÃO DO BOX DE IMAGENS --- */
-    .image-gallery-box {
-        background-color: #1e1e1e;
-        border: 1px solid #2d2d2d;
-        border-radius: 8px;
-        padding: 2rem;
-    }
-    .image-card {
-        background-color: #181818;
-        border: 1px solid #2d2d2d;
-        border-radius: 8px;
-        padding: 1.25rem;
-        margin-bottom: 1.75rem;
-    }
-    .image-frame {
-        display: flex;
-        justify-content: center;
-        background-color: #111;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid #252526;
-        margin-top: 0.75rem;
-    }
-    .gallery-img {
-        max-height: 550px;
-        width: auto;
-        object-fit: contain;
-        transition: transform 0.2s ease-in-out;
-    }
-    .gallery-img:hover {
-        transform: scale(1.005);
-    }
-
-    /* --- ESTILIZAÇÃO DA SEÇÃO DE VÍNCULOS (LINKER) --- */
-    .linker-box {
-        background-color: #1e1e1e;
-        border: 1px solid #2d2d2d;
-        border-radius: 8px;
-        padding: 2rem;
-    }
-    .linked-task-card {
-        background-color: #181818;
-        border: 1px solid #2d2d2d;
-        border-radius: 8px;
-        padding: 1rem 1.25rem;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: border-color 0.2s;
-    }
-    .linked-task-card:hover {
-        border-color: #3273dc;
-    }
-    .linked-task-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    .linked-task-info .icon {
-        color: #58a6ff;
-    }
-    .linked-task-info .task-name {
-        color: #d4d4d4;
-        font-weight: 500;
-    }
+    /* Markdown Base Styles (overriding Preflight) */
+    #markdown-view a { color: #58a6ff; text-decoration: underline; }
+    #markdown-view a:hover { color: #79c0ff; }
+    #markdown-view p { margin-bottom: 1.25rem; }
+    #markdown-view h1 { font-size: 1.8rem; border-bottom: 1px solid #3a3a3a; padding-bottom: 0.4rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    #markdown-view h2 { font-size: 1.5rem; border-bottom: 1px solid #2d2d2d; padding-bottom: 0.3rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    #markdown-view h3, #markdown-view h4 { font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    #markdown-view ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.25rem; }
+    #markdown-view ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 1.25rem; }
+    #markdown-view blockquote { border-left: 4px solid #3273dc; padding: 0.75rem 1.25rem; margin: 1.5rem 0; font-style: italic; background-color: rgba(30,34,40,0.5); }
+    #markdown-view pre { background-color: #0d1117; padding: 1.25rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border: 1px solid #30363d; }
+    #markdown-view code { background-color: rgba(110, 118, 129, 0.25); color: #e06c75; padding: 0.2rem 0.45rem; border-radius: 4px; font-family: monospace; }
+    #markdown-view pre code { background-color: transparent; color: #c9d1d9; padding: 0; }
+    #markdown-view table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    #markdown-view th, #markdown-view td { border: 1px solid #30363d; padding: 0.75rem 1rem; }
+    #markdown-view img { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
 </style>
 {% endblock extra_css %}
 
@@ -325,209 +57,212 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
+<div class="container mx-auto px-4 py-6 dark:text-gray-200 transition-colors duration-300">
+    <p id="topo"></p>
 
-   <div class="columns">
-    <div class="column is-12">
-            <p id="topo"></p>
+    <!-- Header com Toggle de Tema e Tempo -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <button id="theme-toggle" class="px-4 py-2 rounded-lg font-semibold bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors shadow-sm hover:shadow-md w-full sm:w-auto">
+            <i class="fas fa-moon mr-2 dark:hidden"></i>
+            <i class="fas fa-sun mr-2 hidden dark:inline"></i>
+            <span class="dark:hidden">Modo Escuro</span>
+            <span class="hidden dark:inline">Modo Claro</span>
+        </button>
 
-            {# Notificações #}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="notification is-{{ message.tags }} is-light">
-                        <button class="delete"></button>
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if tempo_restante %}
+        <div class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-lg font-mono font-bold flex items-center shadow-sm w-full sm:w-auto justify-center" id="session-timer-show" data-seconds="{{ tempo_restante }}">
+            <i class="fas fa-clock mr-2"></i>
+            Sessão: <span class="timer-text ml-2">--:--</span>
+        </div>
+        {% endif %}
+    </div>
 
-            {# Menu de Ações Superior #}
-            <div class="buttons actions-menu is-centered-mobile">
-                <a class="button is-dark" href="{% url 'main:anotacoes' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-arrow-left"></i></span><span>Voltar</span>
-                </a>
-                <a class="button is-link" href="{% url 'main:main' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-plus"></i></span><span>Nova Anotação</span>
-                </a>
-                <a class="button is-warning" href="{% url 'main:editar' id_user=user.id id_anotacao=tarefa.id %}">
-                    <span class="icon"><i class="fas fa-edit"></i></span><span>Editar</span>
-                </a>
-                <a class="button is-danger" href="{% url 'main:remover' id_user=user.id id_anotacao=tarefa.id %}" onclick="return confirm('Tem certeza?');">
-                    <span class="icon"><i class="fas fa-trash"></i></span><span>Deletar</span>
-                </a>
+    {# Notificações #}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="p-4 field rounded-md flex justify-between items-center {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200{% elif message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200{% else %}bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200{% endif %}">
+                <span>{{ message }}</span>
+                <button class="msg-close text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">&times;</button>
             </div>
+        {% endfor %}
+    {% endif %}
 
-            {# DETALHE DA ANOTAÇÃO #}
-            <div class="box detail-box">
-                <div class="is-flex is-justify-content-space-between is-align-items-start mb-4">
-                    <div>
-                        <h1 class="title is-2 has-text-white is-capitalized mb-2">{{ tarefa.titulo }}</h1>
-                        {% if tarefa.prioridade %}
-                        <div class="mt-2">
-                            <span class="priority-tag {% if tarefa.prioridade|lower == 'máxima' %}priority-alta{% elif tarefa.prioridade|lower == 'mediana' or tarefa.prioridade|lower == 'média' %}priority-media{% elif tarefa.prioridade|lower == 'mínima' %}priority-baixa{% else %}priority-default{% endif %}">
-                                Prioridade: {{ tarefa.prioridade }}
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="is-size-3">
-                        {% if tarefa.completo %}✅{% else %}⌛{% endif %}
-                    </div>
-                </div>
+    {# Menu de Ações Superior #}
+    <div class="flex flex-wrap gap-2 mb-8 pb-5 border-b border-gray-300 dark:border-gray-700 justify-center sm:justify-start">
+        <a class="px-4 py-2 bg-gray-800 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center" href="{% url 'main:anotacoes' id_user=user.id %}">
+            <i class="fas fa-arrow-left"></i><span>Voltar</span>
+        </a>
+        <a class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center" href="{% url 'main:main' id_user=user.id %}">
+            <i class="fas fa-plus"></i><span>Nova</span>
+        </a>
+        <a class="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center" href="{% url 'main:editar' id_user=user.id id_anotacao=tarefa.id %}">
+            <i class="fas fa-edit"></i><span>Editar</span>
+        </a>
+        <a class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center" href="{% url 'main:remover' id_user=user.id id_anotacao=tarefa.id %}" onclick="return confirm('Tem certeza?');">
+            <i class="fas fa-trash"></i><span>Deletar</span>
+        </a>
+        <a class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500 transition-colors inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center" href="{% url 'main:gerenciar_colaboradores' 'todo' tarefa.id %}">
+            <i class="fas fa-users"></i><span>Compartilhar</span>
+        </a>
+    </div>
 
-                <div class="content mt-5">
-                    <h2 class="subtitle is-5 has-text-grey-light mb-2">Anotação:</h2>
-                    
-                    <!-- Cabeçalho de Utilidades do Markdown -->
-                    <div class="markdown-header-bar is-flex is-justify-content-space-between is-align-items-center">
-                        <span class="has-text-grey is-size-7"><i class="fab fa-markdown mr-1"></i> Markdown</span>
-                        <!-- Botão de copiar -->
-                        <button type="button" id="copy-btn" class="button is-small is-dark">
-                            <span class="icon is-small"><i class="fas fa-copy"></i></span>
-                            <span>Copiar texto</span>
-                        </button>
-                    </div>
-
-                    <!-- Caixa de Visualização Renderizada -->
-                    <div id="markdown-view" class="content">
-                        <!-- O Javascript injetará o HTML renderizado do Markdown aqui -->
-                    </div>
-                    
-                    {{ tarefa.anotacao|json_script:"anotacao-data" }}
-
-                    {% if tarefa.data_de_criacao %}
-                        <p class="mt-5 is-size-7 has-text-grey">
-                            <strong>Criado em:</strong> <span class="has-text-grey-light">{{ tarefa.data_de_criacao }}</span>
-                        </p>
-                    {% endif %}
-                </div>
-            </div>
-
-            {# --- GALERIA DE IMAGENS ASSOCIADAS (DESIGN MELHORADO) --- #}
-            <div class="box image-gallery-box mt-5">
-                <h2 class="title is-4 has-text-light">Imagens Associadas</h2>
-                <hr class="has-background-grey-darker">
-                
-                {% for img in imagens %}
-                    <div class="image-card">
-                        <div class="level mb-3">
-                            <div class="level-left">
-                                <h4 class="title is-5 has-text-white">{{ img.titulo|default:"Imagem sem título" }}</h4>
-                            </div>
-                            <div class="level-right">
-                                <div class="buttons are-small">
-                                    <a class="button is-dark" href="{% url 'main:editar_descricao' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}">
-                                        <span class="icon"><i class="fas fa-pen"></i></span>
-                                    </a>
-                                    <a class="button is-danger is-outlined" href="{% url 'main:apagar_imagem' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}" onclick="return confirm('Apagar esta imagem?');">
-                                        <span class="icon"><i class="fas fa-trash"></i></span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {% if img.observacao %}
-                            <p class="subtitle is-6 has-text-grey mb-3">{{ img.observacao }}</p>
-                        {% endif %}
-                        
-                        <!-- Frame Inteligente de Exibição sem Distorcer -->
-                        <div class="image-frame">
-                            <img class="gallery-img" src="{{ img.img.url }}" alt="{{ img.observacao }}" title="{{ img.titulo }}">
-                        </div>
-                    </div>
-                {% empty %}
-                    <p class="has-text-grey-light">Nenhuma imagem foi adicionada a esta anotação ainda.</p>
-                {% endfor %}
-            </div>
-
-            {# --- LISTAS DE TAREFAS VINCULADAS --- #}
-            <div class="box linker-box mt-5" id="vinculos">
-                <h2 class="title is-4 has-text-light">
-                    <span class="icon-text">
-                        <span class="icon"><i class="fas fa-link"></i></span>
-                        <span>Listas de Tarefas Vinculadas</span>
+    {# DETALHE DA ANOTAÇÃO #}
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 shadow-lg break-words">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white capitalize mb-3">{{ tarefa.titulo }}</h1>
+                {% if tarefa.prioridade %}
+                <div class="mt-2">
+                    <span class="priority-tag {% if tarefa.prioridade|lower == 'máxima' %}priority-alta{% elif tarefa.prioridade|lower == 'mediana' or tarefa.prioridade|lower == 'média' %}priority-media{% elif tarefa.prioridade|lower == 'mínima' %}priority-baixa{% else %}priority-default{% endif %}">
+                        Prioridade: {{ tarefa.prioridade }}
                     </span>
-                </h2>
-                <hr class="has-background-grey-darker">
-
-                {% for vinculo in tarefas_vinculadas %}
-                    <div class="linked-task-card">
-                        <div class="linked-task-info">
-                            <span class="icon"><i class="fas fa-tasks"></i></span>
-                            <span class="task-name">{{ vinculo.tarefa.titulo|default:"Sem título" }}</span>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p class="has-text-grey-light">Nenhuma lista de tarefas vinculada a esta anotação.</p>
-                {% endfor %}
-
-                {# Formulário para vincular nova lista de tarefas #}
-                <div class="mt-5">
-                    <h4 class="subtitle is-6 has-text-grey-light mb-3">Vincular Lista de Tarefas</h4>
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="field has-addons">
-                            <div class="control is-expanded">
-                                {{ task_form.tarefa }}
-                            </div>
-                            <div class="control">
-                                <button type="submit" name="submit_linker_task" class="button is-link">
-                                    <span class="icon"><i class="fas fa-link"></i></span>
-                                    <span>Vincular</span>
-                                </button>
-                            </div>
-                        </div>
-                        {% for error in task_form.tarefa.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
-                    </form>
                 </div>
+                {% endif %}
             </div>
-
-            {# --- FORMULÁRIO PARA ADICIONAR NOVAS IMAGENS --- #}
-            <div class="box image-gallery-box mt-5" id="adicionar_imagem">
-                <h2 class="title is-4 has-text-light">Adicionar Nova Imagem</h2>
-                <hr class="has-background-grey-darker">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    <div class="field">
-                        <label class="label has-text-grey-light">{{ img_form.titulo.label }}</label>
-                        <div class="control">{{ img_form.titulo }}</div>
-                        {% for error in img_form.titulo.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="field">
-                        <label class="label has-text-grey-light">{{ img_form.observacao.label }}</label>
-                        <div class="control">{{ img_form.observacao }}</div>
-                        {% for error in img_form.observacao.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="field">
-                        <label class="label has-text-grey-light">{{ img_form.img.label }}</label>
-                        <div class="control">
-                           <div class="file has-name is-fullwidth is-dark">
-                                <label class="file-label">
-                                    {{ img_form.img }}
-                                    <span class="file-cta">
-                                        <span class="file-icon"><i class="fas fa-upload"></i></span>
-                                        <span class="file-label">Escolher arquivo…</span>
-                                    </span>
-                                    <span class="file-name has-text-grey">Nenhum arquivo selecionado</span>
-                                </label>
-                            </div>
-                        </div>
-                        {% for error in img_form.img.errors %}<p class="help is-danger">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="field is-grouped is-grouped-right mt-5">
-                        <div class="control"><a href="#topo" class="button is-dark">Topo</a></div>
-                        <div class="control"><button type="submit" name="submit_image" class="button is-success">Salvar Imagem</button></div>
-                    </div>
-                </form>
+            <div class="text-3xl sm:text-4xl">
+                {% if tarefa.completo %}✅{% else %}⌛{% endif %}
             </div>
         </div>
+
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400 mb-2">Anotação:</h2>
+            
+            <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-t-lg px-4 py-2">
+                <span class="text-gray-600 dark:text-gray-400 text-sm"><i class="fab fa-markdown mr-1"></i> Markdown</span>
+                <button type="button" id="copy-btn" class="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-sm hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors flex items-center gap-2">
+                    <i class="fas fa-copy"></i><span>Copiar</span>
+                </button>
+            </div>
+
+            <div id="markdown-view" class="p-6 bg-white dark:bg-[#181818] border border-t-0 border-gray-200 dark:border-gray-700 rounded-b-lg text-gray-800 dark:text-gray-300 leading-relaxed overflow-x-auto">
+                <!-- O Javascript injetará o HTML renderizado do Markdown aqui -->
+            </div>
+            
+            {{ tarefa.anotacao|json_script:"anotacao-data" }}
+
+            {% if tarefa.data_de_criacao %}
+                <p class="mt-6 text-sm text-gray-500 dark:text-gray-500">
+                    <strong>Criado em:</strong> <span class="text-gray-600 dark:text-gray-400">{{ tarefa.data_de_criacao }}</span>
+                </p>
+            {% endif %}
+        </div>
     </div>
-    <a href="{% url 'main:gerenciar_colaboradores' 'todo' tarefa.id %}" class="button is-small is-info">
-    <i class="fas fa-users mr-2"></i> Compartilhar
-</a>
+
+    {# --- GALERIA DE IMAGENS ASSOCIADAS --- #}
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 mt-8 shadow-lg">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white field">Imagens Associadas</h2>
+        <hr class="border-gray-300 dark:border-gray-700 mb-6">
+        
+        {% for img in imagens %}
+            <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center field gap-4">
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ img.titulo|default:"Imagem sem título" }}</h4>
+                    <div class="flex gap-2">
+                        <a class="px-3 py-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors" href="{% url 'main:editar_descricao' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        <a class="px-3 py-1 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition-colors" href="{% url 'main:apagar_imagem' id_user=user.id id_imagem=img.id id_anotacao=tarefa.id %}" onclick="return confirm('Apagar esta imagem?');">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                {% if img.observacao %}
+                    <p class="text-sm text-gray-600 dark:text-gray-400 field">{{ img.observacao }}</p>
+                {% endif %}
+                
+                <div class="flex justify-center bg-gray-200 dark:bg-black rounded-lg overflow-hidden border border-gray-300 dark:border-gray-800 p-2">
+                    <img class="max-h-[550px] w-auto object-contain hover:scale-105 transition-transform duration-300" src="{{ img.img.url }}" alt="{{ img.observacao }}" title="{{ img.titulo }}">
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-gray-500 dark:text-gray-400">Nenhuma imagem foi adicionada a esta anotação ainda.</p>
+        {% endfor %}
+    </div>
+
+    {# --- LISTAS DE TAREFAS VINCULADAS --- #}
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 mt-8 shadow-lg" id="vinculos">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white field flex items-center gap-2">
+            <i class="fas fa-link text-blue-500"></i>
+            Listas de Tarefas Vinculadas
+        </h2>
+        <hr class="border-gray-300 dark:border-gray-700 mb-6">
+
+        {% for vinculo in tarefas_vinculadas %}
+            <div class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-3 flex items-center justify-between hover:border-blue-500 transition-colors">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-tasks text-blue-500"></i>
+                    <span class="font-medium text-gray-800 dark:text-gray-200">{{ vinculo.tarefa.titulo|default:"Sem título" }}</span>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-gray-500 dark:text-gray-400 mb-6">Nenhuma lista de tarefas vinculada a esta anotação.</p>
+        {% endfor %}
+
+        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <h4 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">Vincular Lista de Tarefas</h4>
+            <form method="post" class="flex flex-col sm:flex-row gap-3">
+                {% csrf_token %}
+                <div class="flex-1 w-full">
+                    <!-- Assumindo que task_form.tarefa é um select ou input, vamos estilizá-arlo para se integrar. -->
+                    <div class="w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded px-3 py-2">
+                        {{ task_form.tarefa }}
+                    </div>
+                    {% for error in task_form.tarefa.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
+                </div>
+                <button type="submit" name="submit_linker_task" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+                    <i class="fas fa-link"></i> Vincular
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# --- FORMULÁRIO PARA ADICIONAR NOVAS IMAGENS --- #}
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 mt-8 shadow-lg" id="adicionar_imagem">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white field">Adicionar Nova Imagem</h2>
+        <hr class="border-gray-300 dark:border-gray-700 mb-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2" for="{{ img_form.titulo.id_for_label }}">{{ img_form.titulo.label }}</label>
+                {{ img_form.titulo }}
+                {% for error in img_form.titulo.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2" for="{{ img_form.observacao.id_for_label }}">{{ img_form.observacao.label }}</label>
+                {{ img_form.observacao }}
+                {% for error in img_form.observacao.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-300 mb-2">{{ img_form.img.label }}</label>
+
+                {# Botão estilizado que aciona o file input via label[for] #}
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    <label for="{{ img_form.img.id_for_label }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white font-medium rounded-lg cursor-pointer transition-colors text-sm">
+                        <i class="fas fa-upload"></i>
+                        <span>Escolher arquivo</span>
+                    </label>
+                    <span class="file-name text-sm text-gray-500 dark:text-gray-400 italic">Nenhum arquivo selecionado</span>
+                </div>
+
+                {# Input real: visível mas sem estilo (o label acima faz o trabalho visual) #}
+                <div class="mt-2">
+                    {{ img_form.img }}
+                </div>
+
+                {% for error in img_form.img.errors %}<p class="text-red-500 text-xs mt-1">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <a href="#topo" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors">Topo</a>
+                <button type="submit" name="submit_image" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 transition-colors">Salvar Imagem</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock content %}
 
@@ -535,49 +270,89 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
 
-        // Fechar notificações do Django
-        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
-            const $notification = $delete.parentNode;
-            $delete.addEventListener('click', () => { $notification.parentNode.removeChild($notification); });
+        // Theming logic for Twind and HTML dark class
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Check local storage or system preference
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            if (html.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Fechar notificações
+        document.querySelectorAll('.msg-close').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.closest('div').remove();
+            });
         });
 
         // Nome do arquivo selecionado no input
-        const fileInput = document.querySelector('.file-input');
+        const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) {
-            fileInput.onchange = () => {
+            fileInput.addEventListener('change', () => {
                 if (fileInput.files.length > 0) {
                     const fileName = document.querySelector('.file-name');
-                    fileName.textContent = fileInput.files[0].name;
+                    if (fileName) fileName.textContent = fileInput.files[0].name;
+                }
+            });
+        }
+
+        // Timer Session Logic
+        const initTimer = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let timeLeft = parseInt(el.dataset.seconds);
+            if (isNaN(timeLeft)) return;
+            const textEl = el.querySelector(".timer-text");
+            const update = () => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    const m = Math.floor(timeLeft / 60);
+                    const s = timeLeft % 60;
+                    textEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+                    if (timeLeft < 60) {
+                        el.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'text-blue-800', 'dark:text-blue-200');
+                        el.classList.add('bg-red-100', 'dark:bg-red-900', 'text-red-800', 'dark:text-red-200');
+                    }
+                } else {
+                    textEl.textContent = "Expirado!";
+                    setTimeout(() => window.location.reload(), 2000);
                 }
             };
-        }
+            setInterval(update, 1000);
+            update();
+        };
+        initTimer("session-timer-show");
 
         // Renderizador Markdown com Syntax Highlighting
         const markdownElement = document.getElementById('markdown-view');
         const rawMarkdown = JSON.parse(document.getElementById('anotacao-data').textContent);
         if (markdownElement && rawMarkdown) {
-            // Configura o marked.js com highlight.js para syntax highlighting
             marked.setOptions({
                 breaks: true,
                 gfm: true,
                 highlight: function(code, lang) {
                     if (lang && hljs.getLanguage(lang)) {
-                        try {
-                            return hljs.highlight(code, { language: lang }).value;
-                        } catch (e) { /* fallback */ }
+                        try { return hljs.highlight(code, { language: lang }).value; } catch (e) { }
                     }
-                    // Auto-detect quando a linguagem não é especificada
-                    try {
-                        return hljs.highlightAuto(code).value;
-                    } catch (e) { /* fallback */ }
+                    try { return hljs.highlightAuto(code).value; } catch (e) { }
                     return code;
                 }
             });
 
-            // Renderer customizado para adicionar label de linguagem nos blocos de código
             const renderer = new marked.Renderer();
             renderer.code = function(code, language) {
-                // marked v14+ pode passar um objeto ao invés de strings separadas
                 if (typeof code === 'object' && code !== null) {
                     language = code.lang || '';
                     code = code.text || '';
@@ -585,29 +360,20 @@
                 const lang = (language || '').trim();
                 let highlighted;
                 if (lang && hljs.getLanguage(lang)) {
-                    try {
-                        highlighted = hljs.highlight(code, { language: lang }).value;
-                    } catch (e) {
-                        highlighted = code;
-                    }
+                    try { highlighted = hljs.highlight(code, { language: lang }).value; } 
+                    catch (e) { highlighted = code; }
                 } else {
-                    try {
-                        highlighted = hljs.highlightAuto(code).value;
-                    } catch (e) {
-                        highlighted = code;
-                    }
+                    try { highlighted = hljs.highlightAuto(code).value; } 
+                    catch (e) { highlighted = code; }
                 }
-                const dataLang = lang ? ` data-lang="${lang}"` : '';
-                return `<pre${dataLang}><code class="hljs${lang ? ' language-' + lang : ''}">${highlighted}</code></pre>`;
+                return `<pre><code class="hljs ${lang ? 'language-' + lang : ''}">${highlighted}</code></pre>`;
             };
 
             marked.setOptions({ renderer: renderer });
-
-            // Renderiza o markdown
             markdownElement.innerHTML = marked.parse(rawMarkdown);
         }
 
-        // Função do Botão de Copiar (Preserva as quebras de linha originais do Markdown)
+        // Função do Botão de Copiar
         const copyBtn = document.getElementById('copy-btn');
         const scriptData = document.getElementById('anotacao-data');
 
@@ -618,12 +384,16 @@
                     await navigator.clipboard.writeText(textToCopy);
                     
                     const originalText = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<span class="icon is-small"><i class="fas fa-check"></i></span><span>Copiado!</span>';
-                    copyBtn.classList.replace('is-dark', 'is-success');
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copiado!</span>';
+                    copyBtn.classList.replace('bg-gray-300', 'bg-green-500');
+                    copyBtn.classList.replace('dark:bg-gray-700', 'dark:bg-green-600');
+                    copyBtn.classList.replace('text-gray-800', 'text-white');
                     
                     setTimeout(() => {
                         copyBtn.innerHTML = originalText;
-                        copyBtn.classList.replace('is-success', 'is-dark');
+                        copyBtn.classList.replace('bg-green-500', 'bg-gray-300');
+                        copyBtn.classList.replace('dark:bg-green-600', 'dark:bg-gray-700');
+                        copyBtn.classList.replace('text-white', 'text-gray-800');
                     }, 2000);
                     
                 } catch (err) {

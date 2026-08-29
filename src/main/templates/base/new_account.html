@@ -1,59 +1,42 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extra_css %}
-<style>
-#possui-conta-button {
-    color: black;
-    border: 1px solid cyan;
-    margin-top: 2px;
-    border-radius: 10px;
-    padding: 6px 12px;
-    display: inline-block;
-    text-decoration: none;
-}
-#possui-conta-button: hover {
-    color: cyan !important;
-    background: gray;
-}
-</style>
-{% endblock %}
+{% block title %}Criar Conta{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="title is-3">Criar Conta</h2>
+<div class="max-w-md mx-auto mt-10">
+    <div class="bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
+        <h2 class="text-3xl font-bold text-center text-white mb-6">Criar Conta</h2>
 
-  <form method="post" class="box">
-    {% csrf_token %}
+        <form method="post">
+            {% csrf_token %}
 
-    <div class="field">
-      <label class="label">{{ form.username.label }}</label>
-      <div class="control">
-        {{ form.username }}
-      </div>
-      {% if form.username.errors %}
-        <p class="help is-danger">{{ form.username.errors.0 }}</p>
-      {% endif %}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.username.label }}</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <p class="text-red-400 text-xs mt-1">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.password.label }}</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                <p class="text-red-400 text-xs mt-1">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg transition-colors mb-4">
+                Criar Conta
+            </button>
+
+            <p class="text-center">
+                <a href="{% url 'main:login' %}" class="text-gray-400 hover:text-white text-sm transition-colors">
+                    Já possuo conta
+                </a>
+            </p>
+        </form>
     </div>
-
-    <div class="field">
-      <label class="label">{{ form.password.label }}</label>
-      <div class="control">
-        {{ form.password }}
-      </div>
-      {% if form.password.errors %}
-        <p class="help is-danger">{{ form.password.errors.0 }}</p>
-      {% endif %}
-    </div>
-
-    <div class="field">
-      <div class="control">
-        <button type="submit" class="button is-primary is-fullwidth">
-          Criar Conta
-        </button>
-      </div>
-        <a id="possui-conta-button" href="{% url 'main:login' %}"> Já possuo conta </a>
-    </div>
-  </form>
 </div>
 {% endblock content %}

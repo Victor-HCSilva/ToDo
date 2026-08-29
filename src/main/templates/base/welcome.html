@@ -4,76 +4,50 @@
 {% block title %}Início - Brain{% endblock title %}
 
 {% block content %}
-{# ========================================================================= #}
-{# === Bloco de boas-vindas: já estava bem estruturado com Bulma.        === #}
-{# ========================================================================= #}
-<div class="box has-background-black-bis has-text-centered">
-    <h1 class="title is-2 has-text-weight-light">
-        O que vai fazer hoje, <strong class="has-text-white">{{ user.username }}</strong>?
+<!-- Boas-vindas -->
+<div class="bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-700 text-center mb-8">
+    <h1 class="text-3xl font-light text-white mb-2">
+        O que vai fazer hoje, <strong class="font-bold text-blue-400">{{ user.username }}</strong>?
     </h1>
-    <p class="subtitle is-5 has-text-grey">
-        Escolha uma das opções abaixo para começar suas atividades.
-    </p>
+    <p class="text-gray-400 mb-8">Escolha uma das opções abaixo para começar suas atividades.</p>
 
-    {# Os botões já usam boas práticas do Bulma. #}
-    <div class="buttons is-centered are-large mt-5">
-        <a class="button is-link" href="{% url 'main:main' id_user=user.id %}">
-            <span class="icon">
-                <i class="fas fa-pen-alt"></i>
-            </span>
+    <div class="flex flex-wrap justify-center gap-4">
+        <a href="{% url 'main:main' id_user=user.id %}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+            <i class="fas fa-pen-alt"></i>
             <span>Criar uma Anotação</span>
         </a>
-        <a class="button is-primary" href="{% url 'agenda:eventos' id_user=user.id %}">
-            <span class="icon">
-  <i class="fas fa-check-square"></i>
-            </span>
-            <span>Seus eventos</span>
+        <a href="{% url 'agenda:eventos' id_user=user.id %}" class="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors">
+            <i class="fas fa-check-square"></i>
+            <span>Seus Eventos</span>
         </a>
-        <a class="button is-link" href="{% url 'agenda:agenda' id_user=user.id %}">
-            <span class="icon">
-                <i class="fas fa-calendar-alt"></i>
-            </span>
+        <a href="{% url 'agenda:agenda' id_user=user.id %}" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors">
+            <i class="fas fa-calendar-alt"></i>
             <span>Ver sua Agenda</span>
         </a>
     </div>
 </div>
 
+<!-- Anotações Recentes -->
+<div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-750 border-b border-gray-700">
+        <h2 class="text-lg font-semibold text-gray-200">📝 Suas Anotações Mais Recentes</h2>
+    </div>
 
-{# ========================================================================= #}
-{# === MELHORIA: Bloco de anotações recentes.                            === #}
-{# ========================================================================= #}
-<div class="panel has-background-black-bis mt-5">
-
-    <p class="panel-heading has-background-black-ter has-text-grey-light">
-        Suas Anotações Mais Recentes
-    </p>
-
-    {% for todo in todos|slice:":4" %}
-        <a class="panel-block" href="{% url 'main:show' id_user=user.id id_anotacao=todo.id%}">
-            <span class="panel-icon">
-              <i class="fas fa-book" aria-hidden="true"></i>
-            </span>
-            {{ todo.titulo }}
+    <div class="divide-y divide-gray-700">
+        {% for todo in todos|slice:":4" %}
+        <a href="{% url 'main:show' id_user=user.id id_anotacao=todo.id %}" class="flex items-center gap-3 px-6 py-4 hover:bg-gray-700 transition-colors">
+            <i class="fas fa-book text-blue-400"></i>
+            <span class="text-gray-300">{{ todo.titulo }}</span>
         </a>
-    {% empty %}
-        {# ========================================================================= #}
-        {# === MELHORIA APLICADA AQUI: Tratamento do estado vazio com um botão claro. #}
-        {# ========================================================================= #}
-        <div class="panel-block">
-            <div class="content has-text-centered" style="width: 100%;">
-                <p class="has-text-grey mb-3">
-                    Você ainda não tem nenhuma anotação.
-                </p>
-                {# Este é um botão real, consistente com o design, porém menor. #}
-                <a href="{% url 'main:main' id_user=user.id %}" class="button is-primary is-small">
-                    <span class="icon is-small">
-                        <i class="fas fa-plus"></i>
-                    </span>
-                    <span>Criar a primeira</span>
-                </a>
-            </div>
+        {% empty %}
+        <div class="px-6 py-10 text-center">
+            <p class="text-gray-400 mb-4">Você ainda não tem nenhuma anotação.</p>
+            <a href="{% url 'main:main' id_user=user.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <i class="fas fa-plus"></i>
+                <span>Criar a primeira</span>
+            </a>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </div>
-
 {% endblock content %}

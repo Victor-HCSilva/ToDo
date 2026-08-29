@@ -1,86 +1,79 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ul>
-                <li><a href="{% url 'main:home' %}">Home</a></li>
-                <li class="is-active"><a href="#">Colaboradores</a></li>
-            </ul>
-        </nav>
+<div class="max-w-xl mx-auto mt-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <a href="{% url 'main:home' %}" class="hover:text-white transition-colors">Home</a>
+        <span>/</span>
+        <span class="text-gray-300">Colaboradores</span>
+    </nav>
 
-        <div class="columns is-centered">
-            <div class="column is-6">
-                <div class="card">
-                    <header class="card-header has-background-link">
-                        <p class="card-header-title has-text-white">
-                            Gerenciar Colaboradores: {{ titulo }}
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        
-                        <!-- Formulário para Adicionar -->
-                        <form method="POST" class="mb-5">
-                            {% csrf_token %}
-                            <label class="label">Adicionar por Nome de Usuário</label>
-                            <div class="field has-addons">
-                                <div class="control is-expanded">
-                                    <input class="input" type="text" name="username" placeholder="Digite o nome do usuário..." required>
-                                </div>
-                                <div class="control">
-                                    <button type="submit" name="add_user" class="button is-link">
-                                        <span class="icon"><i class="fas fa-user-plus"></i></span>
-                                        <span>Adicionar</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+    <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-blue-700 flex items-center gap-3">
+            <i class="fas fa-users text-white"></i>
+            <h1 class="text-white font-semibold">Gerenciar Colaboradores: {{ titulo }}</h1>
+        </div>
 
-                        <hr>
-
-                        <!-- Lista de Colaboradores Atuais -->
-                        <h3 class="subtitle is-5">Colaboradores com Acesso</h3>
-                        {% if colaboradores %}
-                            <table class="table is-fullwidth is-hoverable">
-                                <thead>
-                                    <tr>
-                                        <th>Usuário</th>
-                                        <th class="has-text-right">Ação</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for colab in colaboradores %}
-                                    <tr>
-                                        <td class="is-vcentered">
-                                            <strong>{{ colab.username }}</strong>
-                                        </td>
-                                        <td class="has-text-right">
-                                            <form method="POST" style="display:inline;">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="user_id" value="{{ colab.id }}">
-                                                <button type="submit" name="remove_user" class="button is-danger is-small is-light">
-                                                    Remover
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <div class="notification is-light">
-                                Este item ainda não possui colaboradores.
-                            </div>
-                        {% endif %}
-
-                        <div class="mt-5">
-                            <a href="javascript:history.back()" class="button is-fullwidth">Voltar</a>
-                        </div>
-                    </div>
+        <div class="p-6">
+            <!-- Formulário para Adicionar -->
+            <form method="POST" class="mb-6">
+                {% csrf_token %}
+                <label class="block text-sm font-medium text-gray-300 mb-2">Adicionar por Nome de Usuário</label>
+                <div class="flex gap-2">
+                    <input class="flex-grow p-3 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500" 
+                           type="text" name="username" placeholder="Digite o nome do usuário..." required>
+                    <button type="submit" name="add_user" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Adicionar</span>
+                    </button>
                 </div>
+            </form>
+
+            <hr class="border-gray-700 mb-6">
+
+            <!-- Lista de Colaboradores Atuais -->
+            <h2 class="text-lg font-semibold text-gray-200 mb-3">Colaboradores com Acesso</h2>
+            {% if colaboradores %}
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-600">
+                            <th class="py-3 text-gray-400 font-medium">Usuário</th>
+                            <th class="py-3 text-gray-400 font-medium text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        {% for colab in colaboradores %}
+                        <tr>
+                            <td class="py-3">
+                                <strong class="text-gray-200">{{ colab.username }}</strong>
+                            </td>
+                            <td class="py-3 text-right">
+                                <form method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ colab.id }}">
+                                    <button type="submit" name="remove_user" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-sm rounded-lg transition-colors">
+                                        Remover
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div class="p-4 mb-6 rounded-lg bg-yellow-900/40 border border-yellow-700 text-yellow-200">
+                Este item ainda não possui colaboradores.
+            </div>
+            {% endif %}
+
+            <a href="javascript:history.back()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors w-full justify-center">
+                <span>Voltar</span>
+            </a>
         </div>
     </div>
-</section>
+</div>
 {% endblock %}

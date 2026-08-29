@@ -5,148 +5,88 @@
 
 {% block extra_css %}
 <style>
-    /* Estilos específicos para a página de edição */
-    .edit-container {
-        max-width: 768px;
-        margin-top: 5vh;
-        margin-bottom: 5vh;
+    form input[type="text"], form input[type="email"], form input[type="url"],
+    form input[type="number"], form input[type="search"], form select, form textarea {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
     }
-    .label {
-        color: #dbdbdb;
+    form textarea {
+        min-height: 120px;
+        resize: vertical;
     }
-    .input, .textarea, .select select {
-        background-color: #2a2a2a;
-        border-color: #4a4a4a;
-        color: #e0e0e0;
+    form input:focus, form select:focus, form textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
-    .input::placeholder, .textarea::placeholder {
-        color: #7a7a7a;
-    }
-    .input:focus, .textarea:focus, .select select:focus,
-    .input:active, .textarea:active, .select select:active {
-        border-color: #3273dc;
-        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
-    }
-    .select:not(.is-multiple):not(.is-loading)::after {
-        border-color: #3273dc;
-    }
-    .change-size{
-        padding: 0px;
-        font-size: 0.9rem !important;
+    form input::placeholder, form textarea::placeholder {
+        color: #6b7280;
     }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
-<div class="columns is-centered">
-    <div class="column edit-container">
-        <div class="box has-background-black-bis">
-            <h1 class="title is-3 has-text-light">
-                <span class="icon mr-2"><i class="fas fa-edit"></i></span>
-                Editar Anotação: <strong class="has-text-primary">{{ tarefa.titulo|truncatewords:5 }}</strong>
-            </h1>
-            <hr class="has-background-grey-darker">
+<div class="max-w-2xl mx-auto mt-8">
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h1 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <i class="fas fa-edit"></i>
+            <span>Editar Anotação: <strong class="text-blue-400 font-bold">{{ tarefa.titulo|truncatewords:5 }}</strong></span>
+        </h1>
+        <hr class="border-gray-750 mb-6">
 
-            {# Exibir erros gerais do formulário (non-field errors) #}
-            {% if form.non_field_errors %}
-                <div class="notification is-danger is-light mb-4">
-                    <button class="delete"></button>
-                    {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
+        {% if form.non_field_errors %}
+            <div class="p-4 mb-4 rounded-lg bg-red-900/60 border border-red-800 text-red-200">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.media }}
+
+            {% for field in form.visible_fields %}
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-300 mb-2" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="text-red-500">*</span>
+                        {% endif %}
+                    </label>
+                    <div>
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
-            {% endif %}
+            {% endfor %}
 
-            <form method="POST" enctype="multipart/form-data"> {# Adicionado enctype para upload de arquivos #}
-                {% csrf_token %}
-                {{ form.media }}
+            {% for hidden_field in form.hidden_fields %}
+                {{ hidden_field }}
+            {% endfor %}
 
-                {# --- CORREÇÃO PRINCIPAL: Adicionado o laço FOR --- #}
-                {% for field in form.visible_fields %}
-                    <div class="field">
-                        <label class="label" for="{{ field.id_for_label }}">
-                            {{ field.label }}
-                            {% if field.field.required %}
-                                <span class="has-text-danger">*</span>
-                            {% endif %}
-                        </label>
+            <hr class="border-gray-750 my-6">
 
-                        {# --- MELHORIA: Lógica para renderizar campos corretamente com Bulma --- #}
-                        <div class="control">
-                            {% if field.field.widget.input_type == 'select' %}
-                                <div class="select is-fullwidth">
-                                    {{ field }}
-                                </div>
-                            {% else %}
-                                {{ field }} {# Renderiza inputs, textareas, etc. #}
-                            {% endif %}
-                        </div>
-
-                        {% if field.help_text %}
-                            <p class="help has-text-grey-light">{{ field.help_text|safe }}</p>
-                        {% endif %}
-                        {% for error in field.errors %}
-                            <p class="help is-danger">{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endfor %}
-
-                {# Para campos ocultos, caso existam #}
-                {% for hidden_field in form.hidden_fields %}
-                    {{ hidden_field }}
-                {% endfor %}
-
-                <hr class="has-background-grey-darker mt-5">
-
-                <div class="field is-grouped is-grouped-right">
-                    <div class="control">
-                        <a class="change-size button is-light" href="{% url 'main:show' id_user=user.id id_anotacao=tarefa.id %}">
-                            <span class="icon"><i class="fas fa-times"></i></span>
-                            <span class="change-size" >Cancelar</span>
-                        </a>
-                    </div>
-                    <div class="control">
-                        <button type="submit" class="button is-success change-size">
-                            <span class="icon"><i class="fas fa-check"></i></span>
-                            <span class="change-size">Salvar Alterações</span>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
+            <div class="flex gap-3">
+                <a href="{% url 'main:show' id_user=user.id id_anotacao=tarefa.id %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-times"></i>
+                    <span>Cancelar</span>
+                </a>
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-check"></i>
+                    <span>Salvar Alterações</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock content %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- SCRIPT SIMPLIFICADO ---
-        // A melhor prática é definir as classes nos widgets do forms.py.
-        // Este script serve como um "plano B" para garantir a estilização.
-        const form = document.querySelector('form');
-        if (form) {
-            form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"], input[type="file"]').forEach(el => {
-                if (!el.classList.contains('input')) {
-                    el.classList.add('input');
-                }
-            });
-
-            form.querySelectorAll('textarea').forEach(el => {
-                if (!el.classList.contains('textarea')) {
-                    el.classList.add('textarea');
-                }
-            });
-            // A lógica de envolver o <select> foi removida pois agora é tratada no HTML do template.
-        }
-
-        // JavaScript para fechar notificações
-        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
-            const $notification = $delete.parentNode;
-            $delete.addEventListener('click', () => {
-                $notification.parentNode.removeChild($notification);
-            });
-        });
-    });
-</script>
-{% endblock extra_js %}

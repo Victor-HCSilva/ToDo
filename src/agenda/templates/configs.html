@@ -5,126 +5,63 @@
 
 {% block extra_css %}
 <style>
-    /* Estilo para garantir que o input de cor do HTML5 ocupe o espaço e pareça integrado */
-    .control input[type="color"] {
+    form input[type="color"] {
         padding: 0.25rem;
-        height: 2.5em; /* Altura padrão de um input do Bulma */
+        height: 2.75rem;
         width: 100%;
-        border-radius: 4px;
-        border-style: solid;
-        border-width: 1px;
+        border-radius: 0.5rem;
+        border: 1px solid #374151;
+        background-color: #1f2937;
+        cursor: pointer;
     }
-    #id_cor_de_destaque{
-        text-align: center !important;
-        color: black;
+    form input[type="color"]:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
-
-/* Estas regras se aplicam apenas em telas com 768px de largura ou menos */
-@media (max-width: 768px) {
-    span {
-        font-size: 0.8rem;
-    }
-
-    a {
-        font-size: 0.8rem !important;
-    }
-
-    .button, .icon {
-        padding: 0px !important;
-    }
-}
 </style>
 {% endblock extra_css %}
 
 {% block content %}
-<div class="columns is-centered">
-    <div class="column is-two-thirds-tablet is-half-desktop">
+<div class="max-w-xl mx-auto mt-8">
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700">
+        <h1 class="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+            <i class="fas fa-cog"></i>
+            <span>Configurações</span>
+        </h1>
+        <p class="text-gray-400 mb-6">Personalize a aparência do seu aplicativo.</p>
+        <hr class="border-gray-750 mb-6">
 
-        <div class="box has-background-black-bis">
-            <h1 class="title is-3">
-                <span class="icon-text">
-                    <span class="icon"><i class="fas fa-cog"></i></span>
-                    <span>Configurações</span>
-                </span>
-            </h1>
-            <p class="subtitle is-6 has-text-grey">
-                Personalize a aparência do seu aplicativo.
-            </p>
-            <hr class="has-background-grey-darker">
+        <form method="POST">
+            {% csrf_token %}
 
-            <form method="POST">
-                {% csrf_token %}
-
-                {# Assumindo que o formulário completo se chama 'form' e tem um campo 'cor_de_destaque' #}
-                {# Se o seu formulário se chamar 'cor_de_destaque', troque 'form' por 'cor_de_destaque' no loop #}
-                {% for field in cor_de_destaque %}
-                    <div class="field">
-                        <label class="label" for="{{ field.id_for_label }}">
-                            {{ field.label }}
-                        </label>
-                        {# Adicionando um ícone de paleta de cores para um toque visual #}
-                        <div class="control has-icons-left">
-                            <span class="icon is-small is-left">
-                                <i class="fas fa-palette"></i>
-                            </span>
-                            {{ field }} {# O HTML será <input type="color" ...> #}
-                        </div>
-                        {% if field.help_text %}
-                            <p class="help">{{ field.help_text }}</p>
-                        {% endif %}
-                        {% for error in field.errors %}
-                            <p class="help is-danger">{{ error }}</p>
-                        {% endfor %}
+            {% for field in form %}
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-300 mb-2" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    <div class="relative">
+                        {{ field }}
                     </div>
-                {% endfor %}
-
-                <div class="field is-grouped mt-5">
-                    <div class="control">
-                        <button type="submit" class="button is-success is-medium">
-                            <span class="icon"><i class="fas fa-save"></i></span>
-                            <span>Salvar Configurações</span>
-                        </button>
-                    </div>
-                    <div class="control">
-                        <a class="button is-light is-medium" href="{% url 'agenda:agenda' id_user=user.id %}">
-                            Cancelar
-                        </a>
-                    </div>
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ error }}</p>
+                    {% endfor %}
                 </div>
-            </form>
-        </div>
+            {% endfor %}
 
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-save"></i>
+                    <span>Salvar Configurações</span>
+                </button>
+                <a class="inline-flex items-center px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors" href="{% url 'agenda:agenda' id_user=user.id %}">
+                    Cancelar
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock content %}
-
-{% block extra_js %}
-{# O script genérico para formulários não é estritamente necessário se você #}
-{# renderiza os campos manualmente e já tem CSS para o input de cor. #}
-{# Mas é bom manter para outros possíveis campos futuros. #}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const form = document.querySelector('form');
-        if (form) {
-            form.querySelectorAll('input, textarea, select').forEach(el => {
-                // O CSS customizado já cuida do input[type="color"]
-                if (el.type === 'color' || el.type === 'submit' || el.type === 'button' || el.type === 'checkbox') {
-                    return;
-                }
-                if (el.tagName === 'TEXTAREA') {
-                    el.classList.add('textarea');
-                } else if (el.tagName === 'SELECT') {
-                    if (!el.parentElement.classList.contains('select')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'select is-fullwidth';
-                        el.parentNode.insertBefore(wrapper, el);
-                        wrapper.appendChild(el);
-                    }
-                } else {
-                    el.classList.add('input');
-                }
-            });
-        }
-    });
-</script>
-{% endblock extra_js %}

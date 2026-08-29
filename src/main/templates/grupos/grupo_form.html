@@ -1,88 +1,76 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-            <ul>
-                <li><a href="{% url 'main:home' %}">Home</a></li>
-                <li><a href="{% url 'main:listar_grupos' %}">Meus Grupos</a></li>
-                <li class="is-active"><a href="#">{{ titulo }}</a></li>
-            </ul>
-        </nav>
+<div class="max-w-xl mx-auto mt-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
+        <a href="{% url 'main:home' %}" class="hover:text-white transition-colors">Home</a>
+        <span>/</span>
+        <a href="{% url 'main:listar_grupos' %}" class="hover:text-white transition-colors">Meus Grupos</a>
+        <span>/</span>
+        <span class="text-gray-300">{{ titulo }}</span>
+    </nav>
 
-        <div class="columns is-centered">
-            <div class="column is-6">
-                <div class="card">
-                    <header class="card-header has-background-info">
-                        <p class="card-header-title has-text-white">
-                            <span class="icon"><i class="fas fa-users"></i></span>
-                            <span>{{ titulo }}</span>
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <form method="POST">
-                            {% csrf_token %}
-                            
-                            <div class="field">
-                                <label class="label">Nome do Grupo *</label>
-                                <div class="control">
-                                    {{ form.name }}
-                                </div>
-                                {% if form.name.errors %}
-                                    <p class="help is-danger">{{ form.name.errors.0 }}</p>
-                                {% endif %}
-                            </div>
+    <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-blue-700 flex items-center gap-3">
+            <i class="fas fa-users text-white"></i>
+            <h1 class="text-white font-semibold">{{ titulo }}</h1>
+        </div>
+        <!-- Form -->
+        <div class="p-6">
+            <form method="POST">
+                {% csrf_token %}
 
-                            <div class="field">
-                                <label class="label">Descrição</label>
-                                <div class="control">
-                                    {{ form.descricao }}
-                                </div>
-                                {% if form.descricao.errors %}
-                                    <p class="help is-danger">{{ form.descricao.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-
-                            <div class="field">
-                                <label class="label">Membros do Grupo</label>
-                                <div class="control">
-                                    <div class="box" style="max-height: 300px; overflow-y: auto;">
-                                        {{ form.membros }}
-                                    </div>
-                                </div>
-                                {% if form.membros.errors %}
-                                    <p class="help is-danger">{{ form.membros.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-
-                            <div class="field is-grouped">
-                                <div class="control">
-                                    <button type="submit" class="button is-success">
-                                        <span class="icon"><i class="fas fa-save"></i></span>
-                                        <span>Salvar Grupo</span>
-                                    </button>
-                                </div>
-                                <div class="control">
-                                    <a href="{% url 'main:listar_grupos' %}" class="button is-light">
-                                        Cancelar
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nome do Grupo *</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.name.errors.0 }}</p>
+                    {% endif %}
                 </div>
-            </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Descrição</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.descricao.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Membros do Grupo</label>
+                    <div class="bg-gray-900 border border-gray-600 rounded-lg p-3 max-h-60 overflow-y-auto">
+                        {{ form.membros }}
+                    </div>
+                    {% if form.membros.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.membros.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                        <i class="fas fa-save"></i>
+                        <span>Salvar Grupo</span>
+                    </button>
+                    <a href="{% url 'main:listar_grupos' %}" class="inline-flex items-center px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
-</section>
+</div>
 
 <style>
-    input[type="text"], textarea {
-        width: 100% !important;
+    form input[type="text"], form textarea, form select {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #111827;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
     }
-    .box input[type="checkbox"] {
-        margin-right: 10px;
-    }
+    form input[type="checkbox"] { margin-right: 8px; }
 </style>
 {% endblock %}

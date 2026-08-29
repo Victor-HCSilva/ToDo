@@ -4,107 +4,85 @@
 {% block title %}Detalhes: {{ evento.titulo|default:"Evento" }}{% endblock title %}
 
 {% block content %}
-<section class="section">
-    <div class="container"> {# Removido is-max-desktop para permitir maior largura #}
+<div class="max-w-3xl mx-auto mt-6">
 
-        <!-- Cabeçalho com Título da Página e Botões de Navegação -->
-        <div class="level mb-6">
-            <div class="level-left">
-                <div class="level-item">
-                    <h1 class="title is-3 has-text-white">Detalhes do Evento</h1>
-                </div>
-            </div>
-            <div class="level-right">
-                <div class="level-item">
-                    <a class="button is-text has-text-white" href="{% url 'agenda:agenda' id_user=user.id  %}">
-                        <span class="icon mr-2"><i class="fas fa-calendar-alt"></i></span>
-                        <span>Minha Agenda</span>
-                    </a>
-                </div>
-                <div class="level-item">
-                    <a class="button is-text has-text-white" href="{% url 'agenda:eventos' id_user=user.id  %}">
-                        <span class="icon mr-2"><i class="fas fa-list-ul"></i></span>
-                        <span>Todos os Eventos</span>
-                    </a>
-                </div>
-            </div>
+    <!-- Cabeçalho -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+            <i class="fas fa-calendar-alt text-blue-500"></i>
+            <span>Detalhes do Evento</span>
+        </h1>
+        <div class="flex gap-3">
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors" href="{% url 'agenda:agenda' id_user=user.id %}">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Minha Agenda</span>
+            </a>
+            <a class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors" href="{% url 'agenda:eventos' id_user=user.id %}">
+                <i class="fas fa-list-ul"></i>
+                <span>Todos os Eventos</span>
+            </a>
         </div>
+    </div>
 
-        {% if evento %}
-            <!-- Box principal para os detalhes do evento - Agora bem maior com p-6 e mb-6 -->
-            <div class="box has-background-black-bis p-6 mb-6">
+    {% if evento %}
+        <div class="bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-700">
+            <!-- Título do Evento -->
+            <h2 class="text-3xl font-bold text-white mb-4">{{ evento.titulo }}</h2>
 
-                <!-- Título do Evento (o mais importante) -->
-                <h2 class="title is-2 has-text-primary mb-4">{{ evento.titulo }}</h2> {# Mais espaçamento abaixo #}
+            <!-- Data e Hora -->
+            <div class="flex items-center gap-2 text-blue-400 text-lg mb-6">
+                <i class="fas fa-clock"></i>
+                <span>{{ evento.dia_do_evento|date:"d/m/Y \à\s H:i" }}</span>
+            </div>
 
-                <!-- Data e Hora (logo abaixo do título, em destaque) -->
-                <p class="subtitle is-4 has-text-info mb-5"> {# Aumentado para is-4 #}
-                    <span class="icon-text">
-                        <span class="icon mr-2"><i class="fas fa-clock"></i></span>
-                        <span>{{ evento.dia_do_evento|date:"d/m/Y \à\s H:i" }}</span>
-                    </span>
+            <hr class="border-gray-750 my-6">
+
+            <!-- Descrição -->
+            <div class="mb-6">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Descrição</h3>
+                <p class="text-gray-200 text-lg leading-relaxed bg-gray-900/40 p-4 rounded-lg border border-gray-750">
+                    {{ evento.descricao|linebreaksbr }}
                 </p>
+            </div>
 
-                <hr class="has-background-grey-darker my-5"> {# Separador #}
+            <hr class="border-gray-750 my-6">
 
-                <!-- Descrição do Evento -->
-                <div class="content has-text-light mb-6">
-                    <p class="is-size-4 has-text-weight-bold has-text-grey-light mb-3">Descrição:</p> {# Aumentado para is-4 #}
-                    <p class="is-size-5">{{ evento.descricao|linebreaksbr }}</p> {# Mantido is-5, mas com mais espaço #}
+            <!-- Tipo e Importância -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Tipo de Evento</h3>
+                    <span class="inline-block px-3 py-1.5 bg-teal-900 text-teal-200 border border-teal-800 rounded-lg text-sm font-medium">
+                        {{ evento.tipo_de_evento }}
+                    </span>
                 </div>
 
-                <hr class="has-background-grey-darker my-5"> {# Separador #}
-
-                <!-- Tipo de Evento -->
-                <div class="mb-6"> {# Bloco de Tipo de Evento com mais margem #}
-                    <p class="is-size-4 has-text-weight-bold has-text-grey-light mb-3">Tipo de Evento:</p> {# Aumentado para is-4 #}
-                    <span class="tag is-primary is-large is-light">{{ evento.tipo_de_evento }}</span> {# is-large e is-light para contraste #}
-                </div>
-
-                <!-- Importância -->
-                <div class="mb-4"> {# Bloco de Importância com mais margem #}
-                    <p class="is-size-4 has-text-weight-bold has-text-grey-light mb-3">Importância:</p> {# Aumentado para is-4 #}
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Importância</h3>
                     {% if evento.importancia == "1" %}
-                        <span class="icon-text has-text-info">
-                          <span class="icon is-large mr-2"> {# Ícone is-large #}
-                            <i class="fas fa-lightbulb"></i>
-                          </span>
-                          <span class="is-size-4">Mínima</span> {# Aumentado para is-4 #}
+                        <span class="inline-flex items-center gap-2 text-gray-300">
+                            <i class="fas fa-lightbulb text-gray-400 text-lg"></i>
+                            <span class="font-medium text-lg">Mínima</span>
                         </span>
                     {% elif evento.importancia == "2" %}
-                        <span class="icon-text has-text-warning">
-                          <span class="icon is-large mr-2">
-                            <i class="fas fa-exclamation-circle"></i>
-                          </span>
-                          <span class="is-size-4">Média</span>
+                        <span class="inline-flex items-center gap-2 text-yellow-400">
+                            <i class="fas fa-exclamation-circle text-lg"></i>
+                            <span class="font-medium text-lg">Média</span>
                         </span>
                     {% elif evento.importancia == "3" %}
-                        <span class="icon-text has-text-danger">
-                          <span class="icon is-large mr-2">
-                            <i class="fas fa-fire-alt"></i>
-                          </span>
-                          <span class="is-size-4">Máxima</span>
+                        <span class="inline-flex items-center gap-2 text-red-400">
+                            <i class="fas fa-fire-alt text-lg"></i>
+                            <span class="font-medium text-lg">Máxima</span>
                         </span>
                     {% endif %}
                 </div>
-
-            </div> {# Fim do box principal #}
-
-        {% else %}
-            <!-- Mensagem de erro aprimorada com o componente 'notification' -->
-            <div class="notification is-danger is-light">
-                <button class="delete"></button>
-                <p class="has-text-centered">
-                    <span class="icon mr-2"><i class="fas fa-exclamation-triangle"></i></span>
-                    Ocorreu um erro ao carregar os detalhes do evento. Por favor, tente novamente.
-                </p>
             </div>
-        {% endif %}
+        </div>
+    {% else %}
+        <div class="p-6 rounded-xl bg-red-900/40 border border-red-800 text-red-200 text-center flex flex-col items-center gap-3">
+            <i class="fas fa-exclamation-triangle text-3xl"></i>
+            <p>Ocorreu um erro ao carregar os detalhes do evento. Por favor, tente novamente.</p>
+        </div>
+    {% endif %}
 
-    </div>
-</section>
+</div>
 {% endblock content %}
-
-{% block extra_js %}
-    <!-- Font Awesome já deve estar no base.html ou incluído como sugerido -->
-{% endblock extra_js %}

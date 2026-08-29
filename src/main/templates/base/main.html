@@ -1,275 +1,153 @@
-<!-- templates/home.html ou meu_app/templates/meu_app/home.html -->
+<!-- templates/main.html -->
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Página de Anotações - {{ user.username|default:"Meu App" }}{% endblock title %}
 
 {% block extra_css %}
-<!-- <link rel="stylesheet" href="{% static 'css/home_specific.css' %}"> -->
 <style>
-    /* Pequenos ajustes se necessário, mas Bulma Dark deve cobrir bem */
-    .label {
-        color: #dbdbdb;
-        /* Garante que os labels do formulário sejam claros */
-    }
-
-    .input,
-    .textarea {
-        background-color: #2a2a2a;
-        /* Fundo mais escuro para campos de input */
-        border-color: #4a4a4a;
-        color: #e0e0e0;
-    }
-
-    .input::placeholder,
-    .textarea::placeholder {
-        color: #7a7a7a;
-    }
-
-    .input:focus,
-    .textarea:focus,
-    .input:active,
-    .textarea:active {
-        border-color: #3273dc;
-        /* Cor primária do Bulma para foco */
-        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25);
-    }
-
-    /* Garante que o textarea ocupe a largura total e não estoure */
-    #id_anotacao {
+    #id_anotacao, textarea {
         width: 100%;
         max-width: 100%;
         min-height: 120px;
         resize: vertical;
-        /* Permite redimensionar apenas na vertical */
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
+        padding: 0.75rem;
     }
-
-    /* Ajustes para Mobile: Botões empilhados e largura total */
-    @media screen and (max-width: 768px) {
-        .mobile-column-buttons.is-grouped {
-            flex-direction: column;
-        }
-
-        .mobile-column-buttons.is-grouped>.control {
-            margin-right: 0 !important;
-            margin-bottom: 0.75rem;
-            width: 100%;
-        }
-
-        .mobile-column-buttons.is-grouped .button {
-            width: 100%;
-        }
+    #id_anotacao:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+    form input[type="text"], form input[type="email"], form input[type="url"],
+    form input[type="number"], form input[type="search"], form select {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        color: #e5e7eb;
+    }
+    form input:focus, form select:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+    form input::placeholder, textarea::placeholder {
+        color: #6b7280;
     }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
-<div class="columns is-centered">
-    <div class="column is-three-quarters-tablet is-two-thirds-desktop">
+<div class="max-w-3xl mx-auto">
 
-        <div class="box has-background-black-bis"> {# 'box' para agrupar conteúdo com fundo ligeiramente diferente #}
-            <h1 class="title is-2 has-text-primary">
-                Nova atividade
-            </h1>
-            {% if user.is_authenticated %}
-            <p class="subtitle is-5 has-text-grey">Gerencie suas anotações abaixo.</p>
-            {% endif %}
-        </div>
-
+    <!-- Cabeçalho -->
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 mb-6">
+        <h1 class="text-2xl font-bold text-white mb-1">Nova Atividade</h1>
         {% if user.is_authenticated %}
-        <div class="box has-background-black-bis mt-5">
-            <h2 class="title is-4 has-text-info">Adicionar Nova Anotação</h2>
+        <p class="text-gray-400">Gerencie suas anotações abaixo.</p>
+        {% endif %}
+    </div>
 
-            <form method="POST">
-                {% csrf_token %}
+    {% if user.is_authenticated %}
+    <!-- Formulário de Nova Anotação -->
+    <div class="bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-700 mb-6">
+        <h2 class="text-xl font-bold text-white mb-6">Adicionar Nova Anotação</h2>
 
-                {# Renderizando campos do formulário manualmente para aplicar classes Bulma #}
-                {% for field in form %}
-                <div class="field">
-                    <label class="label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    <div
-                        class="control {% if field.field.widget_type == 'checkbox' %}is-flex is-align-items-center{% endif %}">
-                        {# Adicione classes Bulma aos widgets no seu forms.py para melhor resultado #}
-                        {# Ex: forms.CharField(widget=forms.TextInput(attrs={'class': 'input'})) #}
-                        {# Ex: forms.CharField(widget=forms.Textarea(attrs={'class': 'textarea'})) #}
-                        {{ field }}
-                        {% if field.field.widget_type == 'checkbox' %}
-                        <span class="ml-2">{{ field.label_tag }}</span> {# Para Bulma, o label do checkbox é melhor ao
-                        lado #}
-                        {% endif %}
-                    </div>
-                    {% if field.help_text %}
-                    <p class="help has-text-grey-light">{{ field.help_text }}</p>
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-gray-300 mb-2" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="{% if field.field.widget_type == 'checkbox' %}flex items-center gap-2{% endif %}">
+                    {{ field }}
+                    {% if field.field.widget_type == 'checkbox' %}
+                    <span class="text-gray-300 text-sm">{{ field.label }}</span>
                     {% endif %}
-                    {% for error in field.errors %}
-                    <p class="help is-danger">{{ error }}</p>
-                    {% endfor %}
                 </div>
-                {% endfor %}
-
-                <div class="field is-grouped mt-4 mobile-column-buttons">
-                    <div class="control">
-                        <button type="submit" class="button is-success">
-                            <span class="icon"><i class="fas fa-plus"></i></span>
-                            <span>Adicionar Anotação</span>
-                        </button>
-                    </div>
-                    <div class="control">
-                        <a class="button is-link is-light" href="{% url 'main:anotacoes' id_user=user.id %}">
-                            <span class="icon"><i class="fas fa-list-ul"></i></span>
-                            <span>Ver Todas</span>
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        {# Listagem das anotações (adaptada do seu comentário) #}
-        {% if todos %} {# Supondo que 'todos' seja passado no contexto #}
-        <div class="box has-background-black-bis mt-5">
-            <h3 class="title is-4 has-text-info">Suas Anotações</h3>
-            {% for todo in todos %}
-            <article class="message is-dark mb-3"> {# Usando o componente 'message' do Bulma #}
-                <div class="message-header">
-                    <p>{{ todo.titulo|truncatewords:10}}</p>
-                    <div class="buttons are-small">
-                        <a class="button is-info is-outlined"
-                            href="{% url 'main:show' id_user=user.id id_anotacao=todo.id %}">
-                            <span class="icon"><i class="fas fa-eye"></i></span>
-                            <!-- <span>Detalhes</span> -->
-                        </a>
-                        <a class="button is-warning is-outlined"
-                            href="{% url 'main:editar' id_user=user.id id_anotacao=todo.id %}">
-                            <span class="icon"><i class="fas fa-edit"></i></span>
-                            <!-- <span>Editar</span> -->
-                        </a>
-                        <a class="button is-danger is-outlined"
-                            href="{% url 'main:remover' id_user=user.id id_anotacao=todo.id %}">
-                            <span class="icon"><i class="fas fa-trash"></i></span>
-                            <!-- <span>Apagar</span> -->
-                        </a>
-                    </div>
-                </div>
-                {% if todo.descricao %} {# Assumindo que suas anotações podem ter uma descrição #}
-                <div class="message-body has-text-grey-light">
-                    {{ todo.descricao|truncatewords:25|linebreaksbr }}
-                </div>
+                {% if field.help_text %}
+                <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
                 {% endif %}
-            </article>
+                {% for error in field.errors %}
+                <p class="text-red-400 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
             {% endfor %}
-            <div class="has-text-centered mt-4">
-                <a class="button is-link" href="{% url 'main:anotacoes' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-th-list"></i></span>
-                    <span>Ver Todas as Anotações</span>
+
+            <div class="flex flex-wrap gap-3 mt-6">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-plus"></i>
+                    <span>Adicionar Anotação</span>
+                </button>
+                <a href="{% url 'main:anotacoes' id_user=user.id %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Ver Todas</span>
                 </a>
             </div>
-        </div>
-        {% else %}
-        {% if user.is_authenticated %}
-        <div class="notification is-warning is-light mt-5">
-            <button class="delete"></button> {# Para fechar a notificação #}
-            Você ainda não tem nenhuma anotação. Que tal adicionar uma usando o formulário acima?
-        </div>
-        {% endif %}
-        {% endif %}
-
-        {% else %} {# Se o usuário não estiver autenticado #}
-        <div class="box has-background-black-bis mt-5">
-            <div class="content has-text-centered">
-                <p>Para acessar suas anotações e adicionar novas, por favor, faça o login.</p>
-                <div class="buttons is-centered">
-                    <a href="#" class="button is-primary"> <!-- Substitua '#' pelo seu URL de login -->
-                        <span class="icon"><i class="fas fa-sign-in-alt"></i></span>
-                        <span>Entrar</span>
-                    </a>
-                    <a href="#" class="button is-light"> <!-- Substitua '#' pelo seu URL de cadastro -->
-                        <span class="icon"><i class="fas fa-user-plus"></i></span>
-                        <span>Cadastrar</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
+        </form>
     </div>
+
+    <!-- Listagem de anotações -->
+    {% if todos %}
+    <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-700">
+            <h3 class="text-lg font-semibold text-white">Suas Anotações</h3>
+        </div>
+        <div class="divide-y divide-gray-700">
+            {% for todo in todos %}
+            <div class="p-4">
+                <div class="flex items-start justify-between gap-4">
+                    <p class="text-gray-200 font-medium">{{ todo.titulo|truncatewords:10 }}</p>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <a href="{% url 'main:show' id_user=user.id id_anotacao=todo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors" title="Visualizar">
+                            <i class="fas fa-eye text-sm"></i>
+                        </a>
+                        <a href="{% url 'main:editar' id_user=user.id id_anotacao=todo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-yellow-600 hover:bg-yellow-500 text-white transition-colors" title="Editar">
+                            <i class="fas fa-edit text-sm"></i>
+                        </a>
+                        <a href="{% url 'main:remover' id_user=user.id id_anotacao=todo.id %}" class="inline-flex items-center justify-center w-8 h-8 rounded bg-red-600 hover:bg-red-500 text-white transition-colors" title="Apagar">
+                            <i class="fas fa-trash text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+                {% if todo.descricao %}
+                <p class="text-gray-400 text-sm mt-2">{{ todo.descricao|truncatewords:25 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="px-6 py-4 border-t border-gray-700 text-center">
+            <a href="{% url 'main:anotacoes' id_user=user.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <i class="fas fa-th-list"></i>
+                <span>Ver Todas as Anotações</span>
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="p-4 rounded-lg bg-yellow-900/40 border border-yellow-700 text-yellow-200 mt-2">
+        Você ainda não tem nenhuma anotação. Que tal adicionar uma usando o formulário acima?
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Não autenticado -->
+    <div class="bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-700 text-center">
+        <p class="text-gray-300 mb-6">Para acessar suas anotações e adicionar novas, por favor, faça o login.</p>
+        <div class="flex justify-center gap-4">
+            <a href="{% url 'main:login' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Entrar</span>
+            </a>
+            <a href="{% url 'main:create_account' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white font-medium rounded-lg transition-colors">
+                <i class="fas fa-user-plus"></i>
+                <span>Cadastrar</span>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock content %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Adicionar classes Bulma aos campos de formulário Django dinamicamente
-        // se você não as adicionou via widget no forms.py
-        const form = document.querySelector('form');
-        if (form) {
-            form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="tel"], input[type="number"], input[type="search"], select, textarea').forEach(el => {
-                if (el.tagName === 'SELECT') {
-                    if (!el.parentElement.classList.contains('select')) {
-                        const selectWrapper = document.createElement('div');
-                        selectWrapper.className = 'select is-fullwidth'; // Ou outra classe de tamanho
-                        el.parentNode.insertBefore(selectWrapper, el);
-                        selectWrapper.appendChild(el);
-                    }
-                } else if (el.tagName === 'TEXTAREA') {
-                    if (!el.classList.contains('textarea')) {
-                        el.classList.add('textarea');
-                    }
-                } else { // Inputs
-                    if (!el.classList.contains('input')) {
-                        el.classList.add('input');
-                    }
-                }
-            });
-
-            form.querySelectorAll('input[type="checkbox"]').forEach(el => {
-                // Bulma não tem um estilo padrão forte para checkboxes isolados sem label customizado
-                // Mas a estrutura do loop de campos já ajuda.
-                // A classe 'checkbox' no elemento input não faz muito sozinha.
-            });
-            form.querySelectorAll('input[type="file"]').forEach(el => {
-                if (!el.parentElement.classList.contains('file')) {
-                    // Envolver input file com a estrutura do Bulma
-                    const fileWrapper = document.createElement('div');
-                    fileWrapper.className = 'file has-name is-fullwidth'; // Adiciona 'has-name' se quiser mostrar nome do arquivo
-
-                    const fileLabel = document.createElement('label');
-                    fileLabel.className = 'file-label';
-                    fileWrapper.appendChild(fileLabel);
-
-                    const fileInputSpan = document.createElement('span');
-                    fileInputSpan.className = 'file-cta';
-                    fileLabel.appendChild(fileInputSpan);
-
-                    const fileIconSpan = document.createElement('span');
-                    fileIconSpan.className = 'file-icon';
-                    fileIconSpan.innerHTML = '<i class="fas fa-upload"></i>';
-                    fileInputSpan.appendChild(fileIconSpan);
-
-                    const fileTextSpan = document.createElement('span');
-                    fileTextSpan.className = 'file-label'; // Texto do botão
-                    fileTextSpan.textContent = 'Escolher arquivo…';
-                    fileInputSpan.appendChild(fileTextSpan);
-
-                    // Para mostrar o nome do arquivo (opcional)
-                    const fileNameSpan = document.createElement('span');
-                    fileNameSpan.className = 'file-name';
-                    fileNameSpan.textContent = 'Nenhum arquivo selecionado';
-                    fileLabel.appendChild(fileNameSpan);
-
-
-                    el.parentNode.insertBefore(fileWrapper, el);
-                    fileLabel.insertBefore(el, fileInputSpan); // Move o input original para dentro do label
-
-                    el.addEventListener('change', () => {
-                        if (el.files.length > 0) {
-                            fileNameSpan.textContent = el.files[0].name;
-                        } else {
-                            fileNameSpan.textContent = 'Nenhum arquivo selecionado';
-                        }
-                    });
-                }
-            });
-        }
-    });
-</script>
-{% endblock extra_js %}

@@ -5,321 +5,242 @@
 
 {% block extra_css %}
 <style>
-    .titulo{
-        color: white !important;
-        text-shadow: 1px 1px 2px {{ cor_de_destaque }};
-    }
-    .time-message{
-        background-color: #111111 !important;
-        border-radius: 6px !important;
-        padding: 2px;
-        text-transform: uppercase;
-    }
-    .card-anotacao {
-        background-color: #2f2f2f;
-        border: 1px solid #4a4a4a;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    .card-anotacao .card-content {
-        flex-grow: 1;
-    }
-    .card-anotacao .card-footer-item.has-text-danger:hover {
-        background-color: #f14668;
-        color: white;
-    }
-    .filter-section {
-        background-color: #2f2f2f;
-        padding: 1.5rem;
-        border-radius: 6px;
-        margin-bottom: 2rem;
-        border: 1px solid #4a4a4a;
-    }
     .folder-card {
-        background-color: #242424;
-        border: 1px dashed #4a4a4a;
         transition: transform 0.2s, background-color 0.2s;
     }
     .folder-card:hover {
-        background-color: #2f2f2f;
         transform: translateY(-2px);
+    }
+    .anotacao-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 </style>
 {% endblock extra_css %}
 
 {% block content %}
 
-{# --- CABEÇALHO DA PÁGINA --- #}
-<div class="level mb-5">
-    <div class="level-left">
-        <div class="level-item">
-            <h1 style="color: rgb(200, 200, 200)" class="title is-2">
-                <span class="icon mr-3"><i class="fas fa-clipboard-list fa-lg"></i></span>
-                Minhas Anotações
-            </h1>
-        </div>
-    </div>
-    <div class="level-right">
-        <div class="level-item">
-            <div class="buttons">
-                <a class="button is-primary" href="{% url 'main:main' id_user=user.id %}">
-                    <span class="icon"><i class="fas fa-plus"></i></span><span>Nova Anotação</span>
-                </a>
-                <a class="button is-warning" href="{% url 'main:folders' %}">
-                    <span class="icon"><i class="fas fa-folder-plus"></i></span><span>Gerenciar Pastas</span>
-                </a>
-            </div>
-        </div>
+<!-- Cabeçalho -->
+<div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <h1 class="text-3xl font-bold text-gray-200 flex items-center gap-3">
+        <i class="fas fa-clipboard-list text-teal-500"></i>
+        <span>Minhas Anotações</span>
+    </h1>
+    <div class="flex gap-3">
+        <a class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors" href="{% url 'main:main' id_user=user.id %}">
+            <i class="fas fa-plus"></i>
+            <span>Nova Anotação</span>
+        </a>
+        <a class="inline-flex items-center gap-2 px-5 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white font-medium rounded-lg transition-colors" href="{% url 'main:folders' %}">
+            <i class="fas fa-folder-plus"></i>
+            <span>Gerenciar Pastas</span>
+        </a>
     </div>
 </div>
 
-{# --- ESTADO 1: O USUÁRIO CLICOU EM UMA PASTA (ESTÁ DENTRO DELA) --- #}
+<!-- Estado 1: Dentro de uma Pasta -->
 {% if selected_folder %}
-
-    <!-- Barra de Navegação: Voltar para a Raiz -->
-    <div class="box mb-5 is-flex is-justify-content-space-between is-align-items-center" style="background-color: #2f2f2f; border: 1px solid #4a4a4a;">
-        <div class="is-flex is-align-items-center">
-            <span class="icon is-medium has-text-warning mr-2">
-                <i class="fas fa-folder-open fa-lg"></i>
-            </span>
-            <h3 class="title is-4 has-text-light mb-0">
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-folder-open text-yellow-500 text-2xl"></i>
+            <h3 class="text-xl font-semibold text-white">
                 Pasta: {% for f in folders %}{% if f.id == selected_folder %}{{ f.name }}{% endif %}{% endfor %}
             </h3>
         </div>
-        <!-- Link de volta limpa o parâmetro "folder" da URL -->
-        <a href="{% url 'main:anotacoes' id_user=user.id %}" class="button is-light is-small">
-            <span class="icon"><i class="fas fa-arrow-left"></i></span>
+        <a href="{% url 'main:anotacoes' id_user=user.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors">
+            <i class="fas fa-arrow-left"></i>
             <span>Voltar para as pastas</span>
         </a>
     </div>
 
-    <!-- SEÇÃO DE FILTROS (Exibida APENAS dentro de uma pasta) -->
-    <div class="filter-section mb-5">
-        <h3 class="title is-5 has-text-light mb-4"><i class="fas fa-filter mr-2"></i> Filtrar nesta pasta</h3>
+    <!-- Filtros -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+        <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-filter text-blue-400"></i>
+            <span>Filtrar nesta pasta</span>
+        </h3>
         <form method="get" action="">
-            <!-- Mantém a pasta selecionada ativa no formulário -->
             <input type="hidden" name="folder" value="{{ selected_folder }}">
 
-            <div class="field is-grouped is-grouped-multiline">
-                {# Filtro por Título #}
-                <div class="control is-expanded">
-                    <div class="field has-addons">
-                        <div class="control"><span class="button is-static is-dark">Título</span></div>
-                        <div class="control is-expanded">
-                            <input class="input is-dark" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo }}" />
-                        </div>
-                    </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Título -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Título</label>
+                    <input class="w-full p-2.5 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500" type="text" name="titulo" placeholder="Buscar por título..." value="{{ selected_titulo }}" />
                 </div>
 
-                {# Filtro por Tag #}
-                <div class="control">
-                    <div class="field has-addons">
-                        <div class="control"><span class="button is-static is-dark">Tag</span></div>
-                        <div class="control">
-                            <div class="select is-dark">
-                                <select name="tag">
-                                    <option value="">Todas</option>
-                                    {% for tag_value, tag_display in all_tags %}
-                                    <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>{{ tag_display }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Tag -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Tag</label>
+                    <select name="tag" class="w-full p-2.5 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500">
+                        <option value="">Todas</option>
+                        {% for tag_value, tag_display in all_tags %}
+                        <option value="{{ tag_value }}" {% if selected_tag == tag_value %}selected{% endif %}>{{ tag_display }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                {# Filtro por Prioridade #}
-                <div class="control">
-                    <div class="field has-addons">
-                        <div class="control"><span class="button is-static is-dark">Prioridade</span></div>
-                        <div class="control">
-                            <div class="select is-dark">
-                                <select name="prioridade">
-                                    <option value="">Todas</option>
-                                    {% for prioridade_value, prioridade_display in all_prioridades %}
-                                    <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>{{ prioridade_value }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Prioridade -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Prioridade</label>
+                    <select name="prioridade" class="w-full p-2.5 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500">
+                        <option value="">Todas</option>
+                        {% for prioridade_value, prioridade_display in all_prioridades %}
+                        <option value="{{ prioridade_display }}" {% if selected_prioridade == prioridade_display %}selected{% endif %}>{{ prioridade_value }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-                {# NOVO Filtro de Data Inicial #}
-                <div class="control">
-                    <div class="field has-addons">
-                        <div class="control"><span class="button is-static is-dark">De</span></div>
-                        <div class="control">
-                            <input class="input is-dark" type="date" name="prazo_inicial" value="{{ prazo_inicial }}" />
-                        </div>
-                    </div>
+                <!-- De -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Prazo De</label>
+                    <input class="w-full p-2.5 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500" type="date" name="prazo_inicial" value="{{ prazo_inicial }}" />
                 </div>
 
-                {# NOVO Filtro de Data Final #}
-                <div class="control">
-                    <div class="field has-addons">
-                        <div class="control"><span class="button is-static is-dark">Até</span></div>
-                        <div class="control">
-                            <input class="input is-dark" type="date" name="prazo_final" value="{{ prazo_final }}" />
-                        </div>
-                    </div>
+                <!-- Até -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Prazo Até</label>
+                    <input class="w-full p-2.5 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:border-blue-500" type="date" name="prazo_final" value="{{ prazo_final }}" />
                 </div>
             </div>
 
-            {# Checkboxes e Botões de Submissão #}
-            <div class="field is-grouped is-grouped-multiline mt-4">
-                <div class="control">
-                    <label class="checkbox has-text-white">
-                        <input type="checkbox" name="favorito" value="true" {% if selected_favorito == 'true' %}checked{% endif %} />
-                        Apenas Favoritos
+            <!-- Checkboxes e Botões -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-700">
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <input type="checkbox" name="favorito" value="true" class="rounded bg-gray-900 border-gray-600 text-blue-600 focus:ring-0" {% if selected_favorito == 'true' %}checked{% endif %} />
+                        <span>Apenas Favoritos</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                        <input type="checkbox" name="completo" value="true" class="rounded bg-gray-900 border-gray-600 text-blue-600 focus:ring-0" {% if selected_completo == 'true' %}checked{% endif %} />
+                        <span>Apenas Concluídos</span>
                     </label>
                 </div>
-                <div class="control">
-                    <label class="checkbox has-text-white">
-                        <input type="checkbox" name="completo" value="true" {% if selected_completo == 'true' %}checked{% endif %} />
-                        Apenas Concluídos
-                    </label>
-                </div>
-                <div class="control">
-                    <button type="submit" class="button is-info">Aplicar Filtros</button>
-                </div>
-                <div class="control">
-                    <!-- Limpar filtros mantém o usuário na pasta, mas remove os filtros adicionais -->
-                    <a href="?folder={{ selected_folder }}" class="button is-light">Limpar Filtros</a>
+                <div class="flex gap-3">
+                    <a href="?folder={{ selected_folder }}" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg text-sm transition-colors">Limpar Filtros</a>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors">Aplicar Filtros</button>
                 </div>
             </div>
         </form>
     </div>
 
-    <h3 class="title is-5 has-text-grey-light mb-3">Anotações nesta pasta</h3>
+    <h2 class="text-xl font-bold text-gray-300 mb-6">Anotações nesta pasta</h2>
 
-{# --- ESTADO 2: O USUÁRIO ESTÁ NA RAIZ (VÊ APENAS AS PASTAS E ANOTAÇÕES AVULSAS) --- #}
+<!-- Estado 2: Raiz -->
 {% else %}
 
-    <!-- Seção de Exibição das Pastas -->
-    <div id="folders-container" class="mb-6">
-        <h3 class="title is-5 has-text-grey-light mb-3">Minhas Pastas</h3>
-        <div class="columns is-multiline">
+    <!-- Seção de Pastas -->
+    <div class="mb-10">
+        <h2 class="text-xl font-bold text-gray-300 mb-6">Minhas Pastas</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {% for folder in folders %}
-            <div class="column is-one-quarter-desktop is-one-third-tablet">
-                <!-- O Card agora é um link real que passa o ID da pasta por GET -->
-                <a href="?folder={{ folder.id }}">
-                    <div class="card folder-card">
-                        <div class="card-content has-text-centered py-4">
-                            <span class="icon is-large has-text-warning">
-                                <i class="fas fa-folder fa-2x"></i>
-                            </span>
-                            <p class="subtitle is-6 has-text-light mt-2 mb-3"><strong>{{ folder.name }}</strong></p>
-                        </div>
-                    </div>
-                </a>
-            </div>
+            <a href="?folder={{ folder.id }}" class="group block bg-gray-800 hover:bg-gray-750 border border-gray-700 rounded-xl p-5 folder-card shadow-md">
+                <div class="flex flex-col items-center text-center">
+                    <span class="text-yellow-500 group-hover:scale-110 transition-transform mb-3">
+                        <i class="fas fa-folder fa-3x"></i>
+                    </span>
+                    <strong class="text-gray-200 group-hover:text-white transition-colors">{{ folder.name }}</strong>
+                </div>
+            </a>
             {% empty %}
-            <div class="column is-12">
-                <p class="has-text-grey">Nenhuma pasta criada. Clique em "Gerenciar Pastas" para adicionar.</p>
+            <div class="col-span-full py-6 text-center text-gray-500">
+                Nenhuma pasta criada. Clique em "Gerenciar Pastas" para adicionar.
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <h3 class="title is-5 has-text-grey-light mb-3">Anotações sem pasta (Avulsas)</h3>
+    <h2 class="text-xl font-bold text-gray-300 mb-6">Anotações sem pasta (Avulsas)</h2>
 
 {% endif %}
 
-{# --- GRID DE EXIBIÇÃO DAS ANOTAÇÕES (Roda de forma idêntica para os dois estados) --- #}
+<!-- Grid de Anotações -->
 {% if anotacoes %}
-<div class="columns is-multiline">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for anotacao_item in anotacoes %}
-    <div class="column is-one-third-desktop is-half-tablet">
-        <div class="card card-anotacao">
-            <header class="card-header">
-                <p class="card-header-title is-clipped">
-                    <span class="icon-text">
-                        <span class="icon">
-                            {% if anotacao_item.favorito %}
-                            <i class="fas fa-star has-text-warning"></i>
-                            {% else %}
-                            <i class="fas fa-pen-alt has-text-grey-light"></i>
-                            {% endif %}
-                        </span>
-                        <span class="titulo">{{ anotacao_item.titulo }}</span>
-                    </span>
-                </p>
-                <div class="card-header-icon">
-                    <span class="tag {% if anotacao_item.prioridade == 'Máxima' %}is-danger {% elif anotacao_item.prioridade == 'Mediana' %}is-warning {% elif anotacao_item.prioridade == 'Mínima' %}is-success {% else %}is-dark{% endif %}">
-                        {{ anotacao_item.get_prioridade_display }}
-                    </span>
-                </div>
-            </header>
-            <div class="card-content">
-                <div class="content">
-                    {% if anotacao_item.folder %}
-                    <p class="is-size-7 mb-3">
-                        <span class="icon-text has-text-warning">
-                            <span class="icon"><i class="fas fa-folder"></i></span>
-                            <strong>{{ anotacao_item.folder.name }}</strong>
-                        </span>
-                    </p>
-                    {% endif %}
+    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg flex flex-col anotacao-card">
+        <!-- Card Header -->
+        <div class="flex items-center justify-between p-4 bg-gray-750 border-b border-gray-700">
+            <h3 class="font-semibold text-white truncate max-w-[180px] flex items-center gap-2">
+                {% if anotacao_item.favorito %}
+                <i class="fas fa-star text-yellow-500"></i>
+                {% else %}
+                <i class="fas fa-pen-alt text-gray-400"></i>
+                {% endif %}
+                <span>{{ anotacao_item.titulo }}</span>
+            </h3>
+            <span class="px-2.5 py-1 text-xs font-semibold rounded-full 
+                {% if anotacao_item.prioridade == 'Máxima' %} bg-red-900 text-red-200 border border-red-800
+                {% elif anotacao_item.prioridade == 'Mediana' %} bg-yellow-900/80 text-yellow-200 border border-yellow-800/80
+                {% elif anotacao_item.prioridade == 'Mínima' %} bg-green-900 text-green-200 border border-green-800
+                {% else %} bg-gray-700 text-gray-300 border border-gray-600
+                {% endif %}">
+                {{ anotacao_item.get_prioridade_display }}
+            </span>
+        </div>
 
-                    <p style="color: white">
-                        {{ anotacao_item.anotacao|truncatewords:20|linebreaksbr }}
-                    </p>
-                    <br />
-                    {% if not anotacao_item.completo %}
-                    <p class="is-size-7">
-                        <span class="icon-text">
-                            <span class="icon"><i class="fas fa-hourglass-half"></i></span>
-                            <strong class="time-message" style="color: {{ anotacao_item.color }};">
-                                {% if anotacao_item.prazo_dias is not None %}
-                                    {{ anotacao_item.message }}
-                                    {% if anotacao_item.prazo_dias == 1 %}
-                                        1 dia
-                                    {% else %}
-                                        {{ anotacao_item.prazo_dias }} dias
-                                    {% endif %}
-                                {% else %}
-                                    Sem prazo definido
-                                {% endif %}
-                            </strong>
-                        </span>
-                    </p>
+        <!-- Card Body -->
+        <div class="p-5 flex-grow">
+            {% if anotacao_item.folder %}
+            <p class="text-xs text-yellow-400 mb-3 flex items-center gap-1.5">
+                <i class="fas fa-folder"></i>
+                <strong>{{ anotacao_item.folder.name }}</strong>
+            </p>
+            {% endif %}
+
+            <p class="text-gray-300 text-sm leading-relaxed mb-4">
+                {{ anotacao_item.anotacao|truncatewords:20|linebreaksbr }}
+            </p>
+        </div>
+
+        <!-- Card Footer Info -->
+        <div class="px-5 pb-4">
+            {% if not anotacao_item.completo %}
+            <p class="text-xs flex items-center gap-1.5">
+                <i class="fas fa-hourglass-half text-gray-400"></i>
+                <span class="font-semibold uppercase tracking-wider px-2 py-0.5 rounded text-[10px]" style="background-color: #111827; color: {{ anotacao_item.color|default:'#9ca3af' }};">
+                    {% if anotacao_item.prazo_dias is not None %}
+                        {{ anotacao_item.message }}
+                        {% if anotacao_item.prazo_dias == 1 %}
+                            1 dia
+                        {% else %}
+                            {{ anotacao_item.prazo_dias }} dias
+                        {% endif %}
                     {% else %}
-                    <p class="is-size-7 has-text-success">
-                        <span class="icon-text">
-                            <span class="icon"><i class="fas fa-check-circle"></i></span>
-                            <strong style="color: white">Concluído</strong>
-                        </span>
-                    </p>
+                        Sem prazo definido
                     {% endif %}
-                </div>
-            </div>
-            <footer class="card-footer">
-                <a href="{% url 'main:show' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Ver</a>
-                <a href="{% url 'main:editar' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item">Editar</a>
-                <a href="{% url 'main:remover' id_user=user.id id_anotacao=anotacao_item.id %}" class="card-footer-item has-text-danger">Apagar</a>
-            </footer>
+                </span>
+            </p>
+            {% else %}
+            <p class="text-xs text-green-400 flex items-center gap-1.5">
+                <i class="fas fa-check-circle"></i>
+                <span class="font-semibold">Concluído</span>
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Card Actions -->
+        <div class="flex border-t border-gray-700 bg-gray-750">
+            <a href="{% url 'main:show' id_user=user.id id_anotacao=anotacao_item.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-colors border-r border-gray-700">Ver</a>
+            <a href="{% url 'main:editar' id_user=user.id id_anotacao=anotacao_item.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-medium transition-colors border-r border-gray-700">Editar</a>
+            <a href="{% url 'main:remover' id_user=user.id id_anotacao=anotacao_item.id %}" class="flex-1 text-center py-3 hover:bg-gray-700 text-red-400 hover:text-red-300 text-sm font-medium transition-colors">Apagar</a>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="box has-text-centered py-6">
-    <span class="icon is-large has-text-grey-light">
-        <i class="fas fa-folder-open fa-3x"></i>
+<div class="bg-gray-800 rounded-xl p-10 border border-gray-700 text-center max-w-md mx-auto my-8">
+    <span class="text-gray-600 block mb-4">
+        <i class="fas fa-folder-open fa-4x"></i>
     </span>
-    <h2 class="title is-4 mt-4">Nenhuma anotação encontrada</h2>
-    <p class="subtitle is-6">Que tal criar uma anotação nesta pasta?</p>
-    <a class="button is-primary is-medium mt-4" href="{% url 'main:main' id_user=user.id %}">
-        <span class="icon"><i class="fas fa-plus"></i></span>
+    <h2 class="text-xl font-bold text-white mb-2">Nenhuma anotação encontrada</h2>
+    <p class="text-gray-400 mb-6">Que tal criar uma anotação nesta pasta?</p>
+    <a class="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors" href="{% url 'main:main' id_user=user.id %}">
+        <i class="fas fa-plus"></i>
         <span>Criar Anotação</span>
     </a>
 </div>
 {% endif %}
 
 {% endblock content %}
-
-{% block extra_js %}
-<!-- O bloco extra_js agora está limpo de Javascripts de ocultação manuais, pois o Django faz a divisão nativa! -->
-{% endblock extra_js %}

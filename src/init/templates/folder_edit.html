@@ -3,24 +3,24 @@
 {% block title %}Editar Pasta - {{ folder.name }}{% endblock %}
 
 {% block content %}
-<div class="columns is-centered">
-    <div class="column is-6-tablet is-half-desktop">
+<div class="flex flex-wrap -mx-3 is-centered">
+    <div class="w-full md:w-1/2 px-3-tablet is-half-desktop">
 
         <!-- Mensagens de Feedback -->
         {% if messages %}
             {% for message in messages %}
-                <div class="notification is-danger">
+                <div class="p-4 field rounded-md bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600">
                     <button class="delete"></button>
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <div class="box has-background-black-bis" style="border: 1px solid #4a4a4a;">
-            <h1 class="title is-4 has-text-warning">
+        <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 border border-gray-200 dark:border-gray-700 has-background-black-bis" style="border: 1px solid #4a4a4a;">
+            <h1 class="title is-4 text-yellow-600 dark:text-yellow-400">
                 <span class="icon mr-2"><i class="fas fa-edit"></i></span>Editar Pasta
             </h1>
-            <p class="subtitle is-6 has-text-grey">
+            <p class="text-xl text-gray-600 dark:text-gray-400 field is-6 text-gray-500 dark:text-gray-400">
                 Altere o nome da pasta selecionada.
             </p>
 
@@ -28,33 +28,33 @@
                 {% csrf_token %}
 
                 <div class="field">
-                    <label class="label has-text-grey-light" for="id_name">
+                    <label class="label text-gray-500 dark:text-gray-400-light" for="id_name">
                         {{ form.name.label|default:"Nome da Pasta" }}
                     </label>
-                    <div class="control">
+                    <div class="relative">
                         <!-- Renderização manual para aplicar as classes CSS do Bulma corretas -->
                         <input
                             type="text"
                             name="name"
                             id="id_name"
-                            class="input is-dark"
+                            class="input bg-gray-800 hover:bg-gray-900 text-white dark:bg-gray-700 dark:hover:bg-gray-600"
                             value="{{ form.name.value|default:folder.name }}"
                             required
                         >
                     </div>
                     {% for error in form.name.errors %}
-                        <p class="help is-danger">{{ error }}</p>
+                        <p class="help bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600">{{ error }}</p>
                     {% endfor %}
                 </div>
 
                 <div class="field is-grouped mt-5">
-                    <div class="control">
-                        <button type="submit" class="button is-success">
+                    <div class="relative">
+                        <button type="submit" class="button bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600">
                             <span class="icon"><i class="fas fa-save"></i></span>
                             <span>Salvar Alterações</span>
                         </button>
                     </div>
-                    <div class="control">
+                    <div class="relative">
                         <a href="{% url 'main:anotacoes' id_user=user.id %}" class="button is-light is-outlined">
                             <span>Cancelar</span>
                         </a>
