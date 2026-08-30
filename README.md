@@ -1,12 +1,14 @@
 # Lista de tarefas com Django
 
+https://victoraccount2.pythonanywhere.com/main/
+
 ## Descrição
-- Lista de tarefas com Framework BackEnd `Django` e o Framework `Bulma CSS` para FrontEnd
+- Lista de tarefas com Framework BackEnd `Django` e o Framework `Tailwind CSS` para FrontEnd
 
 ---
 
 - Ilustração
-![<imagem>](<docs/imgs/inicio.png>)
+![<imagem>](<docs/imgs/agenda.png>)
 
 - Anotações com suporte a markdown
 ![<imagem>](<docs/imgs/markdown.png>)
@@ -17,11 +19,9 @@
 - Agenda
 ![<imagem>](<docs/imgs/agenda.png>)
 
-- Compartilhamento de tarefas
-![<imagem>](<docs/imgs/compartilhar.png>)
+- Imagens relacionadas as anotações
+![<imagem>](<docs/imgs/anotacao-image.png>)
 
-- Tarefa compartilhada
-![<imagem>](<docs/imgs/em-grupo.png>)
 
 ---
 - 🆙🆙🆙 Fique à vontade para fazer um `fork`.
