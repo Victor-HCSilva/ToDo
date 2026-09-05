@@ -1,11 +1,13 @@
 # ==========================================
-# Python (Arquivos compilados e temporários)
+# Python
 # ==========================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Distribuição / empacotamento
 build/
 develop-eggs/
 dist/
@@ -23,7 +25,7 @@ wheels/
 *.egg
 
 # ==========================================
-# Ambientes Virtuais (Venv)
+# Ambientes Virtuais
 # ==========================================
 venv/
 .venv/
@@ -34,20 +36,16 @@ env.bak/
 venv.bak/
 
 # ==========================================
-# Django (Arquivos específicos do Framework)
+# Django
 # ==========================================
-# Ignora o banco de dados padrão SQLite local para evitar misturar dados de teste com produção
-src/db.sqlite3
-src/db.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
 
-# Ignora a pasta de uploads de mídia
 src/media/
-
-# Ignora a pasta de arquivos estáticos gerada em produção
 src/staticfiles/
 
 # ==========================================
-# Variáveis de Ambiente e Segredos (Segurança)
+# Variáveis de Ambiente e Segredos
 # ==========================================
 .env
 .secrets
@@ -55,7 +53,7 @@ secrets.json
 local_settings.py
 
 # ==========================================
-# Editores de Código e IDEs (VS Code, PyCharm)
+# Editores / IDEs
 # ==========================================
 .vscode/
 .idea/
@@ -67,7 +65,7 @@ local_settings.py
 *~
 
 # ==========================================
-# Sistema Operacional (macOS e Windows)
+# Sistema Operacional
 # ==========================================
 .DS_Store
 .DS_Store?

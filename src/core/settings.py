@@ -1,75 +1,98 @@
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
 
+# ==============================================================================
 # 1. IDENTIFICAÇÃO DE CAMINHOS
-# Localização: projeto/src/core/settings.py
+# ==============================================================================
 CURRENT_FILE = Path(__file__).resolve()
 
-# Caminho da pasta 'src' (onde estão os apps e o manage.py)
+# Diretório 'src' (onde estão os apps e o manage.py)
 SRC_DIR = CURRENT_FILE.parent.parent
 
-# Caminho da RAIZ do projeto (onde estão .envs, db.sqlite3, static e media)
+# Diretório RAIZ do projeto (onde ficam .envs, db.sqlite3, static e media)
 BASE_DIR = SRC_DIR.parent
 
-# 2. AJUSTE DO PYTHON PATH (O "pulo do gato")
-# Isso faz o Django encontrar os apps (main, agenda) mesmo estando dentro de src/
+# Adiciona 'src' ao sys.path para importação direta de apps internos
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# 3. CARREGAMENTO DAS VARIÁVEIS DE AMBIENTE
-dotenv_path = BASE_DIR / ".envs" / ".env"
-load_dotenv(dotenv_path)
+# ==============================================================================
+# 2. VARIÁVEIS DE AMBIENTE
+# ==============================================================================
+DOTENV_PATH = BASE_DIR / ".envs" / ".env"
+load_dotenv(DOTENV_PATH)
 
-# 4. CONFIGURAÇÕES BÁSICAS
-SECRET_KEY = os.getenv("SECRET_KEY", "chave-secreta-padrao")
 
-# IMPORTANTE: Converter string do env para booleano real
-DEBUG = False  # False  # os.getenv("DEBUG", "False").lower() == "true"
+def get_env_bool(name: str, default: bool = False) -> bool:
+    """Converte valores de variáveis de ambiente para booleano."""
+    val = os.getenv(name)
+    if val is None:
+        return default
+    return val.strip().lower() in ("true", "1", "t", "yes")
 
-trusted_hosts_raw = (
-    "127.0.0.1,localhost,192.168.122.1,10.0.0.108,victoraccount2.pythonanywhere.com"
+
+def get_env_list(name: str, default: str = "") -> list[str]:
+    """Converte strings separadas por vírgula em lista de strings limpas."""
+    raw = os.getenv(name, default)
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+# ==============================================================================
+# 3. SEGURANÇA BÁSICA E HOSTS
+# ==============================================================================
+DEBUG = get_env_bool("DEBUG", default=False)
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-dev-key-substitua-em-producao"
+    else:
+        raise ValueError("A variável SECRET_KEY precisa estar definida em produção!")
+
+# Hosts permitidos (fallback para hosts comuns locais e de teste)
+ALLOWED_HOSTS = get_env_list(
+    "ALLOWED_HOSTS",
+    default="127.0.0.1,localhost,192.168.122.1,10.0.0.108,victoraccount2.pythonanywhere.com",
 )
 
+# Essencial a partir do Django 4.0 caso use formulários/admin em HTTPS
+CSRF_TRUSTED_ORIGINS = get_env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    default="https://victoraccount2.pythonanywhere.com,http://127.0.0.1,http://localhost",
+)
 
-ALLOWED_HOSTS = [host.strip() for host in trusted_hosts_raw.split(",")]
-
-# 5. LOGIN E SESSÃO
-LOGIN_URL = "main:login"
-LOGOUT_REDIRECT_URL = "main:create_account"
-
-# 6. DJANGO AXES (Correção do reset)
-AXES_FAILURE_LIMIT = 5
-HOUR = 3600
-AXES_COOLOFF_TIME = 200 if DEBUG else int(HOUR / 2)
-
-# --- AS LINHAS QUE RESOLVEM O SEU PROBLEMA ---
-AXES_RESET_ON_SUCCESS = True  # Reseta as chances ao acertar a senha
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True  # Bloqueio inteligente
-AXES_THRESHOLD_WINDOW = 24  # Esquece tentativas muito antigas (em horas)
-
-# SESSÕES
-SESSION_COOKIE_AGE = 10000 if DEBUG else int(HOUR / 10)
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
-
-# 7. APPS E MIDDLEWARE
-INSTALLED_APPS = [
-    "corsheaders",
+# ==============================================================================
+# 4. APLICAÇÕES INSTALADAS
+# ==============================================================================
+DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "main",
-    "agenda",
-    "checklist",
+]
+
+THIRD_PARTY_APPS = [
+    "corsheaders",
     "axes",
 ]
 
+LOCAL_APPS = [
+    "main",
+    "agenda",
+    "checklist",
+]
+
+INSTALLED_APPS = THIRD_PARTY_APPS + DJANGO_APPS + LOCAL_APPS
+
+# ==============================================================================
+# 5. MIDDLEWARES
+# ==============================================================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -84,13 +107,18 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "core.urls"
+WSGI_APPLICATION = "core.wsgi.application"
 
-# 8. TEMPLATES (Ajustado para o novo BASE_DIR)
+# ==============================================================================
+# 6. TEMPLATES
+# ==============================================================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # Agora busca em projeto/src/main/templates
-        "DIRS": [SRC_DIR / "main" / "templates"],
+        "DIRS": [
+            SRC_DIR / "main" / "templates",
+            BASE_DIR / "templates",  # Diretório global opcional
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -102,9 +130,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "core.wsgi.application"
-
-# 9. BANCO DE DATOS (Na raiz do projeto)
+# ==============================================================================
+# 7. BANCO DE DADOS
+# ==============================================================================
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -112,27 +140,56 @@ DATABASES = {
     }
 }
 
-# 10. ESTÁTICOS E MEDIA
+# ==============================================================================
+# 8. AUTENTICAÇÃO E CONTROLE DE ACESSO (DJANGO AXES)
+# ==============================================================================
+LOGIN_URL = "main:login"
+LOGOUT_REDIRECT_URL = "main:create_account"
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Regras do django-axes
+AXES_FAILURE_LIMIT = 5
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
+AXES_THRESHOLD_WINDOW = timedelta(hours=24)
+AXES_COOLOFF_TIME = timedelta(seconds=200) if DEBUG else timedelta(minutes=30)
+
+# Regras de Sessão
+SESSION_COOKIE_AGE = 10000 if DEBUG else int(timedelta(minutes=6).total_seconds())
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+
+# ==============================================================================
+# 9. ARQUIVOS ESTÁTICOS E MEDIA
+# ==============================================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# 11. AUTENTICAÇÃO
-AUTHENTICATION_BACKENDS = [
-    "axes.backends.AxesStandaloneBackend",
-    "django.contrib.auth.backends.ModelBackend",
-]
-
-# INTERNACIONALIZAÇÃO
-TIME_ZONE = "America/Sao_Paulo"
+# ==============================================================================
+# 10. INTERNACIONALIZAÇÃO E FUSO HORÁRIO
+# ==============================================================================
 LANGUAGE_CODE = "pt-br"
+TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ==============================================================================
+# 11. SEGURANÇA AVANÇADA (PRODUÇÃO)
+# ==============================================================================
 if not DEBUG:
+    # Cookies seguros só trafegam via HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Detecção de IP atrás de Proxy Reverso (como PythonAnywhere/Nginx)
     AXES_PROXY_COUNT = 1
     AXES_META_PRECEDENCE_ORDER = (
         "HTTP_X_FORWARDED_FOR",
