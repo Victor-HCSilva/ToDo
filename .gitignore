@@ -24,6 +24,12 @@ wheels/
 .installed.cfg
 *.egg
 
+# Testes e Cobertura
+.coverage
+htmlcov/
+.pytest_cache/
+*.log
+
 # ==========================================
 # Ambientes Virtuais
 # ==========================================
@@ -36,18 +42,21 @@ env.bak/
 venv.bak/
 
 # ==========================================
-# Django
+# Django (Banco de Dados e Arquivos Gerados)
 # ==========================================
 *.sqlite3
 *.sqlite3-journal
 
-src/media/
-src/staticfiles/
+# Estáticos coletados e uploads (na raiz do projeto conforme seu settings.py)
+staticfiles/
+media/
 
 # ==========================================
 # Variáveis de Ambiente e Segredos
 # ==========================================
 .env
+.env.*
+.envs/
 .secrets
 secrets.json
 local_settings.py
@@ -74,5 +83,3 @@ local_settings.py
 .Trashes
 ehthumbs.db
 Thumbs.db
-00*
-/staticfiles
