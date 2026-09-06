@@ -245,8 +245,19 @@ class Todo(models.Model):
                 return "#b82b14"
 
 
+def _upload_imagem_path(instance, filename):
+    """Gera um caminho de upload com nome UUID para a imagem.
+    SEGURANÇA: Nunca usa o nome original do arquivo enviado pelo usuário,
+    prevenindo path traversal e vazamento de informações via nomes de arquivo.
+    """
+    import uuid
+    import os
+    ext = os.path.splitext(filename)[1].lower()
+    return f"imgs/{uuid.uuid4().hex}{ext}"
+
+
 class Image(models.Model):
-    img = models.ImageField(upload_to="imgs")
+    img = models.ImageField(upload_to=_upload_imagem_path)
     descricao = models.CharField(max_length=1000, default="Imagem sem descriçao")
     titulo = models.CharField(max_length=1000, default="Sem titulo")
     data_de_criacao = models.DateField(default=timezone.now)

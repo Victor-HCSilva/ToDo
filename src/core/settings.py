@@ -53,17 +53,30 @@ if not SECRET_KEY:
     else:
         raise ValueError("A variável SECRET_KEY precisa estar definida em produção!")
 
-# Hosts permitidos (fallback para hosts comuns locais e de teste)
+# Hosts permitidos — sem fallback hardcoded de produção.
+# Em desenvolvimento, defina ALLOWED_HOSTS no arquivo .envs/.env.
+# Em produção, a variável de ambiente ALLOWED_HOSTS DEVE estar definida.
 ALLOWED_HOSTS = get_env_list(
     "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost,192.168.122.1,10.0.0.108,victoraccount2.pythonanywhere.com",
+    default="127.0.0.1,localhost" if DEBUG else "",
 )
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ValueError(
+        "A variável ALLOWED_HOSTS precisa estar definida em produção! "
+        "Exemplo: ALLOWED_HOSTS=example.com,www.example.com"
+    )
 
 # Essencial a partir do Django 4.0 caso use formulários/admin em HTTPS
+# Em desenvolvimento, usa fallback local. Em produção, defina via variável de ambiente.
 CSRF_TRUSTED_ORIGINS = get_env_list(
     "CSRF_TRUSTED_ORIGINS",
-    default="https://victoraccount2.pythonanywhere.com,http://127.0.0.1,http://localhost",
+    default="http://127.0.0.1,http://localhost" if DEBUG else "",
 )
+if not DEBUG and not CSRF_TRUSTED_ORIGINS:
+    raise ValueError(
+        "A variável CSRF_TRUSTED_ORIGINS precisa estar definida em produção! "
+        "Exemplo: CSRF_TRUSTED_ORIGINS=https://example.com"
+    )
 
 # ==============================================================================
 # 4. APLICAÇÕES INSTALADAS
@@ -189,7 +202,32 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+    # Cookies: declarações explícitas de HttpOnly e SameSite
+    # SESSION_COOKIE_HTTPONLY=True é o default do Django, mas declarar explicitamente
+    # evita surpresas em atualizações de versão.
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SAMESITE = "Lax"
+    # CSRF_COOKIE_HTTPONLY não é ativado pois interfere com o mecanismo CSRF padrão do Django.
+
+    # Security headers de produção
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # Bloqueia MIME sniffing pelo navegador
+    SECURE_REFERRER_POLICY = "same-origin"  # Não vaza URL para domínios externos
+    X_FRAME_OPTIONS = "DENY"  # Previne clickjacking via iframe
+
+    # NOTA: SECURE_HSTS_SECONDS e SECURE_SSL_REDIRECT foram intencionalmente
+    # OMITIDOS. Ativar sem confirmar que HTTPS está funcionando e que o
+    # reverse proxy (PythonAnywhere) está configurado corretamente pode
+    # derrubar o site. Ative manualmente após validação:
+    # SECURE_HSTS_SECONDS = 31536000
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
+    # SECURE_SSL_REDIRECT = True
+
     # Detecção de IP atrás de Proxy Reverso (como PythonAnywhere/Nginx)
+    # IMPORTANTE: AXES_PROXY_COUNT=1 pressupõe exatamente 1 proxy confiável (PythonAnywhere)
+    # entre o cliente e o Django. Se a infraestrutura mudar, revisar este valor.
+    # Não confiar cegamente em X-Forwarded-For se a aplicação puder ser acessada diretamente.
     AXES_PROXY_COUNT = 1
     AXES_META_PRECEDENCE_ORDER = (
         "HTTP_X_FORWARDED_FOR",

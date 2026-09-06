@@ -19,7 +19,9 @@ class Agenda:
             return redirect("main:login")
 
         form = AgendaForm(self.request.POST or None)
-        user = get_object_or_404(User, id=id_user)
+        # SEGURANÇA: usa request.user diretamente — não confia no id_user da URL
+        # para determinar qual usuário possui os eventos.
+        user = self.request.user
 
         if self.request.method == "POST":
             if form.is_valid():
@@ -73,7 +75,13 @@ class Eventos:
         self.request = request
 
     def eventos_(self, id_user: int):
-        user = get_object_or_404(User, id=id_user)
+        # SEGURANÇA: id_user da URL é ignorado para autorização.
+        # Os eventos exibidos sempre pertencem ao usuário autenticado (request.user).
+        # Se o id_user não corresponde ao usuário logado, redireciona para login.
+        if self.request.user.id != id_user:
+            return redirect("main:login")
+
+        user = self.request.user
         eventos = AgendaModel.objects.filter(user=user, is_active=True)
         context = {
             "eventos": eventos,
@@ -82,8 +90,14 @@ class Eventos:
         return render(self.request, "eventos.html", context)
 
     def detalhe_sobre_evento(self, id_user: int, id_evento):
-        user = get_object_or_404(User, id=id_user)
-        evento = get_object_or_404(AgendaModel, id=id_evento)
+        # SEGURANÇA: Verifica que o usuário logado tem acesso a este evento.
+        # A query vincula o evento ao request.user, garantindo que nenhum
+        # outro usuário possa acessar este detalhe mesmo alterando id_evento na URL.
+        if self.request.user.id != id_user:
+            return redirect("main:login")
+
+        user = self.request.user
+        evento = get_object_or_404(AgendaModel, id=id_evento, user=user)
         context = {
             "evento": evento,
             "user": user,
@@ -101,7 +115,9 @@ class Configs:
             return redirect("main:login")
 
         form = ColorForm(self.request.POST)
-        user = get_object_or_404(User, id=id_user)
+        # SEGURANÇA: usa request.user diretamente — não confia no id_user da URL
+        # para determinar qual usuário terá as configurações salvas.
+        user = self.request.user
         context = {
             "nada": "nada",
             "cor_de_destaque": form,
@@ -126,8 +142,11 @@ class DeleteOrEditEvent:
         if self.request.user.id != id_user:
             return redirect("main:login")
 
-        evento = get_object_or_404(AgendaModel, id=id_event)
-        user = get_object_or_404(User, id=id_user)
+        # SEGURANÇA: a query vincula o evento ao request.user.
+        # Um atacante que manipule id_event na URL receberá 404
+        # se o evento não pertencer ao usuário autenticado.
+        evento = get_object_or_404(AgendaModel, id=id_event, user=self.request.user)
+        user = self.request.user
         context = {
             "user": user,
             "evento": evento,
@@ -144,8 +163,11 @@ class DeleteOrEditEvent:
         if self.request.user.id != id_user:
             return redirect("main:login")
 
-        evento = get_object_or_404(AgendaModel, id=id_event)
-        user = get_object_or_404(User, id=id_user)
+        # SEGURANÇA: a query vincula o evento ao request.user.
+        # Um atacante que manipule id_event na URL receberá 404
+        # se o evento não pertencer ao usuário autenticado.
+        evento = get_object_or_404(AgendaModel, id=id_event, user=self.request.user)
+        user = self.request.user
 
         if self.request.method == "POST":
             form = AgendaForm(self.request.POST, instance=evento)

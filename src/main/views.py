@@ -197,7 +197,8 @@ def remover(request, id_user, id_anotacao):
     if request.method == "POST":
         todo.is_active = False
         todo.save()
-        return redirect("main:anotacoes", id_user=id_user)
+        # SEGURANÇA: usa request.user.id para o redirect — não confia no id_user da URL.
+        return redirect("main:anotacoes", id_user=request.user.id)
 
     return render(request, "todo/delete.html", {"user": request.user, "tarefa": todo})
 
@@ -335,7 +336,9 @@ def home(request):
 def welcome(request, id_user):
     if request.user.id != id_user:
         return redirect("main:welcome", id_user=request.user.id)
-    user = get_object_or_404(User, id=id_user, is_active=True)
+    # SEGURANÇA: usa request.user diretamente — não rebusca o User pelo id_user da URL,
+    # pois o decorator @login_required já garante que request.user é o usuário autenticado.
+    user = request.user
     todos = Todo.objects.para_usuario(user).filter(is_active=True)
     return render(request, "base/welcome.html", {"todos": todos, "user": user})
 

@@ -137,6 +137,11 @@ class UserForm(forms.ModelForm):
 
 
 class ImageForm(forms.ModelForm):
+    # Configurações de validação de upload
+    MAX_UPLOAD_SIZE_MB = 5
+    MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+    ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+
     class Meta:
         model = Image
         # Inclua os campos do seu modelo Image que o usuário deve preencher
@@ -154,6 +159,52 @@ class ImageForm(forms.ModelForm):
             ),
             "img": forms.ClearableFileInput(attrs={"class": "file-input"}),
         }
+
+    def clean_img(self):
+        """Valida o arquivo de imagem quanto a extensão, tamanho e conteúdo real (MIME)."""
+        import os
+        from PIL import Image as PilImage
+
+        image = self.cleaned_data.get("img")
+        if not image:
+            return image
+
+        # 1. Valida extensão contra allowlist
+        _, ext = os.path.splitext(image.name.lower())
+        if ext not in self.ALLOWED_EXTENSIONS:
+            raise forms.ValidationError(
+                f"Extensão '{ext}' não permitida. Use: {', '.join(sorted(self.ALLOWED_EXTENSIONS))}."
+            )
+
+        # 2. Valida tamanho máximo
+        if image.size > self.MAX_UPLOAD_SIZE_BYTES:
+            raise forms.ValidationError(
+                f"O arquivo excede o tamanho máximo permitido de {self.MAX_UPLOAD_SIZE_MB} MB."
+            )
+
+        # 3. Valida conteúdo real do arquivo via Pillow (não confia apenas na extensão)
+        # Pillow re-verifica o stream binário e rejeita arquivos malformados ou não-imagem.
+        try:
+            pil_image = PilImage.open(image)
+            pil_image.verify()  # Detecta arquivos corrompidos ou não-imagem
+            # Verifica o formato real reportado pelo Pillow
+            pil_format = (pil_image.format or "").lower()
+            allowed_pil_formats = {"jpeg", "png", "webp"}
+            if pil_format not in allowed_pil_formats:
+                raise forms.ValidationError(
+                    "O conteúdo do arquivo não corresponde a um formato de imagem permitido."
+                )
+        except forms.ValidationError:
+            raise
+        except Exception:
+            raise forms.ValidationError(
+                "O arquivo enviado não é uma imagem válida ou está corrompido."
+            )
+        finally:
+            # Volta o ponteiro ao início após a validação para uso posterior
+            image.seek(0)
+
+        return image
 
 
 class FolderForm(forms.ModelForm):
