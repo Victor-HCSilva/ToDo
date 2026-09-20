@@ -93,9 +93,12 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "corsheaders",
     "axes",
+    "rest_framework",
+    "rest_framework_simplejwt",
 ]
 
 LOCAL_APPS = [
+    "api",
     "main",
     "agenda",
     "checklist",
@@ -175,6 +178,23 @@ AXES_COOLOFF_TIME = timedelta(seconds=200) if DEBUG else timedelta(minutes=30)
 SESSION_COOKIE_AGE = 10000 if DEBUG else int(timedelta(minutes=6).total_seconds())
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 20,
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+}
 
 # ==============================================================================
 # 9. ARQUIVOS ESTÁTICOS E MEDIA
