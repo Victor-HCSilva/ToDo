@@ -57,12 +57,14 @@ def anotacoes(request, id_user):
         if request.GET.get("titulo"):
             filters["titulo__icontains"] = request.GET.get("titulo")
 
-        prazo_inicial = request.GET.get("prazo_inicial")
-        prazo_final = request.GET.get("prazo_final")
-        if prazo_inicial:
-            filters["prazo_inicial__gte"] = parse_date(prazo_inicial)
-        if prazo_final:
-            filters["prazo_final__lte"] = parse_date(prazo_final)
+        prazo_inicial: str = request.GET.get("prazo_inicial", "")
+        prazo_final = request.GET.get("prazo_final", "")
+
+        # if prazo_final is not None:
+        #     filters["prazo_inicial__gte"] = parse_date(prazo_inicial)
+
+        # if prazo_final is not None:
+        #     filters["prazo_final__lte"] = parse_date(prazo_final)
     else:
         # Se não houver pasta, mostra os que não tem pasta vinculada
         filters["folder_id__isnull"] = True

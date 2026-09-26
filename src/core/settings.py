@@ -53,13 +53,11 @@ if not SECRET_KEY:
     else:
         raise ValueError("A variável SECRET_KEY precisa estar definida em produção!")
 
-# Hosts permitidos — sem fallback hardcoded de produção.
-# Em desenvolvimento, defina ALLOWED_HOSTS no arquivo .envs/.env.
-# Em produção, a variável de ambiente ALLOWED_HOSTS DEVE estar definida.
 ALLOWED_HOSTS = get_env_list(
     "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost" if DEBUG else "",
+    default="127.0.0.1,localhost,testserver" if DEBUG else "testserver",
 )
+
 if not DEBUG and not ALLOWED_HOSTS:
     raise ValueError(
         "A variável ALLOWED_HOSTS precisa estar definida em produção! "
@@ -70,7 +68,7 @@ if not DEBUG and not ALLOWED_HOSTS:
 # Em desenvolvimento, usa fallback local. Em produção, defina via variável de ambiente.
 CSRF_TRUSTED_ORIGINS = get_env_list(
     "CSRF_TRUSTED_ORIGINS",
-    default="http://127.0.0.1,http://localhost" if DEBUG else "",
+    default="http://127.0.0.1,http://localhost,http://testserver" if DEBUG else "http://testserver",
 )
 if not DEBUG and not CSRF_TRUSTED_ORIGINS:
     raise ValueError(
@@ -95,9 +93,11 @@ THIRD_PARTY_APPS = [
     "axes",
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_yasg",
 ]
 
 LOCAL_APPS = [
+    "core",
     "api",
     "main",
     "agenda",
@@ -170,7 +170,7 @@ AUTHENTICATION_BACKENDS = [
 # Regras do django-axes
 AXES_FAILURE_LIMIT = 5
 AXES_RESET_ON_SUCCESS = True
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_THRESHOLD_WINDOW = timedelta(hours=24)
 AXES_COOLOFF_TIME = timedelta(seconds=200) if DEBUG else timedelta(minutes=30)
 
@@ -194,6 +194,17 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
+}
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+        }
+    },
+    "USE_SESSION_AUTH": False,
 }
 
 # ==============================================================================

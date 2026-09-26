@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError, models
 from django.db.models import Q
 from django.utils import timezone
+from core.models.mixins import ActivableAndTimeStamp
 
 # Assumindo que estes imports existem no seu projeto
 # from checklist.models import Tarefa
@@ -11,6 +12,9 @@ from django.utils import timezone
 
 # --- MANAGER PARA LÓGICA DE COLABORAÇÃO ---
 
+
+MAX_LENGTH=100
+TEXT_AREA_LIMIT=15000
 
 class TodoQuerySet(models.QuerySet):
     def para_usuario(self, user):
@@ -50,24 +54,21 @@ class TodoManager(models.Manager):
 # --- MODELO DE COLABORAÇÃO: GRUPOS ---
 
 
-class CollaborationGroup(models.Model):
+class CollaborationGroup(ActivableAndTimeStamp):
     """
     Modelo para gerenciar grupos de colaboradores.
     Um grupo pode conter múltiplos usuários e compartilhar acesso a Todos e Pastas.
     """
 
-    name = models.CharField(max_length=100)
-    descricao = models.TextField(default="", blank=True)
+    name = models.CharField(max_length=MAX_LENGTH)
+    descricao = models.TextField(default="", blank=True, max_length=MAX_LENGTH)
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="grupos_que_criei"
     )
     membros = models.ManyToManyField(
         User, related_name="grupos_que_participo", blank=True
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)
-
+   
     class Meta:
         unique_together = ["name", "owner"]
         ordering = ["-created_at"]
@@ -97,8 +98,8 @@ class CollaborationGroup(models.Model):
 # --- MODELOS ---
 
 
-class Folder(models.Model):
-    name = models.CharField(max_length=100, default="folder")
+class Folder(ActivableAndTimeStamp):
+    name = models.CharField( default="folder", max_length=MAX_LENGTH)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="minhas_pastas"
     )
@@ -108,7 +109,7 @@ class Folder(models.Model):
     grupos_colaboracao = models.ManyToManyField(
         CollaborationGroup, related_name="pastas_compartilhadas", blank=True
     )
-    is_active = models.BooleanField(default=True)
+    
 
     def __str__(self):
         return f"{self.name}"
@@ -160,17 +161,17 @@ class Todo(models.Model):
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meus_todos")
-    titulo = models.CharField(max_length=200, default="Sem titulo")
+    titulo = models.CharField(max_length=MAX_LENGTH, default="Sem titulo")
     favorito = models.BooleanField(default=False)
     completo = models.BooleanField(default=False)
-    anotacao = models.TextField(("Anotação"), default="Escreva algo aqui!")
-    prioridade = models.CharField(choices=PRIORIDADES, max_length=10, default="1")
-    tag = models.CharField(choices=TAGS, max_length=13, default="Avulso")
+    anotacao = models.TextField(("Anotação"), default="Escreva algo aqui!", max_length=TEXT_AREA_LIMIT)
+    prioridade = models.CharField(choices=PRIORIDADES, max_length=MAX_LENGTH, default="1")
+    tag = models.CharField(choices=TAGS, max_length=MAX_LENGTH, default="Avulso")
     prazo_inicial = models.DateField(
-        default=timezone.now, help_text=f"eg. {str(timezone.now().date())}"
+        default=timezone.now, help_text=f"{str(timezone.now().date())}"
     )
     prazo_final = models.DateField(
-        default=timezone.now, help_text=f"eg. {str(timezone.now().date())}"
+        default=timezone.now, help_text=f"{str(timezone.now().date())}"
     )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(("Data de Criação"), auto_now_add=True)
@@ -256,20 +257,20 @@ def _upload_imagem_path(instance, filename):
     return f"imgs/{uuid.uuid4().hex}{ext}"
 
 
-class Image(models.Model):
+class Image(ActivableAndTimeStamp):
     img = models.ImageField(upload_to=_upload_imagem_path)
-    descricao = models.CharField(max_length=1000, default="Imagem sem descriçao")
-    titulo = models.CharField(max_length=1000, default="Sem titulo")
+    descricao = models.CharField(max_length=MAX_LENGTH, default="Imagem sem descriçao")
+    titulo = models.CharField(max_length=MAX_LENGTH, default="Sem titulo")
     data_de_criacao = models.DateField(default=timezone.now)
     # Alterado para apontar para o Todo (Pai)
     todo = models.ForeignKey(Todo, on_delete=models.CASCADE, related_name="imagens")
-    observacao = models.CharField(max_length=1000, default="Sem observação")
+    observacao = models.CharField( default="Sem observação", max_length=100)
 
     def __str__(self):
         return f"Imagem: {self.titulo} - Ref Todo: {self.todo.titulo}"
 
 
-class LinkerTaskTodo(models.Model):
+class LinkerTaskTodo(ActivableAndTimeStamp):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     todo = models.ForeignKey(
         Todo, on_delete=models.CASCADE, related_name="vinculos_tarefas"
@@ -277,8 +278,7 @@ class LinkerTaskTodo(models.Model):
     # Supondo que Tarefa venha de checklist.models
     tarefa = models.ForeignKey(
         "checklist.Tarefa", on_delete=models.CASCADE, related_name="vinculos_anotacoes"
-    )
-    is_active = models.BooleanField(default=True)
+    ) 
 
     def __str__(self):
         return f"{self.user.username} | {self.todo.titulo}"

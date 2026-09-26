@@ -91,6 +91,15 @@ class TodoAndFolderAPITests(APITestCase):
         self.assertIn(response.status_code, [403, 404])
 
 
+class SwaggerAPITests(APITestCase):
+    def test_schema_and_swagger_ui_are_available(self):
+        schema_response = self.client.get(reverse("schema"))
+        swagger_response = self.client.get(reverse("swagger-ui"))
+
+        self.assertEqual(schema_response.status_code, 200)
+        self.assertEqual(swagger_response.status_code, 200)
+
+
 class ImageAPITests(APITestCase):
     def setUp(self):
         self.owner = User.objects.create_user(

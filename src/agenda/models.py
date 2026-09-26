@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from core.models.mixins import ActivableAndTimeStamp
 
 
 # Cor de destaque
-class Colors(models.Model):
+class Colors(ActivableAndTimeStamp):
     class Cor(models.TextChoices):
         AZUL = "blue", "Azul"
         VERDE = "green", "Verde"
@@ -53,7 +54,7 @@ class Colors(models.Model):
 
 
 # Agenda
-class AgendaModel(models.Model):
+class AgendaModel(ActivableAndTimeStamp):
     PRIORIDADES = [
         ("1","Mínima"),
         ("2","Mediana"),
@@ -72,8 +73,8 @@ class AgendaModel(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Usuário"
     )
-    titulo = models.CharField("Título", max_length=200, default="Sem titulo")
-    descricao = models.TextField("Descrição", blank=True, default="Sem descrição")
+    titulo = models.CharField("Título", max_length=100, default="Sem titulo")
+    descricao = models.TextField("Descrição", blank=True, default="Sem descrição",max_length=100)
     tipo_de_evento = models.CharField(
         "Tipo de Evento",
         max_length=20,
@@ -87,11 +88,7 @@ class AgendaModel(models.Model):
         default=PRIORIDADES[0],
     )
     dia_do_evento = models.DateTimeField("Data do evento", default=timezone.now)
-    is_active = models.BooleanField(
-        default=True
-    )
-    created_at = models.DateTimeField("Data de Criação", auto_now_add=True)
-    updated_at = models.DateTimeField("Data de Atualização", auto_now=True)
+   
 
 
     class Meta:
