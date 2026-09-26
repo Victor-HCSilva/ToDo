@@ -207,6 +207,13 @@
                     <span class="nav-icon"><i class="fas fa-cog"></i></span>
                     <span>Configurações</span>
                 </a>
+
+                <a class="nav-link" href="{% url 'main:listar_grupos' }">
+                    <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                    <span>Grupos</span>
+                </a>
+
+
                 <a class="nav-link" href="{% url 'main:sobre' %}">
                     <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
                     <span>Sobre</span>
@@ -292,6 +299,11 @@
                 <a class="nav-link" href="{% url 'agenda:configs' id_user=user.id %}">
                     <span class="nav-icon"><i class="fas fa-cog"></i></span>
                     <span>Configurações</span>
+                </a>
+
+                <a class="nav-link" href="{% url 'main:listar_grupos' %}">
+                    <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                    <span>Grupos</span>
                 </a>
                 <a class="nav-link" href="{% url 'main:sobre' %}">
                     <span class="nav-icon"><i class="fas fa-info-circle"></i></span>

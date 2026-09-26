@@ -11,9 +11,12 @@ PIP = $(VENV_DIR)/bin/pip
 # PIP = $(VENV_DIR)\Scripts\pip.exe
 
 dev:
-	python src/manage.py makemigrations
-	python src/manage.py migrate
-	python src/manage.py runserver
+	#python3 -m venv .venv 
+	#activate
+	#@$(PIP) install -r requirements.txt
+	python3 src/manage.py makemigrations
+	python3 src/manage.py migrate
+	python3 src/manage.py runserver 4441
 
 # Instala as dependências
 install: venv

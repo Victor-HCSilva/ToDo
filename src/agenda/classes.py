@@ -1,7 +1,7 @@
 import calendar
 from collections import defaultdict
 from datetime import datetime
-
+import json
 from django.contrib.auth.models import User
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect, render
@@ -115,21 +115,25 @@ class Configs:
             return redirect("main:login")
 
         form = ColorForm(self.request.POST)
-        # SEGURANÇA: usa request.user diretamente — não confia no id_user da URL
-        # para determinar qual usuário terá as configurações salvas.
         user = self.request.user
         context = {
             "nada": "nada",
-            "cor_de_destaque": form,
+            "form": form,
             "user": user,
         }
 
         if self.request.method == "POST":
-            if form.is_valid():
+            already_exists = Colors.objects.filter(user=user).first()
+            if form.is_valid() and not already_exists:
                 config = form.save(commit=False)
                 config.user = user
                 config.save()
                 return redirect("agenda:agenda", id_user=id_user)
+            
+            already_exists.cor_de_destaque = self.request.POST.get("cor_de_destaque")
+            already_exists.save()
+            return redirect("agenda:agenda", id_user=id_user)
+
 
         return render(self.request, "configs.html", context)
 
