@@ -5,6 +5,7 @@ import os
 from django.contrib.auth.models import User
 from email.message import EmailMessage
 from api.models import DispatchLog
+from celery import shared_task
 
 
 logger = getLogger("__main__")
@@ -76,5 +77,10 @@ class SendEmail:
 			logger.info(f"Erro ao enviar o email: {e}")
 		
 
+@shared_task
+def send_delay(to_user: int | str,content: str,title: str):
+	from django.shortcuts import get_object_or_404
 
-		 
+	user = get_object_or_404(User,id=to_user)
+	s = SendEmail(user, content, title)
+	s.send()

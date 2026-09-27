@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from main.models import Folder, Todo
-from api.email.script import SendEmail
+from api.email.script import send_delay
 
 
 class FolderSerializer(serializers.ModelSerializer):
@@ -82,7 +82,6 @@ class TodoSerializer(serializers.ModelSerializer):
         validated_data["user"] = request.user
         titulo = validated_data.get("titulo", "Titulo não encontrado")
         c = f"Criada nova anotação: {titulo}"
-        s = SendEmail(to_user=request.user, content=c, title="Criação de nova anotação")
-        s.send()
-        print("Foi enviado")
+        # s = send_delay.delay(to_user=request.user.id, content=c, title="Criação de nova anotação")
+        
         return super().create(validated_data)

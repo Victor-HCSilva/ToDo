@@ -1,19 +1,25 @@
 #!/bin/sh
 set -e
 
-echo "Aguardando o PostgreSQL inicializar..."
-while ! nc -z "${DB_HOST:-db}" "${DB_PORT:-5432}"; do
-  sleep 0.5
+DB_TARGET_HOST="${DB_HOST:-db}"
+DB_TARGET_PORT="${DB_PORT:-5432}"
+
+REDIS_TARGET_HOST="${REDIS_HOST:-redis}"
+REDIS_TARGET_PORT="${REDIS_PORT:-6379}"
+
+echo "Aguardando o PostgreSQL em ${DB_TARGET_HOST}:${DB_TARGET_PORT}..."
+while ! python -c "import socket; s = socket.socket(); s.settimeout(1); s.connect(('${DB_TARGET_HOST}', int('${DB_TARGET_PORT}'))); s.close()" 2>/dev/null; do
+  sleep 1
 done
 echo "PostgreSQL conectado com sucesso!"
 
-echo "Aguardando o Redis inicializar..."
-while ! nc -z "${REDIS_HOST:-redis}" "${REDIS_PORT:-6379}"; do
-  sleep 0.5
+echo "Aguardando o Redis em ${REDIS_TARGET_HOST}:${REDIS_TARGET_PORT}..."
+while ! python -c "import socket; s = socket.socket(); s.settimeout(1); s.connect(('${REDIS_TARGET_HOST}', int('${REDIS_TARGET_PORT}'))); s.close()" 2>/dev/null; do
+  sleep 1
 done
 echo "Redis conectado com sucesso!"
 
-# Executa migrações apenas se for o container da API (evita condição de corrida no worker/beat)
+# Aplica migrações apenas na API
 if [ "$1" = "python" ] && [ "$2" = "manage.py" ] && [ "$3" = "runserver" ]; then
     echo "Aplicando migrações do banco de dados..."
     python manage.py migrate --noinput

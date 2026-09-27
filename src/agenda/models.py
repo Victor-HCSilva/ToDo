@@ -77,13 +77,13 @@ class AgendaModel(ActivableAndTimeStamp):
     descricao = models.TextField("Descrição", blank=True, default="Sem descrição",max_length=100)
     tipo_de_evento = models.CharField(
         "Tipo de Evento",
-        max_length=20,
+        max_length=100,
         choices=TIPOS_DE_EVENTO,
         default=TIPOS_DE_EVENTO[4]
     )
     importancia = models.CharField(
         "Importância",
-        max_length=2,
+        max_length=100,
         choices=PRIORIDADES,
         default=PRIORIDADES[0],
     )
@@ -97,3 +97,15 @@ class AgendaModel(ActivableAndTimeStamp):
 
     def __str__(self):
         return f"{self.titulo} ({self.user.username}) - {self.dia_do_evento.strftime('%d/%m/%Y')}"
+
+
+class Reminder(ActivableAndTimeStamp):
+    descricao = models.TextField("Descrição", blank=True, default="Sem descrição", max_length=100)
+    agenda = models.ForeignKey(
+        AgendaModel,
+        on_delete=models.CASCADE,
+        verbose_name="Registro da agenda"
+    )
+
+    def __str__(self):
+        return f"{self.agenda.titulo}"

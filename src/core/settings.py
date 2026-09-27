@@ -5,24 +5,15 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# ==============================================================================
-# 1. IDENTIFICAÇÃO DE CAMINHOS
-# ==============================================================================
 CURRENT_FILE = Path(__file__).resolve()
 
-# Diretório 'src' (onde estão os apps e o manage.py)
 SRC_DIR = CURRENT_FILE.parent.parent
 
-# Diretório RAIZ do projeto (onde ficam .envs, db.sqlite3, static e media)
 BASE_DIR = SRC_DIR.parent
 
-# Adiciona 'src' ao sys.path para importação direta de apps internos
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# ==============================================================================
-# 2. VARIÁVEIS DE AMBIENTE
-# ==============================================================================
 DOTENV_PATH = BASE_DIR / ".envs" / ".env"
 load_dotenv(DOTENV_PATH)
 
@@ -41,12 +32,12 @@ def get_env_list(name: str, default: str = "") -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
-# ==============================================================================
-# 3. SEGURANÇA BÁSICA E HOSTS
-# ==============================================================================
 DEBUG = get_env_bool("DEBUG", default=False)
-
+LOGIN_URL = "main:login"
+LOGOUT_REDIRECT_URL = "main:create_account"
 SECRET_KEY = os.getenv("SECRET_KEY")
+REDIS = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+
 if not SECRET_KEY:
     if DEBUG:
         SECRET_KEY = "django-insecure-dev-key-substitua-em-producao"
@@ -64,21 +55,18 @@ if not DEBUG and not ALLOWED_HOSTS:
         "Exemplo: ALLOWED_HOSTS=example.com,www.example.com"
     )
 
-# Essencial a partir do Django 4.0 caso use formulários/admin em HTTPS
-# Em desenvolvimento, usa fallback local. Em produção, defina via variável de ambiente.
+
 CSRF_TRUSTED_ORIGINS = get_env_list(
     "CSRF_TRUSTED_ORIGINS",
     default="http://127.0.0.1,http://localhost,http://testserver" if DEBUG else "http://testserver",
 )
+
 if not DEBUG and not CSRF_TRUSTED_ORIGINS:
     raise ValueError(
         "A variável CSRF_TRUSTED_ORIGINS precisa estar definida em produção! "
         "Exemplo: CSRF_TRUSTED_ORIGINS=https://example.com"
     )
 
-# ==============================================================================
-# 4. APLICAÇÕES INSTALADAS
-# ==============================================================================
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -106,9 +94,6 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = THIRD_PARTY_APPS + DJANGO_APPS + LOCAL_APPS
 
-# ==============================================================================
-# 5. MIDDLEWARES
-# ==============================================================================
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -125,9 +110,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = "core.urls"
 WSGI_APPLICATION = "core.wsgi.application"
 
-# ==============================================================================
-# 6. TEMPLATES
-# ==============================================================================
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -146,36 +128,36 @@ TEMPLATES = [
     },
 ]
 
-# ==============================================================================
-# 7. BANCO DE DADOS
-# ==============================================================================
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", "todo_db"),
+        "USER": os.environ.get("DB_USER", "todo_user"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "todo_secret_pass"),
+        "HOST": os.environ.get("DB_HOST", "db"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
-# ==============================================================================
-# 8. AUTENTICAÇÃO E CONTROLE DE ACESSO (DJANGO AXES)
-# ==============================================================================
-LOGIN_URL = "main:login"
-LOGOUT_REDIRECT_URL = "main:create_account"
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_LOCATION", "redis://127.0.0.1:6379/1"),
+    }
+}
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-# Regras do django-axes
 AXES_FAILURE_LIMIT = 5
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
 AXES_THRESHOLD_WINDOW = timedelta(hours=24)
 AXES_COOLOFF_TIME = timedelta(seconds=200) if DEBUG else timedelta(minutes=30)
 
-# Regras de Sessão
-SESSION_COOKIE_AGE = 10000 if DEBUG else int(timedelta(minutes=6).total_seconds())
+SESSION_COOKIE_AGE = 10000 if DEBUG else int(timedelta(minutes=30).total_seconds())
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -207,27 +189,22 @@ SWAGGER_SETTINGS = {
     "USE_SESSION_AUTH": False,
 }
 
-# ==============================================================================
-# 9. ARQUIVOS ESTÁTICOS E MEDIA
-# ==============================================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ==============================================================================
-# 10. INTERNACIONALIZAÇÃO E FUSO HORÁRIO
-# ==============================================================================
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ==============================================================================
-# 11. SEGURANÇA AVANÇADA (PRODUÇÃO)
-# ==============================================================================
+CELERY_BROKER_URL = REDIS
+CELERY_RESULT_BACKEND = REDIS
+CELERY_TIMEZONE = TIME_ZONE
+
 if not DEBUG:
     # Cookies seguros só trafegam via HTTPS
     SESSION_COOKIE_SECURE = True

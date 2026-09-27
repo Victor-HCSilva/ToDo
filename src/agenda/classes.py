@@ -7,12 +7,15 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import AgendaForm, ColorForm
-from .models import AgendaModel, Colors
+from .models import AgendaModel, Colors, Reminder
 
 
 class Agenda:
     def __init__(self, request):
         self.request = request
+
+    def _remider(self, d: str, a: AgendaModel):
+        Reminder.objects.create(descricao=c, agenda=a)
 
     def agenda(self, id_user, ano=None, mes=None):
         if self.request.user.id != id_user:
@@ -23,15 +26,23 @@ class Agenda:
         # para determinar qual usuário possui os eventos.
         user = self.request.user
 
+        # TODO: Pegar informação
+        reminder = None
+
         if self.request.method == "POST":
             if form.is_valid():
                 agenda = form.save(commit=False)
                 agenda.user = user
                 agenda.save()
+
+                if reminder:
+                    self._remider(d=titulo, a=agenda)
+
                 return redirect(
                     "agenda:eventos",
                     id_user=id_user,
                 )
+
 
         agora = datetime.now()
         ano_visualizado = ano or agora.year

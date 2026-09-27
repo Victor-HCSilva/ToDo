@@ -3,17 +3,14 @@ services:
     image: postgres:16-alpine
     container_name: django_postgres
     restart: always
-    environment:
-      POSTGRES_DB: app_db
-      POSTGRES_USER: app_user
-      POSTGRES_PASSWORD: app_password
+    env_file:
+      - ../.envs/.env
     volumes:
-      # Aponta para ./.docker/data/ (relativo ao local deste arquivo)
       - ./data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5430:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app_user -d app_db"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,17 +38,8 @@ services:
       - ../src:/app/src
     ports:
       - "8000:8000"
-    environment:
-      - DEBUG=1
-      - DB_NAME=app_db
-      - DB_USER=app_user
-      - DB_PASSWORD=app_password
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ../.envs/.env
     depends_on:
       db:
         condition: service_healthy
@@ -65,16 +53,11 @@ services:
     container_name: django_celery_worker
     restart: always
     # Substitua <nome_do_projeto> pelo nome da pasta do módulo onde está seu celery.py
-    command: celery -A <nome_do_projeto> worker -l info
+    command: python -m celery -A core worker -l info
     volumes:
       - ../src:/app/src
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ../.envs/.env
     depends_on:
       db:
         condition: service_healthy
@@ -88,16 +71,11 @@ services:
     container_name: django_celery_beat
     restart: always
     # Substitua <nome_do_projeto> pelo nome da pasta do módulo onde está seu celery.py
-    command: celery -A <nome_do_projeto> beat -l info
+    command: python -m celery -A core beat -l info
     volumes:
       - ../src:/app/src
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - ../.envs/.env
     depends_on:
       db:
         condition: service_healthy
