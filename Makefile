@@ -28,3 +28,5 @@ runserver:
 	@echo "Iniciando servidor de desenvolvimento..."
 	$(VENV_DIR)/bin/$(PYTHON) $(MANAGE) runserver
 
+run_docker:
+	docker compose -f .docker/docker-compose.yml up --build

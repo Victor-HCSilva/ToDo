@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from main.models import Folder, Todo
+from api.email.script import SendEmail
 
 
 class FolderSerializer(serializers.ModelSerializer):
@@ -79,4 +80,9 @@ class TodoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         validated_data["user"] = request.user
+        titulo = validated_data.get("titulo", "Titulo não encontrado")
+        c = f"Criada nova anotação: {titulo}"
+        s = SendEmail(to_user=request.user, content=c, title="Criação de nova anotação")
+        s.send()
+        print("Foi enviado")
         return super().create(validated_data)

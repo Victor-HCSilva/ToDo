@@ -9,7 +9,6 @@ from api.serializers.group import ShareSerializer
 from api.serializers.todo import FolderSerializer, TodoSerializer
 from main.models import Folder, Todo
 
-
 class FolderViewSet(viewsets.ModelViewSet):
     serializer_class = FolderSerializer
     permission_classes = [IsAuthenticated, IsFolderOwnerOrCollaborator]

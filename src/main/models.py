@@ -140,7 +140,7 @@ class Folder(ActivableAndTimeStamp):
         return user == self.user
 
 
-class Todo(models.Model):
+class Todo(ActivableAndTimeStamp):
     TAGS = [
         ("Atividade", "Atividade"),
         ("Anotação", "Anotação"),
@@ -167,15 +167,13 @@ class Todo(models.Model):
     anotacao = models.TextField(("Anotação"), default="Escreva algo aqui!", max_length=TEXT_AREA_LIMIT)
     prioridade = models.CharField(choices=PRIORIDADES, max_length=MAX_LENGTH, default="1")
     tag = models.CharField(choices=TAGS, max_length=MAX_LENGTH, default="Avulso")
-    prazo_inicial = models.DateField(
+    prazo_inicial = models.DateTimeField(
         default=timezone.now, help_text=f"{str(timezone.now().date())}"
     )
-    prazo_final = models.DateField(
+    prazo_final = models.DateTimeField(
         default=timezone.now, help_text=f"{str(timezone.now().date())}"
     )
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(("Data de Criação"), auto_now_add=True)
-    updated_at = models.DateTimeField(("Data de Atualização"), auto_now=True)
 
     folder = models.ForeignKey(
         Folder, on_delete=models.CASCADE, blank=True, null=True, related_name="todos"
@@ -261,7 +259,7 @@ class Image(ActivableAndTimeStamp):
     img = models.ImageField(upload_to=_upload_imagem_path)
     descricao = models.CharField(max_length=MAX_LENGTH, default="Imagem sem descriçao")
     titulo = models.CharField(max_length=MAX_LENGTH, default="Sem titulo")
-    data_de_criacao = models.DateField(default=timezone.now)
+    data_de_criacao = models.DateTimeField(default=timezone.now)
     # Alterado para apontar para o Todo (Pai)
     todo = models.ForeignKey(Todo, on_delete=models.CASCADE, related_name="imagens")
     observacao = models.CharField( default="Sem observação", max_length=100)
