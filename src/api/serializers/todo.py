@@ -67,6 +67,13 @@ class TodoSerializer(serializers.ModelSerializer):
             "is_active",
         ]
 
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        mapping = {"1": "Baixa", "2": "Média", "3": "Alta"}
+        if rep.get("prioridade") in mapping:
+            rep["prioridade"] = mapping[rep["prioridade"]]
+        return rep
+
     def validate_folder(self, value):
         request = self.context["request"]
         if value is None:

@@ -34,9 +34,10 @@ router.register(r"groups", GroupViewSet, basename="group")
 router.register(r"checklist/tarefas", TarefaViewSet, basename="tarefa")
 router.register(r"checklist/itens", ItemViewSet, basename="item")
 router.register(r"checklist/links", LinkViewSet, basename="link")
-router.register(r"agenda", AgendaModelViewSet, basename="agenda")
 router.register(r"agenda/configs", ColorsViewSet, basename="colors")
+router.register(r"agenda", AgendaModelViewSet, basename="agenda")
 router.register(r"images", ImageViewSet, basename="image")
+
 
 urlpatterns = [
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

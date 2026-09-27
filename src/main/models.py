@@ -155,9 +155,12 @@ class Todo(ActivableAndTimeStamp):
         ("Outro", "Outro"),
     ]
     PRIORIDADES = [
-        ("Baixa", "1"),
-        ("Média", "2"),
-        ("Alta", "3"),
+        ("Baixa", "Baixa"),
+        ("Média", "Média"),
+        ("Alta", "Alta"),
+        ("1", "Baixa (Legado)"),
+        ("2", "Média (Legado)"),
+        ("3", "Alta (Legado)"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meus_todos")
@@ -165,7 +168,7 @@ class Todo(ActivableAndTimeStamp):
     favorito = models.BooleanField(default=False)
     completo = models.BooleanField(default=False)
     anotacao = models.TextField(("Anotação"), default="Escreva algo aqui!", max_length=TEXT_AREA_LIMIT)
-    prioridade = models.CharField(choices=PRIORIDADES, max_length=MAX_LENGTH, default="1")
+    prioridade = models.CharField(choices=PRIORIDADES, max_length=MAX_LENGTH, default="Baixa")
     tag = models.CharField(choices=TAGS, max_length=MAX_LENGTH, default="Avulso")
     prazo_inicial = models.DateTimeField(
         default=timezone.now, help_text=f"{str(timezone.now().date())}"

@@ -16,6 +16,8 @@ class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsGroupManager]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return CollaborationGroup.objects.none()
         return (
             CollaborationGroup.objects.filter(
                 is_active=True,

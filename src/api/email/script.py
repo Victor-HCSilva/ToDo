@@ -5,7 +5,18 @@ import os
 from django.contrib.auth.models import User
 from email.message import EmailMessage
 from api.models import DispatchLog
-from celery import shared_task
+try:
+    from celery import shared_task
+except ImportError:
+    def shared_task(func):
+        class DummyTask:
+            def __init__(self, fn):
+                self.fn = fn
+            def __call__(self, *args, **kwargs):
+                return self.fn(*args, **kwargs)
+            def delay(self, *args, **kwargs):
+                return self.fn(*args, **kwargs)
+        return DummyTask(func)
 
 
 logger = getLogger("__main__")

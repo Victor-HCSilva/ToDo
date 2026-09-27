@@ -15,7 +15,15 @@ class ColorsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAgendaOwner]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Colors.objects.none()
         return Colors.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False) or not request.user.is_authenticated:
+            return Response([])
+        config, _ = Colors.objects.get_or_create(user=request.user)
+        return Response([self.get_serializer(config).data])
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -26,6 +34,8 @@ class AgendaModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsAgendaOwner]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return AgendaModel.objects.none()
         return AgendaModel.objects.filter(user=self.request.user, is_active=True)
 
     def create(self, request, *args, **kwargs):

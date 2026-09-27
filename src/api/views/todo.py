@@ -9,11 +9,14 @@ from api.serializers.group import ShareSerializer
 from api.serializers.todo import FolderSerializer, TodoSerializer
 from main.models import Folder, Todo
 
+
 class FolderViewSet(viewsets.ModelViewSet):
     serializer_class = FolderSerializer
     permission_classes = [IsAuthenticated, IsFolderOwnerOrCollaborator]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Folder.objects.none()
         return Folder.objects.filter(
             Q(user=self.request.user)
             | Q(colaboradores=self.request.user)
@@ -62,7 +65,18 @@ class TodoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwnerOrFolderOwner]
 
     def get_queryset(self):
-        return Todo.objects.para_usuario(self.request.user).filter(is_active=True)
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Todo.objects.none()
+        queryset = Todo.objects.para_usuario(self.request.user).filter(is_active=True)
+        folder_filter = self.request.query_params.get("folder")
+
+        if folder_filter == "none":
+            return queryset.filter(folder__isnull=True)
+        if folder_filter is not None:
+            if not folder_filter.isdigit():
+                return queryset.none()
+            return queryset.filter(folder_id=int(folder_filter))
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

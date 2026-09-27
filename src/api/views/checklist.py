@@ -11,6 +11,8 @@ class TarefaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsChecklistOwner]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Tarefa.objects.none()
         return Tarefa.objects.filter(user=self.request.user, is_active=True)
 
     def perform_create(self, serializer):
@@ -22,6 +24,8 @@ class ItemViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsChecklistOwner]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Item.objects.none()
         return Item.objects.filter(user=self.request.user, is_active=True)
 
     def perform_create(self, serializer):
@@ -33,6 +37,8 @@ class LinkViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsChecklistOwner]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            return Link.objects.none()
         return Link.objects.filter(user=self.request.user, is_active=True)
 
     def perform_create(self, serializer):

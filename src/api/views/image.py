@@ -12,10 +12,14 @@ class ImageViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsImageOwner]
 
     def get_queryset(self):
-        return Image.objects.filter(
+        qs = Image.objects.filter(
             todo__in=Todo.objects.para_usuario(self.request.user),
             todo__is_active=True,
         ).distinct()
+        todo_id = self.request.query_params.get("todo")
+        if todo_id:
+            qs = qs.filter(todo_id=todo_id)
+        return qs
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

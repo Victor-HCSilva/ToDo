@@ -6,28 +6,6 @@ from core.models.mixins import ActivableAndTimeStamp
 
 # Cor de destaque
 class Colors(ActivableAndTimeStamp):
-    class Cor(models.TextChoices):
-        AZUL = "blue", "Azul"
-        VERDE = "green", "Verde"
-        VERMELHO = "red", "Vermelho"
-        PRETO = "black", "Preto"
-        BRANCO = "#FFFFFF", "Branco"  # Nota: Texto branco pode ficar invisível em fundos claros
-
-        # Tons vibrantes e comuns
-        AMARELO = "#FFC107", "Amarelo"
-        LARANJA = "orange", "Laranja"  # Mantive "orange" para simplicidade
-        ROXO = "#6f42c1", "Roxo"
-        ROSA = "#d63384", "Rosa"
-        CIANO_TURQUESA = "#0dcaf0", "Ciano/Turquesa"
-
-        # Tons neutros e terrosos
-        CINZA = "#6c757d", "Cinza"
-        MARROM = "#795548", "Marrom"
-
-        # Tons metálicos
-        DOURADO = "#FFD700", "Dourado"
-        PRATA = "#C0C0C0", "Prata"
-
     # OneToOneField garante que cada usuário tenha apenas uma configuração
     user = models.OneToOneField(
         User,
@@ -36,15 +14,13 @@ class Colors(ActivableAndTimeStamp):
     )
     cor_de_destaque = models.CharField(
         "Cor de destaque",
-        max_length=19,
-        choices=Cor.choices,
-        default=Cor.AZUL
+        max_length=50,
+        default="#3b82f6"
     )
     cor_do_dia = models.CharField(
-        "Cor de destaque",
-        max_length=19,
-        choices=Cor.choices,
-        default=Cor.AZUL
+        "Cor do dia",
+        max_length=50,
+        default="#3b82f6"
     )
 
     def __str__(self):
@@ -79,13 +55,13 @@ class AgendaModel(ActivableAndTimeStamp):
         "Tipo de Evento",
         max_length=100,
         choices=TIPOS_DE_EVENTO,
-        default=TIPOS_DE_EVENTO[4]
+        default=TIPOS_DE_EVENTO[4][0]
     )
     importancia = models.CharField(
         "Importância",
         max_length=100,
         choices=PRIORIDADES,
-        default=PRIORIDADES[0],
+        default=PRIORIDADES[0][0],
     )
     dia_do_evento = models.DateTimeField("Data do evento", default=timezone.now)
    

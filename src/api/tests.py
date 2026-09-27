@@ -72,7 +72,7 @@ class TodoAndFolderAPITests(APITestCase):
             {
                 "titulo": "Novo todo",
                 "anotacao": "Conteúdo",
-                "prioridade": "2",
+                "prioridade": "Média",
                 "tag": "Tarefa",
                 "folder": self.folder.id,
             },
@@ -89,6 +89,29 @@ class TodoAndFolderAPITests(APITestCase):
         response = self.client.get(url)
 
         self.assertIn(response.status_code, [403, 404])
+
+    def test_todo_list_can_filter_by_folder_and_unfiled_tasks(self):
+        self.client.force_authenticate(user=self.owner)
+        unfiled_todo = Todo.objects.create(
+            user=self.owner,
+            titulo="Todo sem pasta",
+            anotacao="Texto",
+            folder=None,
+            is_active=True,
+        )
+        url = reverse("api:todo-list")
+
+        folder_response = self.client.get(url, {"folder": self.folder.id})
+        unfiled_response = self.client.get(url, {"folder": "none"})
+
+        self.assertEqual(folder_response.status_code, 200)
+        self.assertEqual(
+            [todo["id"] for todo in folder_response.data["results"]], [self.todo.id]
+        )
+        self.assertEqual(unfiled_response.status_code, 200)
+        self.assertEqual(
+            [todo["id"] for todo in unfiled_response.data["results"]], [unfiled_todo.id]
+        )
 
 
 class SwaggerAPITests(APITestCase):
@@ -120,36 +143,42 @@ class ImageAPITests(APITestCase):
     def test_owner_can_upload_image_to_todo(self):
         self.client.force_authenticate(user=self.owner)
         url = reverse("api:image-list")
-        with open(
-            "/home/victor/main/to-do/ToDo/media/imgs/test-upload.png", "wb"
-        ) as fh:
-            fh.write(b"\x89PNG\r\n\x1a\n")
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        # 1x1 transparent GIF
+        gif_bytes = (
+            b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04"
+            b"\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+        )
+        img_file = SimpleUploadedFile("test.gif", gif_bytes, content_type="image/gif")
 
-        with open(
-            "/home/victor/main/to-do/ToDo/media/imgs/test-upload.png", "rb"
-        ) as fh:
-            response = self.client.post(
-                url,
-                {
-                    "img": fh,
-                    "descricao": "Imagem de teste",
-                    "titulo": "Imagem da tarefa",
-                    "todo": self.todo.id,
-                    "observacao": "Observação teste",
-                },
-                format="multipart",
-            )
+        response = self.client.post(
+            url,
+            {
+                "img": img_file,
+                "descricao": "Imagem de teste",
+                "titulo": "Imagem da tarefa",
+                "todo": self.todo.id,
+                "observacao": "Observação teste",
+            },
+            format="multipart",
+        )
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["titulo"], "Imagem da tarefa")
 
     def test_other_user_cannot_upload_image_to_todo(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
         self.client.force_authenticate(user=self.other)
         url = reverse("api:image-list")
+        gif_bytes = (
+            b"GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!\xf9\x04"
+            b"\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+        )
+        img_file = SimpleUploadedFile("test2.gif", gif_bytes, content_type="image/gif")
         response = self.client.post(
             url,
             {
-                "img": None,
+                "img": img_file,
                 "descricao": "Imagem inválida",
                 "titulo": "Sem permissão",
                 "todo": self.todo.id,

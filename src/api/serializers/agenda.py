@@ -11,8 +11,11 @@ class ColorsSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context["request"]
-        validated_data["user"] = request.user
-        return super().create(validated_data)
+        config, _ = Colors.objects.update_or_create(
+            user=request.user,
+            defaults=validated_data,
+        )
+        return config
 
 
 class ReminderSerializer(serializers.ModelSerializer):
@@ -51,3 +54,26 @@ class AgendaModelSerializer(serializers.ModelSerializer):
         request = self.context["request"]
         validated_data["user"] = request.user
         return super().create(validated_data)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Limpa eventuais tuplas salvas como string legacy no banco
+        tipo = data.get("tipo_de_evento", "")
+        if isinstance(tipo, str) and tipo.startswith("(") and "," in tipo:
+            import ast
+            try:
+                parsed = ast.literal_eval(tipo)
+                if isinstance(parsed, (tuple, list)) and parsed:
+                    data["tipo_de_evento"] = str(parsed[0])
+            except Exception:
+                pass
+        imp = data.get("importancia", "")
+        if isinstance(imp, str) and imp.startswith("(") and "," in imp:
+            import ast
+            try:
+                parsed = ast.literal_eval(imp)
+                if isinstance(parsed, (tuple, list)) and parsed:
+                    data["importancia"] = str(parsed[0])
+            except Exception:
+                pass
+        return data

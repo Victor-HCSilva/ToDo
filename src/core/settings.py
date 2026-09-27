@@ -1,3 +1,4 @@
+from django.conf.global_settings import APPEND_SLASH
 import os
 import sys
 from datetime import timedelta
@@ -128,23 +129,40 @@ TEMPLATES = [
     },
 ]
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DB_NAME", "todo_db"),
-        "USER": os.environ.get("DB_USER", "todo_user"),
-        "PASSWORD": os.environ.get("DB_PASSWORD", "todo_secret_pass"),
-        "HOST": os.environ.get("DB_HOST", "db"),
-        "PORT": os.environ.get("DB_PORT", "5432"),
+if os.environ.get("USE_SQLITE", "false").lower() in ("true", "1") or os.environ.get("DB_ENGINE") == "sqlite3":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DB_NAME", "todo_db"),
+            "USER": os.environ.get("DB_USER", "todo_user"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "todo_secret_pass"),
+            "HOST": os.environ.get("DB_HOST", "db"),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_LOCATION", "redis://127.0.0.1:6379/1"),
+try:
+    import django_redis  # noqa: F401
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": os.getenv("REDIS_LOCATION", "redis://127.0.0.1:6379/1"),
+        }
     }
-}
+except ImportError:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "default-locmem",
+        }
+    }
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
@@ -163,7 +181,7 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "api.authentication.FlexibleJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
