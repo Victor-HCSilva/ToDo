@@ -120,3 +120,27 @@ class TodoViewSet(viewsets.ModelViewSet):
             todo.colaboradores.remove(*users)
             todo.grupos_colaboracao.remove(*groups)
         return Response(TodoSerializer(todo).data)
+
+
+class LinkerTaskTodoViewSet(viewsets.ModelViewSet):
+    """Links between checklist Tarefas and Todos (notes)."""
+    from api.serializers.todo import LinkerTaskTodoSerializer as serializer_class
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False) or not self.request.user.is_authenticated:
+            from main.models import LinkerTaskTodo
+            return LinkerTaskTodo.objects.none()
+        from main.models import LinkerTaskTodo
+        qs = LinkerTaskTodo.objects.filter(user=self.request.user, is_active=True)
+        todo_id = self.request.query_params.get("todo")
+        if todo_id:
+            qs = qs.filter(todo_id=todo_id)
+        return qs
+
+    def get_serializer_class(self):
+        from api.serializers.todo import LinkerTaskTodoSerializer
+        return LinkerTaskTodoSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

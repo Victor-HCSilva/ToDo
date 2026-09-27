@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from main.models import Folder, Todo
+from main.models import Folder, LinkerTaskTodo, Todo
 from api.email.script import send_delay
 
 
@@ -24,6 +24,38 @@ class FolderSerializer(serializers.ModelSerializer):
             "grupos_colaboracao",
             "is_active",
         ]
+
+    def create(self, validated_data):
+        request = self.context["request"]
+        validated_data["user"] = request.user
+        return super().create(validated_data)
+
+
+class LinkerTaskTodoSerializer(serializers.ModelSerializer):
+    """Serializer for LinkerTaskTodo – links a Tarefa (checklist) to a Todo (note)."""
+    tarefa_titulo = serializers.SerializerMethodField()
+    tarefa_color = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LinkerTaskTodo
+        fields = ["id", "todo", "tarefa", "tarefa_titulo", "tarefa_color", "is_active"]
+        read_only_fields = ["id", "is_active", "tarefa_titulo", "tarefa_color"]
+
+    def get_tarefa_titulo(self, obj) -> str:
+        return obj.tarefa.titulo if obj.tarefa else ""
+
+    def get_tarefa_color(self, obj) -> str:
+        return obj.tarefa.color if obj.tarefa else ""
+
+    def validate(self, data):
+        request = self.context["request"]
+        todo = data.get("todo")
+        tarefa = data.get("tarefa")
+        if todo and todo.user != request.user:
+            raise serializers.ValidationError({"todo": "Você não tem permissão para esta tarefa."})
+        if tarefa and tarefa.user != request.user:
+            raise serializers.ValidationError({"tarefa": "Você não tem permissão para esta lista."})
+        return data
 
     def create(self, validated_data):
         request = self.context["request"]
@@ -72,6 +104,23 @@ class TodoSerializer(serializers.ModelSerializer):
         mapping = {"1": "Baixa", "2": "Média", "3": "Alta"}
         if rep.get("prioridade") in mapping:
             rep["prioridade"] = mapping[rep["prioridade"]]
+        rep["colaboradores_detail"] = [
+            {
+                "id": u.id,
+                "username": u.username,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
+            }
+            for u in instance.colaboradores.all()
+        ]
+        rep["grupos_detail"] = [
+            {
+                "id": g.id,
+                "name": g.name,
+                "membros_count": g.membros.count(),
+            }
+            for g in instance.grupos_colaboracao.filter(is_active=True)
+        ]
         return rep
 
     def validate_folder(self, value):

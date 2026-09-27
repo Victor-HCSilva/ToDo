@@ -58,11 +58,17 @@ class GroupViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["delete"],
-        url_path=r"members/(?P<user_id>[0-9]+)",
+        url_path=r"members/(?P<user_id>[^/]+)",
     )
     def remove_member(self, request, pk=None, user_id=None):
         group = self.get_object()
-        user = User.objects.filter(pk=user_id).first()
+        user = None
+        user_str = str(user_id).strip()
+        if user_str.isdigit():
+            user = User.objects.filter(pk=int(user_str)).first()
+        if user is None:
+            user = User.objects.filter(username__iexact=user_str).first()
+
         if user is None:
             return Response(
                 {"detail": "Usuário não encontrado."},
@@ -71,3 +77,4 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         group.remover_membro(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+

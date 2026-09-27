@@ -10,7 +10,7 @@ services:
     ports:
       - "5430:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,11 +33,11 @@ services:
       dockerfile: .docker/dockerfile/Dockerfile
     container_name: django_api
     restart: always
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:7655
     volumes:
       - ../src:/app/src
     ports:
-      - "8000:8000"
+      - "7655:7655"
     env_file:
       - ../.envs/.env
     depends_on:

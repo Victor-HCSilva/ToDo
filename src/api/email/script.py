@@ -60,7 +60,7 @@ class SendEmail:
 	def send(self):
 		try:
 			if not self.to_user.email or not self.email:
-				raise("Algum erro ocorreu sobre emails") 
+				raise ValueError("Algum erro ocorreu sobre emails") 
 
 			from_ = self.email
 			msg = EmailMessage()

@@ -1,4 +1,4 @@
-# 🤝 Sistema de Colaboração - Resumo Visual
+ 🤝 Sistema de Colaboração - Resumo Visual
 
 ## O Que foi Adicionado
 

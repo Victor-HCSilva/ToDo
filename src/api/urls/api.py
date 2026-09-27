@@ -3,11 +3,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from api.views.agenda import AgendaModelViewSet, ColorsViewSet
-from api.views.auth import MeView
+from api.views.auth import MeView, RegisterView
 from api.views.checklist import ItemViewSet, LinkViewSet, TarefaViewSet
 from api.views.group import GroupViewSet
 from api.views.image import ImageViewSet
-from api.views.todo import FolderViewSet, TodoViewSet
+from api.views.todo import FolderViewSet, LinkerTaskTodoViewSet, TodoViewSet
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
@@ -37,6 +37,7 @@ router.register(r"checklist/links", LinkViewSet, basename="link")
 router.register(r"agenda/configs", ColorsViewSet, basename="colors")
 router.register(r"agenda", AgendaModelViewSet, basename="agenda")
 router.register(r"images", ImageViewSet, basename="image")
+router.register(r"linkers", LinkerTaskTodoViewSet, basename="linker")
 
 
 urlpatterns = [
@@ -48,6 +49,7 @@ urlpatterns = [
         include(
             [
                 path("login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+                path("register/", RegisterView.as_view(), name="register"),
                 path("refresh/", TokenRefreshView.as_view(), name="token_refresh"),
                 path("me/", MeView.as_view(), name="me"),
             ]

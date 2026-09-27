@@ -47,7 +47,7 @@ if not SECRET_KEY:
 
 ALLOWED_HOSTS = get_env_list(
     "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost,testserver" if DEBUG else "testserver",
+    default="127.0.0.1,localhost,testserver,10.0.0.108" if DEBUG else "testserver",
 )
 
 if not DEBUG and not ALLOWED_HOSTS:
@@ -59,7 +59,7 @@ if not DEBUG and not ALLOWED_HOSTS:
 
 CSRF_TRUSTED_ORIGINS = get_env_list(
     "CSRF_TRUSTED_ORIGINS",
-    default="http://127.0.0.1,http://localhost,http://testserver" if DEBUG else "http://testserver",
+    default="http://127.0.0.1,http://localhost,http://testserver,http://10.0.0.108" if DEBUG else "http://testserver",
 )
 
 if not DEBUG and not CSRF_TRUSTED_ORIGINS:
