@@ -5,8 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
-# from api.taks.send_summarie_tasks import send_summarie_massive
-# from .middleware import get_current_user
+
 
 CURRENT_FILE = Path(__file__).resolve()
 
@@ -206,14 +205,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = REDIS
 CELERY_RESULT_BACKEND = REDIS
 CELERY_TIMEZONE = TIME_ZONE
-
-# conf.beat_schedule = {
-#     'envio-resumos': {
-#         'task': 'send_summarie_massive',
-#         'schedule': crontab(hour=8, minute=0),
-#         'args': {"is_active": True}
-#     },
-# }
 
 if not DEBUG:
     # Cookies seguros só trafegam via HTTPS

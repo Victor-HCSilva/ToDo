@@ -4,7 +4,6 @@ from main.models import Todo
 from django.contrib.auth.models import User
 from django.db.models import F 
 from datetime import timedelta
-from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 

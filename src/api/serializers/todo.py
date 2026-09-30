@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from main.models import Folder, LinkerTaskTodo, Todo
 from api.email.script import send_delay
-
+from api.tasks.send_summaries_task import send_summarie_massive
 
 class FolderSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -138,8 +138,8 @@ class TodoSerializer(serializers.ModelSerializer):
         validated_data["user"] = request.user
         username = request.user.username
         titulo = validated_data.get("titulo", "Titulo não encontrado")
-        t = f"Criada nova anotação - {titulo}"
-        c = f"{username}, continue assim! Gerencie, estude e registre 📝"
+        send_summarie_massive()
+        # t = f"Criada nova anotação - {titulo}"
+        # c = f"{username}, continue assim! Gerencie, estude e registre 📝"
         s = send_delay.delay(to_user=request.user.id, content=c, title=t)
-        
         return super().create(validated_data)

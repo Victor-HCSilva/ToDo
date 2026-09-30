@@ -10,6 +10,8 @@ from django.core.cache import cache
 from django.core.management.utils import get_random_secret_key
 from time import sleep
 
+logger = getLogger("__main__")
+
 try:
     from celery import shared_task
 except ImportError:
@@ -22,10 +24,6 @@ except ImportError:
             def delay(self, *args, **kwargs):
                 return self.fn(*args, **kwargs)
         return DummyTask(func)
-
-
-logger = getLogger("__main__")
-
 
 class SendEmail:
 	timeout = 5 # 5s
@@ -140,7 +138,7 @@ class SendEmail:
 		
 
 @shared_task
-def send_delay(to_user: int | str,content: str,title: str):
+def send_delay(to_user: int | str,content: str,title: str, time=3):
 	user = get_object_or_404(User,id=to_user)
-	s = SendEmail(user, content, title)
+	s = SendEmail(user, content, title,time)
 	s.send()
