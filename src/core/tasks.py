@@ -6,12 +6,13 @@ from django.db.models import F
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from django.utils import timezone  # Melhor que datetime puro para evitar timezone warnings
+from django.utils import timezone
 
 
 app = Celery()
 
 
+@app.task()
 def general_status(user_id: int | str):
     user = get_object_or_404(User, id=user_id)
     hoje = timezone.localdate()
@@ -30,7 +31,7 @@ def general_status(user_id: int | str):
         "tarefas_atrasadas": tarefas_atrasadas,
     }
 
-
+@app.task()
 def reminder(user_id: int | str):
     user = get_object_or_404(User, id=user_id)
     return Reminder.objects.filter(agenda__user=user).values()

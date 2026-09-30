@@ -3,8 +3,10 @@ import os
 import sys
 from datetime import timedelta
 from pathlib import Path
-
+from celery.schedules import crontab
 from dotenv import load_dotenv
+# from api.taks.send_summarie_tasks import send_summarie_massive
+# from .middleware import get_current_user
 
 CURRENT_FILE = Path(__file__).resolve()
 
@@ -26,13 +28,6 @@ def get_env_bool(name: str, default: bool = False) -> bool:
         return default
     return val.strip().lower() in ("true", "1", "t", "yes")
 
-
-def get_env_list(name: str, default: str = "") -> list[str]:
-    """Converte strings separadas por vírgula em lista de strings limpas."""
-    raw = os.getenv(name, default)
-    return [item.strip() for item in raw.split(",") if item.strip()]
-
-
 DEBUG = get_env_bool("DEBUG", default=False)
 LOGIN_URL = "main:login"
 LOGOUT_REDIRECT_URL = "main:create_account"
@@ -45,10 +40,10 @@ if not SECRET_KEY:
     else:
         raise ValueError("A variável SECRET_KEY precisa estar definida em produção!")
 
-ALLOWED_HOSTS = get_env_list(
-    "ALLOWED_HOSTS",
-    default="127.0.0.1,localhost,testserver,10.0.0.108" if DEBUG else "testserver",
-)
+ALLOWED_HOSTS = [url for url in os.getenv("TRUSTED_ORIGINS", "localhost,10.0.0.108").split(',')]
+CSRF_TRUSTED_ORIGINS = [
+    f"http://{url}" for url in os.getenv("TRUSTED_ORIGINS", "localhost,10.0.0.108").split(',')
+]
 
 if not DEBUG and not ALLOWED_HOSTS:
     raise ValueError(
@@ -56,11 +51,6 @@ if not DEBUG and not ALLOWED_HOSTS:
         "Exemplo: ALLOWED_HOSTS=example.com,www.example.com"
     )
 
-
-CSRF_TRUSTED_ORIGINS = get_env_list(
-    "CSRF_TRUSTED_ORIGINS",
-    default="http://127.0.0.1,http://localhost,http://testserver,http://10.0.0.108" if DEBUG else "http://testserver",
-)
 
 if not DEBUG and not CSRF_TRUSTED_ORIGINS:
     raise ValueError(
@@ -108,6 +98,8 @@ MIDDLEWARE = [
     "core.middleware.CurrentUserMiddleware",
 ]
 
+CORS_ALLOWED_ORIGINS = CSRF_TRUSTED_ORIGINS
+
 ROOT_URLCONF = "core.urls"
 WSGI_APPLICATION = "core.wsgi.application"
 
@@ -129,24 +121,16 @@ TEMPLATES = [
     },
 ]
 
-if os.environ.get("USE_SQLITE", "false").lower() in ("true", "1") or os.environ.get("DB_ENGINE") == "sqlite3":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", "todo_db"),
+        "USER": os.environ.get("DB_USER", "todo_user"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "todo_secret_pass"),
+        "HOST": os.environ.get("DB_HOST", "db"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DB_NAME", "todo_db"),
-            "USER": os.environ.get("DB_USER", "todo_user"),
-            "PASSWORD": os.environ.get("DB_PASSWORD", "todo_secret_pass"),
-            "HOST": os.environ.get("DB_HOST", "db"),
-            "PORT": os.environ.get("DB_PORT", "5432"),
-        }
-    }
+}
 
 try:
     import django_redis  # noqa: F401
@@ -222,6 +206,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = REDIS
 CELERY_RESULT_BACKEND = REDIS
 CELERY_TIMEZONE = TIME_ZONE
+
+# conf.beat_schedule = {
+#     'envio-resumos': {
+#         'task': 'send_summarie_massive',
+#         'schedule': crontab(hour=8, minute=0),
+#         'args': {"is_active": True}
+#     },
+# }
 
 if not DEBUG:
     # Cookies seguros só trafegam via HTTPS

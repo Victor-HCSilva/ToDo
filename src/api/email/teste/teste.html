@@ -6,25 +6,39 @@
 	<title></title>
 </head>
 <body>
-	<div style="border 2px solid gray; background-color: azure;;">
-		<h1 style="text-align: center;"> Olá, {username}!</h1>
-			<div style="border 2px solid gray;">
-				<p 
-				style="
-				text-align:center; 
-				color: darkcyan;border: 1px; 
-				padding: 0px; 
-				margin: 0px;
-				border: 1px solid gray;
-				border-radius: 10px; background-color: #D1FFD1;">Sua notificação<p>
-			<p style="color: #2b2d31; text-align: center;">
-			{content}
-			</p>
-		
-		<a style="color: green; border: 2px solid darkcyan; border-radius: 10px; text-align: center" href={link} target="_blank">Visite a página</a>	
-		</div>	
+	<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 20px auto; padding: 32px 24px 20px 24px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+    
+    <!-- Título / Saudação -->
+    <h1 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 600; color: #0f172a; text-align: center;">
+        Olá, {username}!
+    </h1>
 
-	</div>
-	
+    <!-- Card de Conteúdo -->
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px 16px; text-align: center;">
+        
+        <!-- Badge / Notificação -->
+        <span style="display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #0f766e; background-color: #ccfbf1; border-radius: 9999px; margin-bottom: 14px;">
+            Sua notificação
+        </span>
+
+        <!-- Mensagem de Conteúdo -->
+        <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+            {content}
+        </p>
+
+        <!-- Botão de Ação -->
+        <a href="{self.link}" target="_blank" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 10px 22px; font-size: 14px; font-weight: 500; border-radius: 6px;">
+            Visite a página
+        </a>
+    </div>
+
+    <!-- Footer / Rodapé -->
+    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #f1f5f9; text-align: center;">
+        <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+            🧠 <strong>Equipe Brain</strong> &bull; &copy; 2026 Todos os direitos reservados.
+        </p>
+    </div>
+
+</div>
 </body>
 </html>

@@ -136,8 +136,10 @@ class TodoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         validated_data["user"] = request.user
+        username = request.user.username
         titulo = validated_data.get("titulo", "Titulo não encontrado")
-        c = f"Criada nova anotação: {titulo}"
-        # s = send_delay.delay(to_user=request.user.id, content=c, title="Criação de nova anotação")
+        t = f"Criada nova anotação - {titulo}"
+        c = f"{username}, continue assim! Gerencie, estude e registre 📝"
+        s = send_delay.delay(to_user=request.user.id, content=c, title=t)
         
         return super().create(validated_data)
